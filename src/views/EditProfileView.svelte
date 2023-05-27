@@ -127,12 +127,19 @@
                                 class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
                             >
                                 <div
-                                    style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; top: -100px;"
+                                    style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
                                 >
                                     {#if profile && profile.picture}
                                         <ProfileImg
                                             {profile}
-                                            style="position: absolute; width: 100%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+                                            style={{
+                                                position: "absolute",
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "cover",
+                                                top: "0",
+                                                left: "0",
+                                            }}
                                         />
                                     {/if}
                                 </div>

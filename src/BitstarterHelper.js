@@ -218,7 +218,7 @@ export default class BitstarterHelper {
 
     // Wenn keine Events gefunden wurden, geben Sie ein leeres Objekt zurück
     if (events.length === 0) {
-      return {};
+      return {'pubkey': pubkey};
     }
 
     // Ansonsten nehmen Sie das erste Event
