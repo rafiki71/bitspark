@@ -98,7 +98,6 @@ export default class BitstarterHelper {
     return ideas;
   }
   
-
   async getComments(event_id) {
     const filters = [
       {
@@ -182,14 +181,14 @@ export default class BitstarterHelper {
     }
   }
 
-  async validateGithubIdent(username, proof) {
+  async validateGithubIdent(pubkey, proof) {
     try {
       const gistUrl = `https://api.github.com/gists/${proof}`;
 
       const response = await fetch(gistUrl, { mode: 'cors' });
       const data = await response.json();
 
-      const nPubKey = nip19.npubEncode(this.publicKey);
+      const nPubKey = nip19.npubEncode(pubkey);
 
       const expectedText = `${nPubKey}`;
 
@@ -238,7 +237,7 @@ export default class BitstarterHelper {
       event.githubProof = githubIdent.proof;
 
       // Überprüfen der Github-Verifikation und speichern des Ergebnisses in profile.githubVerified
-      event.githubVerified = await this.validateGithubIdent(githubIdent.username, githubIdent.proof);
+      event.githubVerified = await this.validateGithubIdent(pubkey, githubIdent.proof);
     }
 
     // Den ursprünglichen content entfernen
