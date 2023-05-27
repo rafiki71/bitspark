@@ -32,17 +32,11 @@ export default class NostrHelper {
   async sendEvent(event) {
     console.log("sign event")
     if (!this.write_mode) return; // Do nothing in read-only mode
+    if (!this.extensionAvailable()) return;
 
     event.tags.push(["s", "bitstarter"]);
-    if (this.useExtension) {
-      console.log("use extension")
-      event = await window.nostr.signEvent(event)
-    }
-    else {
-      console.log("dont use extension")
-      event.id = getEventHash(event);
-      event.sig = signEvent(event, this.privateKey);
-    }
+    event = await window.nostr.signEvent(event)
+    
     event.tags = uniqueTags(event.tags);
     const pubs = this.pool.publish(this.relays, event);
     console.log("send event:");
