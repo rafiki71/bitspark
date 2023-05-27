@@ -13,6 +13,104 @@ export default class NostrHelper {
 
   }
 
+  async getAllRelays(pubkey) {
+    // Get relays from getRelays function
+    let relaysFromGetRelays = await this.getRelays(pubkey);
+    // Transform it to include only relay URLs
+    relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
+  
+    // Get relays from getPublicRelays function
+    let relaysFromGetPublicRelays = await this.getPublicRelays();
+    // Transform it to include only relay URLs
+    relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
+  
+    // Combine both relay lists
+    let allRelays = relaysFromGetRelays.concat(relaysFromGetPublicRelays);
+  
+    // Remove duplicates
+    allRelays = [...new Set(allRelays)];
+  
+    return allRelays;
+  }
+  
+  async getPublicRelays() {
+      let relayObject = await window.nostr.getRelays();
+      let relayList = [];
+    
+      for(let key in relayObject) {
+        let relay = [key, relayObject[key].read, relayObject[key].write];
+        relayList.push(relay);
+      }
+    
+      return relayList;
+  }
+
+  async getRelays(pubkey) {
+    // Get all events of kind 10002 (Relay List Metadata) authored by the given pubkey
+    const events = await this.pool.list(this.relays, [
+      {
+        kinds: [10002],
+        'authors': [pubkey]
+      }
+    ]);
+  
+    // If no events were found, return an empty array
+    if (events.length === 0) {
+      return [];
+    }
+  
+    // Otherwise, take the first (most recent) event
+    const event = events[0];
+  
+    // The relay URLs are stored in 'r' tags of the event
+    const relayTags = event.tags.filter(tag => tag[0] === 'r');
+  
+    return relayTags;
+  }
+
+  async addRelay(relay_url) {
+    if (!this.write_mode) return; // Do nothing in read-only mode
+    
+    // Get the original Relay List Metadata event
+    const originalEvent = await this.getRelays(this.publicKey);
+    let originalRelays = originalEvent ? originalEvent.tags : [];
+  
+    originalRelays = originalRelays || [];
+    
+    // Check if the relay_url already exists in the original relays
+    const exists = originalRelays.find(relay => relay[1] === relay_url);
+  
+    if (!exists) {
+      // Add the new relay to the list
+      originalRelays.push(["r", relay_url]);
+    }
+  
+    // Create the relay list metadata event
+    const relayListEvent = this.createEvent(10002, "", originalRelays);
+  
+    // Send the relay list metadata event
+    await this.sendEvent(relayListEvent);
+  }
+  
+  async deleteRelay(relay_url) {
+    if (!this.write_mode) return; // Do nothing in read-only mode
+    
+    // Get the original Relay List Metadata event
+    const originalEvent = await this.getRelays(this.publicKey);
+    let originalRelays = originalEvent ? originalEvent.tags : [];
+  
+    originalRelays = originalRelays || [];
+  
+    // Filter out the relay_url from the original relays
+    const updatedRelays = originalRelays.filter(relay => relay[1] !== relay_url);
+  
+    // Create the relay list metadata event
+    const relayListEvent = this.createEvent(10002, "", updatedRelays);
+  
+    // Send the relay list metadata event
+    await this.sendEvent(relayListEvent);
+  }
+
   async extensionAvailable() {
     if("nostr" in window) {
       return true;
@@ -313,6 +411,9 @@ function uniqueTags(tags) {
 NostrHelper.create = async function (write_mode) {
   const instance = new NostrHelper(write_mode);
   await instance.initialize();
+  let relays2 = await instance.getAllRelays(instance.publicKey);
+  console.log(relays2);
+  instance.deleteRelay("wss://test.com");
   return instance;
 }
 
