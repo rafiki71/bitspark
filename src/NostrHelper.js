@@ -25,6 +25,9 @@ export default class NostrHelper {
     if (this.write_mode && useExtension) {
       this.publicKey = await window.nostr.getPublicKey();
     }
+    else {
+      this.write_mode = false;
+    }
 
     console.log(this.publicKey);
   }
@@ -35,7 +38,7 @@ export default class NostrHelper {
     if (!this.extensionAvailable()) return;
 
     event.tags.push(["s", "bitstarter"]);
-    event = await window.nostr.signEvent(event)
+    event = await window.nostr.signEvent(event);
     
     event.tags = uniqueTags(event.tags);
     const pubs = this.pool.publish(this.relays, event);
