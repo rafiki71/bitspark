@@ -1,0 +1,37 @@
+<!-- App.svelte -->
+<script>
+  import { Router, Route, Link } from "svelte-routing";
+  import Overview from "./views/Overview.svelte";
+  import IdeaDetail from "./views/IdeaDetail.svelte";
+  import PostIdea from "./views/PostIdea.svelte";
+  import Login from "./views/Login.svelte";
+  import EditProfileView from "./views/EditProfileView.svelte";
+  import ProfileView from "./views/ProfileView.svelte";
+</script>
+
+<svelte:head>
+  <link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+  />
+</svelte:head>
+
+<Router>
+  <div>
+    <nav>
+      <!-- Navigation links here -->
+    </nav>
+    <main>
+      <Route path="/" component={Login} />
+      <Route path="/overview" component={Overview} />
+      <Route path="/idea/:id" component={IdeaDetail} />
+      <Route path="/postidea" component={PostIdea} />
+      <Route
+        path="/edit_profile/:profile_id"
+        let:params
+        component={EditProfileView}
+      />
+      <Route path="/profile/:profile_id" let:params component={ProfileView} />
+    </main>
+  </div>
+</Router>
