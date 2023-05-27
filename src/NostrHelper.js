@@ -2,7 +2,7 @@ import 'websocket-polyfill'
 //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
 const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 
-export default class BitstarterHelper {
+export default class NostrHelper {
   constructor(write_mode) {
     this.pool = new SimplePool();
     this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
@@ -313,8 +313,8 @@ function uniqueTags(tags) {
   return uniqueTags;
 }
 
-BitstarterHelper.create = async function (write_mode) {
-  const instance = new BitstarterHelper(write_mode);
+NostrHelper.create = async function (write_mode) {
+  const instance = new NostrHelper(write_mode);
   await instance.initialize();
   return instance;
 }

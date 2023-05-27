@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { helperStore } from "../helperStore.js"; // Import the store
-  import BitstarterHelper from "../BitstarterHelper.js";
+  import NostrHelper from "../NostrHelper.js";
   import { navigate } from "svelte-routing";
   import 'websocket-polyfill'
 
@@ -14,19 +14,19 @@
     navigate("/overview");
   }
 
-  // Warten Sie darauf, dass BitstarterHelper.create aufgelöst ist, bevor Sie fortfahren
-  const helper = await BitstarterHelper.create(true);
+  // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
+  const helper = await NostrHelper.create(true);
 
-  // Erstelle einen neuen BitstarterHelper und speichere ihn in helperStore
+  // Erstelle einen neuen NostrHelper und speichere ihn in helperStore
   await helperStore.set(helper);
 
-  // Überprüfe, ob der BitstarterHelper korrekt im Store gespeichert wurde
+  // Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
   if ($helperStore) {
-    console.log("BitstarterHelper successfully saved in store");
+    console.log("NostrHelper successfully saved in store");
     // Danach leiten wir den Benutzer zur Übersichtsseite
     navigate("/overview");
   } else {
-    console.error("Failed to save BitstarterHelper in store");
+    console.error("Failed to save NostrHelper in store");
   }
 }
 
