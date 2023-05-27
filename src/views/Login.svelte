@@ -15,7 +15,7 @@
   }
 
   // Warten Sie darauf, dass BitstarterHelper.create aufgelöst ist, bevor Sie fortfahren
-  const helper = await BitstarterHelper.create($privateKey);
+  const helper = await BitstarterHelper.create(true);
 
   // Erstelle einen neuen BitstarterHelper und speichere ihn in helperStore
   await helperStore.set(helper);

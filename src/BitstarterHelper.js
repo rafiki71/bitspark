@@ -3,32 +3,35 @@ import 'websocket-polyfill'
 const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 
 export default class BitstarterHelper {
-  constructor(privateKey) {
+  constructor(write_mode) {
     this.pool = new SimplePool();
     this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
     //this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
     this.idea_kind = 1338;
-    this.privateKey = privateKey
+    this.write_mode = write_mode
+    this.publicKey = ""
 
   }
 
+  async extensionAvailable() {
+    if("nostr" in window) {
+      return true;
+    }
+    return false;
+  }
+
   async initialize() {
-    this.useExtension = "nostr" in window;
-    if (this.privateKey == "" && this.useExtension) {
+    let useExtension = this.extensionAvailable();
+    if (this.write_mode && useExtension) {
       this.publicKey = await window.nostr.getPublicKey();
     }
 
-    if (!this.useExtension || this.privateKey != "") {
-      this.publicKey = this.privateKey ? getPublicKey(this.privateKey) : "";
-    }
-
-    this.readOnlyMode = !this.useExtension && privateKey === "";
     console.log(this.publicKey);
   }
 
   async sendEvent(event) {
     console.log("sign event")
-    if (this.readOnlyMode) return; // Do nothing in read-only mode
+    if (!this.write_mode) return; // Do nothing in read-only mode
 
     event.tags.push(["s", "bitstarter"]);
     if (this.useExtension) {
@@ -65,7 +68,7 @@ export default class BitstarterHelper {
   }
 
   async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress) {
-    if (this.readOnlyMode) return; // Do nothing in read-only mode
+    if (!this.write_mode) return; // Do nothing in read-only mode
 
     const tags = [
       ["iName", ideaName],
@@ -123,7 +126,7 @@ export default class BitstarterHelper {
 
 
   async postComment(event_id, comment) {
-    if (this.readOnlyMode) return; // Do nothing in read-only mode
+    if (!this.write_mode) return; // Do nothing in read-only mode
 
     const tags = [
       ["e", event_id]
@@ -135,7 +138,7 @@ export default class BitstarterHelper {
   }
 
   async likeEvent(event_id) {
-    if (this.readOnlyMode) return; // Do nothing in read-only mode
+    if (!this.write_mode) return; // Do nothing in read-only mode
 
     const tags = [
       ["e", event_id]
@@ -264,7 +267,7 @@ export default class BitstarterHelper {
 
   async updateProfile(name, picture, banner, dev_about, lnurl, identities = []) {
     console.log("updateProfile");
-    if (this.readOnlyMode) return; // Do nothing in read-only mode
+    if (!this.write_mode) return; // Do nothing in read-only mode
 
     // Get the original profile event
     const originalEvent = await this.getOriginalProfile();
@@ -310,8 +313,8 @@ function uniqueTags(tags) {
   return uniqueTags;
 }
 
-BitstarterHelper.create = async function (privateKey) {
-  const instance = new BitstarterHelper(privateKey);
+BitstarterHelper.create = async function (write_mode) {
+  const instance = new BitstarterHelper(write_mode);
   await instance.initialize();
   return instance;
 }
