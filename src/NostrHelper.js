@@ -8,41 +8,57 @@ export default class NostrHelper {
     this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
     //this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
     this.idea_kind = 1338;
-    this.write_mode = write_mode
-    this.publicKey = ""
+    this.write_mode = write_mode;
+    this.publicKey = "";
+    this.publicRelays = [];
+    this.clientRelays = [];
 
   }
 
-  async getAllRelays(pubkey) {
-    // Get relays from getRelays function
-    let relaysFromGetRelays = await this.getRelays(pubkey);
-    // Transform it to include only relay URLs
-    relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
-  
+  async getPublicRelaysString() {
     // Get relays from getPublicRelays function
     let relaysFromGetPublicRelays = await this.getPublicRelays();
     // Transform it to include only relay URLs
     relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
-  
+    this.publicRelays = relaysFromGetPublicRelays;
+    return relaysFromGetPublicRelays
+  }
+
+  async getRelaysString(pubkey) {
+    // Get relays from getRelays function
+    let relaysFromGetRelays = await this.getRelays(pubkey);
+    // Transform it to include only relay URLs
+    relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
+    this.clientRelays = relaysFromGetRelays;
+    return relaysFromGetRelays
+  }
+
+  async getAllRelays(pubkey) {
+    // Get relays from getRelays function
+    let relaysFromGetRelays = await this.getRelaysString(pubkey);
+
+    // Get relays from getPublicRelays function
+    let relaysFromGetPublicRelays = await this.getPublicRelaysString();
+
     // Combine both relay lists
     let allRelays = relaysFromGetRelays.concat(relaysFromGetPublicRelays);
-  
+
     // Remove duplicates
     allRelays = [...new Set(allRelays)];
-  
+
     return allRelays;
   }
-  
+
   async getPublicRelays() {
-      let relayObject = await window.nostr.getRelays();
-      let relayList = [];
-    
-      for(let key in relayObject) {
-        let relay = [key, relayObject[key].read, relayObject[key].write];
-        relayList.push(relay);
-      }
-    
-      return relayList;
+    let relayObject = await window.nostr.getRelays();
+    let relayList = [];
+
+    for (let key in relayObject) {
+      let relay = [key, relayObject[key].read, relayObject[key].write];
+      relayList.push(relay);
+    }
+
+    return relayList;
   }
 
   async getRelays(pubkey) {
@@ -53,66 +69,66 @@ export default class NostrHelper {
         'authors': [pubkey]
       }
     ]);
-  
+
     // If no events were found, return an empty array
     if (events.length === 0) {
       return [];
     }
-  
+
     // Otherwise, take the first (most recent) event
     const event = events[0];
-  
+
     // The relay URLs are stored in 'r' tags of the event
     const relayTags = event.tags.filter(tag => tag[0] === 'r');
-  
+
     return relayTags;
   }
 
   async addRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-    
+
     // Get the original Relay List Metadata event
     const originalEvent = await this.getRelays(this.publicKey);
     let originalRelays = originalEvent ? originalEvent.tags : [];
-  
+
     originalRelays = originalRelays || [];
-    
+
     // Check if the relay_url already exists in the original relays
     const exists = originalRelays.find(relay => relay[1] === relay_url);
-  
+
     if (!exists) {
       // Add the new relay to the list
       originalRelays.push(["r", relay_url]);
     }
-  
+
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", originalRelays);
-  
+
     // Send the relay list metadata event
     await this.sendEvent(relayListEvent);
   }
-  
+
   async deleteRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-    
+
     // Get the original Relay List Metadata event
     const originalEvent = await this.getRelays(this.publicKey);
     let originalRelays = originalEvent ? originalEvent.tags : [];
-  
+
     originalRelays = originalRelays || [];
-  
+
     // Filter out the relay_url from the original relays
     const updatedRelays = originalRelays.filter(relay => relay[1] !== relay_url);
-  
+
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", updatedRelays);
-  
+
     // Send the relay list metadata event
     await this.sendEvent(relayListEvent);
   }
 
   async extensionAvailable() {
-    if("nostr" in window) {
+    if ("nostr" in window) {
       return true;
     }
     return false;
@@ -122,10 +138,8 @@ export default class NostrHelper {
     let useExtension = this.extensionAvailable();
     if (this.write_mode && useExtension) {
       this.publicKey = await window.nostr.getPublicKey();
-      self.relays = await this.getAllRelays(self.publicKey); //fetch from the public first
-      console.log(self.relays)
-      self.relays = await this.getAllRelays(self.publicKey); //do it again since relays changed now.
-      console.log(self.relays)
+      this.relays = await this.getPublicRelaysString(); //fetch from the public first
+      this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
     }
     else {
       this.write_mode = false;
@@ -141,7 +155,7 @@ export default class NostrHelper {
 
     event.tags.push(["s", "bitstarter"]);
     event = await window.nostr.signEvent(event);
-    
+
     event.tags = uniqueTags(event.tags);
     const pubs = this.pool.publish(this.relays, event);
     console.log("send event:");
@@ -185,7 +199,7 @@ export default class NostrHelper {
   async getIdeas() {
     const filters = [{ kinds: [this.idea_kind], '#s': ['bitstarter'] }]
     let ideas = await this.pool.list(this.relays, filters);
-    
+
     // Get the profiles for each idea and store them in the ideas
     const profilePromises = ideas.map(async idea => {
       const profile = await this.getProfile(idea.pubkey);
@@ -193,13 +207,13 @@ export default class NostrHelper {
       idea.githubVerified = profile.githubVerified || false;
       return idea;
     });
-    
+
     ideas = await Promise.all(profilePromises);
-  
+
     console.log("getIdeas()")
     return ideas;
   }
-  
+
   async getComments(event_id) {
     const filters = [
       {
@@ -320,7 +334,7 @@ export default class NostrHelper {
 
     // Wenn keine Events gefunden wurden, geben Sie ein leeres Objekt zurück
     if (events.length === 0) {
-      return {'pubkey': pubkey};
+      return { 'pubkey': pubkey };
     }
 
     // Ansonsten nehmen Sie das erste Event
