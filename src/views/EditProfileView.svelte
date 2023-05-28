@@ -96,7 +96,7 @@
         if (newRelay.trim()) {
             await bitstarterHelper.addRelay(newRelay);
             // Add the new relay to the local list
-            relays = [...relays, newRelay];
+            relays = [...bitstarterHelper.clientRelays];
             newRelay = "";
         }
     } catch (error) {

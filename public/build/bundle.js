@@ -7771,20 +7771,46 @@ var app = (function () {
     if (node.is_node())
         commonjsGlobal.WebSocket = WebSocket_1.WebSocket;
 
+    class ProfileBuffer {
+        constructor() {
+            this.profiles = new Map();
+        }
+
+        // Hinzufügen eines Profils zur Map
+        addProfile(profile) {
+            if (!profile) {
+                return;
+            }
+            const timestamp = Date.now();
+            this.profiles.set(profile.pubkey, { profile, timestamp });
+        }
+
+        // Abrufen eines Profils aus der Map, sofern es nicht älter als eine Stunde ist
+        getProfile(pubkey) {
+            const profileData = this.profiles.get(pubkey);
+            if (profileData) {
+                const oneHour = 60 * 60 * 1000; // Zeit in Millisekunden
+                if (Date.now() - profileData.timestamp < oneHour) {
+                    return profileData.profile;
+                }
+            }
+            return undefined;
+        }
+    }
+
     //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
     const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 
     class NostrHelper {
       constructor(write_mode) {
         this.pool = new SimplePool();
-        this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
-        //this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
+        this.relays = [];//get set by initialize()
         this.idea_kind = 1338;
         this.write_mode = write_mode;
         this.publicKey = "";
         this.publicRelays = [];
         this.clientRelays = [];
-
+        this.profileBuffer = new ProfileBuffer();
       }
 
       async getPublicRelaysString() {
@@ -7879,13 +7905,13 @@ var app = (function () {
 
         // Send the relay list metadata event
         try {
-            await this.sendEvent(relayListEvent);
-            // If the addition was successful, add it to clientRelays
-            this.clientRelays.push(relay_url);
+          await this.sendEvent(relayListEvent);
+          // If the addition was successful, add it to clientRelays
+          this.clientRelays.push(relay_url);
         } catch (error) {
-            console.error("Error adding relay:", error);
+          console.error("Error adding relay:", error);
         }
-    }
+      }
 
 
       async deleteRelay(relay_url) {
@@ -7927,16 +7953,14 @@ var app = (function () {
           this.publicKey = await window.nostr.getPublicKey();
           this.relays = await this.getPublicRelaysString(); //fetch from the public first
           this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
+          console.log("used relays:", this.relays);
         }
         else {
           this.write_mode = false;
         }
-
-        console.log(this.publicKey);
       }
 
       async sendEvent(event) {
-        console.log("sign event");
         if (!this.write_mode) return; // Do nothing in read-only mode
         if (!this.extensionAvailable()) return;
 
@@ -7945,8 +7969,7 @@ var app = (function () {
 
         event.tags = uniqueTags(event.tags);
         this.pool.publish(this.relays, event);
-        console.log("send event:");
-        console.log(event);
+        console.log("send event:", event);
         return event.id;
       }
 
@@ -8066,7 +8089,7 @@ var app = (function () {
           if (!profile.tags) {
             return null;
           }
-
+          
           const tag = profile.tags.find(tag => tag[0] === 'i' && tag[1].startsWith('github:'));
           if (!tag) {
             return null;
@@ -8110,7 +8133,15 @@ var app = (function () {
       }
 
       async getProfile(pubkey) {
-        console.log("getProfile");
+        console.log("getProfile:", pubkey);
+
+        // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
+        let profile = await this.profileBuffer.getProfile(pubkey);
+        
+        if (profile) {
+          console.log("getProfile speed up:", profile);
+          return profile;
+        }
 
         const events = await this.pool.list(this.relays, [
           {
@@ -8146,9 +8177,8 @@ var app = (function () {
         // Den ursprünglichen content entfernen
         delete event.content;
 
-        console.log(event);
-        console.log("getProfile done");
-
+        this.profileBuffer.addProfile(event);
+        console.log("getProfile done:", event);
         return event;
       }
 
@@ -8189,16 +8219,12 @@ var app = (function () {
         // Create the tags list by transforming the identity proofs into the required format
         const tags = identities.map(identity => ['i', `${identity.platform}:${identity.identity}`, identity.proof]);
 
-        console.log(originalEvent.tags);
-        console.log(tags);
         const combinedTags = [...tags];
-        console.log(combinedTags);
 
         // Update the original event's content and tags
         const profileEvent = this.createEvent(0, contentStr, combinedTags);
-        console.log(profileEvent);
         let ret = await this.sendEvent(profileEvent);
-        console.log("Profile Update done");
+        console.log("Profile Update done:", profileEvent);
         return ret;
       }
     }
@@ -9029,7 +9055,7 @@ var app = (function () {
     				await bitstarterHelper.addRelay(newRelay);
 
     				// Add the new relay to the local list
-    				$$invalidate(7, relays = [...relays, newRelay]);
+    				$$invalidate(7, relays = [...bitstarterHelper.clientRelays]);
 
     				$$invalidate(8, newRelay = "");
     			}
