@@ -1,10 +1,10 @@
 {
-  "name": "notus-svelte",
+  "name": "BitSpark",
   "version": "1.1.0",
   "type": "module",
-  "homepage": "https://demos.creative-tim.com/notus-svelte/",
-  "description": "Notus Svelte - A free Tailwind CSS and Svelte UI Kit and Admin by Creative Tim.",
-  "repository": "https://github.com/creativetimofficial/notus-svelte",
+  "homepage": "bitspark.bitsperity.dev",
+  "description": "BitSpark - Idea Engine",
+  "repository": "https://github.com/rafiki71/bitspark",
   "license": "MIT",
   "scripts": {
     "build": "rollup -c",

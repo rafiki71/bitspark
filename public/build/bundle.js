@@ -7774,44 +7774,146 @@ var app = (function () {
     //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
     const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 
-    class BitstarterHelper {
-      constructor(privateKey) {
+    class NostrHelper {
+      constructor(write_mode) {
         this.pool = new SimplePool();
         this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
         //this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
         this.idea_kind = 1338;
-        this.privateKey = privateKey;
+        this.write_mode = write_mode;
+        this.publicKey = "";
 
       }
 
+      async getAllRelays(pubkey) {
+        // Get relays from getRelays function
+        let relaysFromGetRelays = await this.getRelays(pubkey);
+        // Transform it to include only relay URLs
+        relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
+      
+        // Get relays from getPublicRelays function
+        let relaysFromGetPublicRelays = await this.getPublicRelays();
+        // Transform it to include only relay URLs
+        relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
+      
+        // Combine both relay lists
+        let allRelays = relaysFromGetRelays.concat(relaysFromGetPublicRelays);
+      
+        // Remove duplicates
+        allRelays = [...new Set(allRelays)];
+      
+        return allRelays;
+      }
+      
+      async getPublicRelays() {
+          let relayObject = await window.nostr.getRelays();
+          let relayList = [];
+        
+          for(let key in relayObject) {
+            let relay = [key, relayObject[key].read, relayObject[key].write];
+            relayList.push(relay);
+          }
+        
+          return relayList;
+      }
+
+      async getRelays(pubkey) {
+        // Get all events of kind 10002 (Relay List Metadata) authored by the given pubkey
+        const events = await this.pool.list(this.relays, [
+          {
+            kinds: [10002],
+            'authors': [pubkey]
+          }
+        ]);
+      
+        // If no events were found, return an empty array
+        if (events.length === 0) {
+          return [];
+        }
+      
+        // Otherwise, take the first (most recent) event
+        const event = events[0];
+      
+        // The relay URLs are stored in 'r' tags of the event
+        const relayTags = event.tags.filter(tag => tag[0] === 'r');
+      
+        return relayTags;
+      }
+
+      async addRelay(relay_url) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        
+        // Get the original Relay List Metadata event
+        const originalEvent = await this.getRelays(this.publicKey);
+        let originalRelays = originalEvent ? originalEvent.tags : [];
+      
+        originalRelays = originalRelays || [];
+        
+        // Check if the relay_url already exists in the original relays
+        const exists = originalRelays.find(relay => relay[1] === relay_url);
+      
+        if (!exists) {
+          // Add the new relay to the list
+          originalRelays.push(["r", relay_url]);
+        }
+      
+        // Create the relay list metadata event
+        const relayListEvent = this.createEvent(10002, "", originalRelays);
+      
+        // Send the relay list metadata event
+        await this.sendEvent(relayListEvent);
+      }
+      
+      async deleteRelay(relay_url) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        
+        // Get the original Relay List Metadata event
+        const originalEvent = await this.getRelays(this.publicKey);
+        let originalRelays = originalEvent ? originalEvent.tags : [];
+      
+        originalRelays = originalRelays || [];
+      
+        // Filter out the relay_url from the original relays
+        const updatedRelays = originalRelays.filter(relay => relay[1] !== relay_url);
+      
+        // Create the relay list metadata event
+        const relayListEvent = this.createEvent(10002, "", updatedRelays);
+      
+        // Send the relay list metadata event
+        await this.sendEvent(relayListEvent);
+      }
+
+      async extensionAvailable() {
+        if("nostr" in window) {
+          return true;
+        }
+        return false;
+      }
+
       async initialize() {
-        this.useExtension = "nostr" in window;
-        if (this.privateKey == "" && this.useExtension) {
+        let useExtension = this.extensionAvailable();
+        if (this.write_mode && useExtension) {
           this.publicKey = await window.nostr.getPublicKey();
+          self.relays = await this.getAllRelays(self.publicKey); //fetch from the public first
+          console.log(self.relays);
+          self.relays = this.getAllRelays(self.publicKey); //do it again since relays changed now.
+          console.log(self.relays);
+        }
+        else {
+          this.write_mode = false;
         }
 
-        if (!this.useExtension || this.privateKey != "") {
-          this.publicKey = this.privateKey ? getPublicKey(this.privateKey) : "";
-        }
-
-        this.readOnlyMode = !this.useExtension && privateKey === "";
         console.log(this.publicKey);
       }
 
       async sendEvent(event) {
         console.log("sign event");
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        if (!this.extensionAvailable()) return;
 
         event.tags.push(["s", "bitstarter"]);
-        if (this.useExtension) {
-          console.log("use extension");
-          event = await window.nostr.signEvent(event);
-        }
-        else {
-          console.log("dont use extension");
-          event.id = getEventHash(event);
-          event.sig = signEvent(event, this.privateKey);
-        }
+        event = await window.nostr.signEvent(event);
+        
         event.tags = uniqueTags(event.tags);
         this.pool.publish(this.relays, event);
         console.log("send event:");
@@ -7837,7 +7939,7 @@ var app = (function () {
       }
 
       async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         const tags = [
           ["iName", ideaName],
@@ -7870,7 +7972,6 @@ var app = (function () {
         return ideas;
       }
       
-
       async getComments(event_id) {
         const filters = [
           {
@@ -7896,7 +7997,7 @@ var app = (function () {
 
 
       async postComment(event_id, comment) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         const tags = [
           ["e", event_id]
@@ -7908,7 +8009,7 @@ var app = (function () {
       }
 
       async likeEvent(event_id) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         const tags = [
           ["e", event_id]
@@ -7954,14 +8055,14 @@ var app = (function () {
         }
       }
 
-      async validateGithubIdent(username, proof) {
+      async validateGithubIdent(pubkey, proof) {
         try {
           const gistUrl = `https://api.github.com/gists/${proof}`;
 
           const response = await fetch(gistUrl, { mode: 'cors' });
           const data = await response.json();
 
-          const nPubKey = nip19.npubEncode(this.publicKey);
+          const nPubKey = nip19.npubEncode(pubkey);
 
           const expectedText = `${nPubKey}`;
 
@@ -7991,7 +8092,7 @@ var app = (function () {
 
         // Wenn keine Events gefunden wurden, geben Sie ein leeres Objekt zurück
         if (events.length === 0) {
-          return {};
+          return {'pubkey': pubkey};
         }
 
         // Ansonsten nehmen Sie das erste Event
@@ -8010,7 +8111,7 @@ var app = (function () {
           event.githubProof = githubIdent.proof;
 
           // Überprüfen der Github-Verifikation und speichern des Ergebnisses in profile.githubVerified
-          event.githubVerified = await this.validateGithubIdent(githubIdent.username, githubIdent.proof);
+          event.githubVerified = await this.validateGithubIdent(pubkey, githubIdent.proof);
         }
 
         // Den ursprünglichen content entfernen
@@ -8037,7 +8138,7 @@ var app = (function () {
 
       async updateProfile(name, picture, banner, dev_about, lnurl, identities = []) {
         console.log("updateProfile");
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         // Get the original profile event
         const originalEvent = await this.getOriginalProfile();
@@ -8083,8 +8184,8 @@ var app = (function () {
       return uniqueTags;
     }
 
-    BitstarterHelper.create = async function (privateKey) {
-      const instance = new BitstarterHelper(privateKey);
+    NostrHelper.create = async function (write_mode) {
+      const instance = new NostrHelper(write_mode);
       await instance.initialize();
       return instance;
     };
@@ -8220,20 +8321,20 @@ var app = (function () {
     			navigate("/overview");
     		}
 
-    		// Warten Sie darauf, dass BitstarterHelper.create aufgelöst ist, bevor Sie fortfahren
-    		const helper = await BitstarterHelper.create($privateKey);
+    		// Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
+    		const helper = await NostrHelper.create(true);
 
-    		// Erstelle einen neuen BitstarterHelper und speichere ihn in helperStore
+    		// Erstelle einen neuen NostrHelper und speichere ihn in helperStore
     		await helperStore.set(helper);
 
-    		// Überprüfe, ob der BitstarterHelper korrekt im Store gespeichert wurde
+    		// Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
     		if ($helperStore) {
-    			console.log("BitstarterHelper successfully saved in store");
+    			console.log("NostrHelper successfully saved in store");
 
     			// Danach leiten wir den Benutzer zur Übersichtsseite
     			navigate("/overview");
     		} else {
-    			console.error("Failed to save BitstarterHelper in store");
+    			console.error("Failed to save NostrHelper in store");
     		}
     	}
 
@@ -8265,7 +8366,14 @@ var app = (function () {
     	profileimg = new ProfileImg({
     			props: {
     				profile: /*profile*/ ctx[0],
-    				style: "position: absolute; width: 100%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+    				style: {
+    					position: "absolute",
+    					width: "100%",
+    					height: "100%",
+    					objectFit: "cover",
+    					top: "0",
+    					left: "0"
+    				}
     			}
     		});
 
@@ -8445,12 +8553,12 @@ var app = (function () {
     			attr(div2, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
     			set_style(div2, "transform", "translateZ(0)");
     			attr(section0, "class", "relative block h-500-px");
-    			set_style(div3, "width", "200px");
-    			set_style(div3, "height", "200px");
+    			set_style(div3, "width", "150px");
+    			set_style(div3, "height", "150px");
     			set_style(div3, "border-radius", "50%");
     			set_style(div3, "overflow", "hidden");
     			set_style(div3, "position", "relative");
-    			set_style(div3, "top", "-100px");
+    			set_style(div3, "top", "-75px");
     			attr(div4, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
     			attr(div5, "class", "flex flex-wrap justify-center");
     			attr(label0, "for", "name");
@@ -8822,7 +8930,14 @@ var app = (function () {
     	profileimg = new ProfileImg({
     			props: {
     				profile: /*profile*/ ctx[1],
-    				style: "position: absolute; width: 100%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+    				style: {
+    					position: "absolute",
+    					width: "100%",
+    					height: "100%",
+    					objectFit: "cover",
+    					top: "0",
+    					left: "0"
+    				}
     			}
     		});
 

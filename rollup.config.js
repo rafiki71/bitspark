@@ -59,7 +59,7 @@ const indexTemplate = `<!--
       href="/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css"
     />
     <link rel="stylesheet" href="/assets/styles/tailwind.css" />
-    <title>Notus Svelte</title>
+    <title>BitSpark</title>
 
     <script>
       if (process === undefined) {
@@ -72,7 +72,7 @@ const indexTemplate = `<!--
   <body class="text-blueGray-700 antialiased">
     <noscript>
       <strong
-        >We're sorry but notus-svelte doesn't work properly without
+        >We're sorry but Bitspark doesn't work properly without
         JavaScript enabled. Please enable it to continue.</strong
       >
     </noscript>
@@ -86,19 +86,19 @@ if (production) {
     "./public/index.html",
     indexTemplate
       .replace("<<process-env-status>>", "PRODUCTION: true")
-      .replace(/<<live-preview-link>>/g, "/notus-svelte")
+      .replace(/<<live-preview-link>>/g, "/Bitspark")
   );
   fs.writeFileSync(
     "./public/200.html",
     indexTemplate
       .replace("<<process-env-status>>", "PRODUCTION: true")
-      .replace(/<<live-preview-link>>/g, "/notus-svelte")
+      .replace(/<<live-preview-link>>/g, "/Bitspark")
   );
   fs.writeFileSync(
     "./public/404.html",
     indexTemplate
       .replace("<<process-env-status>>", "PRODUCTION: true")
-      .replace(/<<live-preview-link>>/g, "/notus-svelte")
+      .replace(/<<live-preview-link>>/g, "/Bitspark")
   );
 } else {
   fs.writeFileSync(

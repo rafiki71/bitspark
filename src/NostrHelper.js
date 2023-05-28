@@ -122,6 +122,10 @@ export default class NostrHelper {
     let useExtension = this.extensionAvailable();
     if (this.write_mode && useExtension) {
       this.publicKey = await window.nostr.getPublicKey();
+      self.relays = await this.getAllRelays(self.publicKey); //fetch from the public first
+      console.log(self.relays)
+      self.relays = this.getAllRelays(self.publicKey); //do it again since relays changed now.
+      console.log(self.relays)
     }
     else {
       this.write_mode = false;
@@ -411,9 +415,6 @@ function uniqueTags(tags) {
 NostrHelper.create = async function (write_mode) {
   const instance = new NostrHelper(write_mode);
   await instance.initialize();
-  let relays2 = await instance.getAllRelays(instance.publicKey);
-  console.log(relays2);
-  instance.deleteRelay("wss://test.com");
   return instance;
 }
 
