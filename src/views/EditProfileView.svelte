@@ -15,10 +15,11 @@
     let git_username = "";
     let git_proof = "";
     let relays = []
+    let bitstarterHelper = null;
 
     onMount(async () => {
         try {
-            const bitstarterHelper = get(helperStore);
+            bitstarterHelper = get(helperStore);
             profile = await bitstarterHelper.getProfile(profile_id);
 
             if (profile) {
@@ -30,7 +31,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
-                relays = await bitstarterHelper.relays;
+                relays = await bitstarterHelper.publicRelays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -78,6 +79,17 @@
         e.target.style.height = "";
         e.target.style.height = e.target.scrollHeight + "px";
     }
+
+    const deleteRelay = async (relay) => {
+        try {
+            await bitstarterHelper.deleteRelay(relay);
+            // Remove relay from relays array
+            relays = relays.filter(r => r !== relay);
+        } catch (error) {
+            console.error("Error deleting relay:", error);
+        }
+    };
+
 </script>
 
 <div>
@@ -248,9 +260,17 @@
                                                     <h2 class="text-lg text-blueGray-400 mb-4">Relays</h2>
                                                     <div class="flex flex-col gap-2">
                                                         {#each relays as relay}
-                                                        <div class="px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md">
-                                                            {relay}
-                                                        </div>                                                        
+                                                        <div class="flex justify-between px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md">
+                                                            <div>
+                                                                {relay}
+                                                            </div>
+                                                            <button 
+                                                                class="bg-red-500 w-5 h-5 rounded-full flex justify-center items-center"
+                                                                on:click={() => deleteRelay(relay)}
+                                                            >
+                                                                X <!-- Sie können hier ein Kreuzsymbol verwenden, wenn Sie eines haben -->
+                                                            </button>  
+                                                        </div>
                                                         {/each}
                                                     </div>
                                                 </div>
