@@ -14,8 +14,9 @@
     let banner = "";
     let git_username = "";
     let git_proof = "";
-    let relays = []
+    let relays = [];
     let bitstarterHelper = null;
+    let newRelay = "";
 
     onMount(async () => {
         try {
@@ -31,7 +32,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
-                relays = await bitstarterHelper.publicRelays;
+                relays = await bitstarterHelper.clientRelays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -83,12 +84,26 @@
     const deleteRelay = async (relay) => {
         try {
             await bitstarterHelper.deleteRelay(relay);
-            // Remove relay from relays array
             relays = relays.filter(r => r !== relay);
+            // Remove relay from relays array
         } catch (error) {
             console.error("Error deleting relay:", error);
         }
     };
+
+    const addRelay = async () => {
+    try {
+        if (newRelay.trim()) {
+            await bitstarterHelper.addRelay(newRelay);
+            // Add the new relay to the local list
+            relays = [...relays, newRelay];
+            newRelay = "";
+        }
+    } catch (error) {
+        console.error("Error adding relay:", error);
+    }
+};
+
 
 </script>
 
@@ -272,12 +287,25 @@
                                                             </button>  
                                                         </div>
                                                         {/each}
+                                    
+                                                        <div class="flex justify-between items-center mt-4">
+                                                            <input
+                                                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                                bind:value={newRelay}
+                                                                placeholder="Enter relay URL..."
+                                                            />
+                                                            <button 
+                                                                class="bg-green-500 text-white font-bold py-2 px-4 rounded ml-2"
+                                                                on:click={addRelay}
+                                                            >
+                                                                Add
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                 </div>
                             </div>
                         </div>

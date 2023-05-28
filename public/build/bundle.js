@@ -7782,39 +7782,55 @@ var app = (function () {
         this.idea_kind = 1338;
         this.write_mode = write_mode;
         this.publicKey = "";
+        this.publicRelays = [];
+        this.clientRelays = [];
 
       }
 
-      async getAllRelays(pubkey) {
-        // Get relays from getRelays function
-        let relaysFromGetRelays = await this.getRelays(pubkey);
-        // Transform it to include only relay URLs
-        relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
-      
+      async getPublicRelaysString() {
         // Get relays from getPublicRelays function
         let relaysFromGetPublicRelays = await this.getPublicRelays();
         // Transform it to include only relay URLs
         relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
-      
+        this.publicRelays = relaysFromGetPublicRelays;
+        return relaysFromGetPublicRelays
+      }
+
+      async getRelaysString(pubkey) {
+        // Get relays from getRelays function
+        let relaysFromGetRelays = await this.getRelays(pubkey);
+        // Transform it to include only relay URLs
+        relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
+        this.clientRelays = relaysFromGetRelays;
+        return relaysFromGetRelays
+      }
+
+      async getAllRelays(pubkey) {
+        // Get relays from getRelays function
+        let relaysFromGetRelays = await this.getRelaysString(pubkey);
+
+        // Get relays from getPublicRelays function
+        let relaysFromGetPublicRelays = await this.getPublicRelaysString();
+
         // Combine both relay lists
         let allRelays = relaysFromGetRelays.concat(relaysFromGetPublicRelays);
-      
+
         // Remove duplicates
         allRelays = [...new Set(allRelays)];
-      
+
         return allRelays;
       }
-      
+
       async getPublicRelays() {
-          let relayObject = await window.nostr.getRelays();
-          let relayList = [];
-        
-          for(let key in relayObject) {
-            let relay = [key, relayObject[key].read, relayObject[key].write];
-            relayList.push(relay);
-          }
-        
-          return relayList;
+        let relayObject = await window.nostr.getRelays();
+        let relayList = [];
+
+        for (let key in relayObject) {
+          let relay = [key, relayObject[key].read, relayObject[key].write];
+          relayList.push(relay);
+        }
+
+        return relayList;
       }
 
       async getRelays(pubkey) {
@@ -7825,66 +7841,81 @@ var app = (function () {
             'authors': [pubkey]
           }
         ]);
-      
+
         // If no events were found, return an empty array
         if (events.length === 0) {
           return [];
         }
-      
+
         // Otherwise, take the first (most recent) event
         const event = events[0];
-      
+
         // The relay URLs are stored in 'r' tags of the event
         const relayTags = event.tags.filter(tag => tag[0] === 'r');
-      
+
         return relayTags;
       }
 
       async addRelay(relay_url) {
         if (!this.write_mode) return; // Do nothing in read-only mode
-        
+
         // Get the original Relay List Metadata event
         const originalEvent = await this.getRelays(this.publicKey);
         let originalRelays = originalEvent ? originalEvent.tags : [];
-      
+
         originalRelays = originalRelays || [];
-        
+
         // Check if the relay_url already exists in the original relays
         const exists = originalRelays.find(relay => relay[1] === relay_url);
-      
-        if (!exists) {
-          // Add the new relay to the list
-          originalRelays.push(["r", relay_url]);
-        }
-      
+
+        // If the relay_url already exists, return
+        if (exists) return;
+
+        // Add the new relay to the list
+        originalRelays.push(["r", relay_url]);
+
         // Create the relay list metadata event
         const relayListEvent = this.createEvent(10002, "", originalRelays);
-      
+
         // Send the relay list metadata event
-        await this.sendEvent(relayListEvent);
-      }
-      
+        try {
+            await this.sendEvent(relayListEvent);
+            // If the addition was successful, add it to clientRelays
+            this.clientRelays.push(relay_url);
+        } catch (error) {
+            console.error("Error adding relay:", error);
+        }
+    }
+
+
       async deleteRelay(relay_url) {
         if (!this.write_mode) return; // Do nothing in read-only mode
-        
+
         // Get the original Relay List Metadata event
         const originalEvent = await this.getRelays(this.publicKey);
         let originalRelays = originalEvent ? originalEvent.tags : [];
-      
+
         originalRelays = originalRelays || [];
-      
+
         // Filter out the relay_url from the original relays
         const updatedRelays = originalRelays.filter(relay => relay[1] !== relay_url);
-      
+
         // Create the relay list metadata event
         const relayListEvent = this.createEvent(10002, "", updatedRelays);
-      
-        // Send the relay list metadata event
-        await this.sendEvent(relayListEvent);
+
+        try {
+          // Send the relay list metadata event
+          await this.sendEvent(relayListEvent);
+
+          // Update the clientRelays array if the deletion was successful
+          this.clientRelays = this.clientRelays.filter(relay => relay !== relay_url);
+        } catch (error) {
+          console.error("Error deleting relay:", error);
+        }
       }
 
       async extensionAvailable() {
-        if("nostr" in window) {
+        if ("nostr" in window) {
           return true;
         }
         return false;
@@ -7894,10 +7925,8 @@ var app = (function () {
         let useExtension = this.extensionAvailable();
         if (this.write_mode && useExtension) {
           this.publicKey = await window.nostr.getPublicKey();
-          self.relays = await this.getAllRelays(self.publicKey); //fetch from the public first
-          console.log(self.relays);
-          self.relays = await this.getAllRelays(self.publicKey); //do it again since relays changed now.
-          console.log(self.relays);
+          this.relays = await this.getPublicRelaysString(); //fetch from the public first
+          this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
         }
         else {
           this.write_mode = false;
@@ -7913,7 +7942,7 @@ var app = (function () {
 
         event.tags.push(["s", "bitstarter"]);
         event = await window.nostr.signEvent(event);
-        
+
         event.tags = uniqueTags(event.tags);
         this.pool.publish(this.relays, event);
         console.log("send event:");
@@ -7957,7 +7986,7 @@ var app = (function () {
       async getIdeas() {
         const filters = [{ kinds: [this.idea_kind], '#s': ['bitstarter'] }];
         let ideas = await this.pool.list(this.relays, filters);
-        
+
         // Get the profiles for each idea and store them in the ideas
         const profilePromises = ideas.map(async idea => {
           const profile = await this.getProfile(idea.pubkey);
@@ -7965,13 +7994,13 @@ var app = (function () {
           idea.githubVerified = profile.githubVerified || false;
           return idea;
         });
-        
+
         ideas = await Promise.all(profilePromises);
-      
+
         console.log("getIdeas()");
         return ideas;
       }
-      
+
       async getComments(event_id) {
         const filters = [
           {
@@ -8092,7 +8121,7 @@ var app = (function () {
 
         // Wenn keine Events gefunden wurden, geben Sie ein leeres Objekt zurück
         if (events.length === 0) {
-          return {'pubkey': pubkey};
+          return { 'pubkey': pubkey };
         }
 
         // Ansonsten nehmen Sie das erste Event
@@ -8361,11 +8390,11 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[17] = list[i];
+    	child_ctx[23] = list[i];
     	return child_ctx;
     }
 
-    // (134:36) {#if profile && profile.picture}
+    // (161:36) {#if profile && profile.picture}
     function create_if_block$1(ctx) {
     	let profileimg;
     	let current;
@@ -8412,36 +8441,58 @@ var app = (function () {
     	};
     }
 
-    // (250:56) {#each relays as relay}
+    // (277:56) {#each relays as relay}
     function create_each_block(ctx) {
-    	let div;
-    	let t0_value = /*relay*/ ctx[17] + "";
+    	let div1;
+    	let div0;
+    	let t0_value = /*relay*/ ctx[23] + "";
     	let t0;
     	let t1;
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	function click_handler() {
+    		return /*click_handler*/ ctx[19](/*relay*/ ctx[23]);
+    	}
 
     	return {
     		c() {
-    			div = element("div");
+    			div1 = element("div");
+    			div0 = element("div");
     			t0 = text(t0_value);
     			t1 = space();
-    			attr(div, "class", "px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md");
+    			button = element("button");
+    			button.textContent = "X";
+    			attr(button, "class", "bg-red-500 w-5 h-5 rounded-full flex justify-center items-center");
+    			attr(div1, "class", "flex justify-between px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md");
     		},
     		m(target, anchor) {
-    			insert(target, div, anchor);
-    			append(div, t0);
-    			append(div, t1);
+    			insert(target, div1, anchor);
+    			append(div1, div0);
+    			append(div0, t0);
+    			append(div1, t1);
+    			append(div1, button);
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", click_handler);
+    				mounted = true;
+    			}
     		},
-    		p(ctx, dirty) {
-    			if (dirty & /*relays*/ 128 && t0_value !== (t0_value = /*relay*/ ctx[17] + "")) set_data(t0, t0_value);
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			if (dirty & /*relays*/ 128 && t0_value !== (t0_value = /*relay*/ ctx[23] + "")) set_data(t0, t0_value);
     		},
     		d(detaching) {
-    			if (detaching) detach(div);
+    			if (detaching) detach(div1);
+    			mounted = false;
+    			dispose();
     		}
     	};
     }
 
     function create_fragment$2(ctx) {
-    	let div27;
+    	let div28;
     	let main;
     	let section0;
     	let div1;
@@ -8455,14 +8506,14 @@ var app = (function () {
     	let div2;
     	let t3;
     	let section1;
-    	let div26;
+    	let div27;
+    	let div25;
     	let div24;
-    	let div23;
     	let div5;
     	let div4;
     	let div3;
     	let t4;
-    	let div22;
+    	let div23;
     	let div10;
     	let div9;
     	let label0;
@@ -8484,8 +8535,8 @@ var app = (function () {
     	let t15;
     	let input2;
     	let t16;
+    	let div22;
     	let div21;
-    	let div20;
     	let div14;
     	let div13;
     	let div11;
@@ -8498,18 +8549,23 @@ var app = (function () {
     	let t21;
     	let input4;
     	let t22;
+    	let div20;
     	let div19;
     	let div18;
     	let div17;
-    	let div16;
     	let h2;
     	let t24;
-    	let div15;
+    	let div16;
     	let t25;
-    	let div25;
+    	let div15;
+    	let input5;
+    	let t26;
     	let button0;
-    	let t27;
+    	let t28;
+    	let div26;
     	let button1;
+    	let t30;
+    	let button2;
     	let current;
     	let mounted;
     	let dispose;
@@ -8523,7 +8579,7 @@ var app = (function () {
 
     	return {
     		c() {
-    			div27 = element("div");
+    			div28 = element("div");
     			main = element("main");
     			section0 = element("section");
     			div1 = element("div");
@@ -8537,15 +8593,15 @@ var app = (function () {
     			div2.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
     			t3 = space();
     			section1 = element("section");
-    			div26 = element("div");
+    			div27 = element("div");
+    			div25 = element("div");
     			div24 = element("div");
-    			div23 = element("div");
     			div5 = element("div");
     			div4 = element("div");
     			div3 = element("div");
     			if (if_block) if_block.c();
     			t4 = space();
-    			div22 = element("div");
+    			div23 = element("div");
     			div10 = element("div");
     			div9 = element("div");
     			label0 = element("label");
@@ -8571,8 +8627,8 @@ var app = (function () {
     			t15 = space();
     			input2 = element("input");
     			t16 = space();
+    			div22 = element("div");
     			div21 = element("div");
-    			div20 = element("div");
     			div14 = element("div");
     			div13 = element("div");
     			div11 = element("div");
@@ -8587,26 +8643,32 @@ var app = (function () {
     			t21 = space();
     			input4 = element("input");
     			t22 = space();
+    			div20 = element("div");
     			div19 = element("div");
     			div18 = element("div");
     			div17 = element("div");
-    			div16 = element("div");
     			h2 = element("h2");
     			h2.textContent = "Relays";
     			t24 = space();
-    			div15 = element("div");
+    			div16 = element("div");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
     			t25 = space();
-    			div25 = element("div");
+    			div15 = element("div");
+    			input5 = element("input");
+    			t26 = space();
     			button0 = element("button");
-    			button0.textContent = "Back";
-    			t27 = space();
+    			button0.textContent = "Add";
+    			t28 = space();
+    			div26 = element("div");
     			button1 = element("button");
-    			button1.textContent = "Update Profile";
+    			button1.textContent = "Back";
+    			t30 = space();
+    			button2 = element("button");
+    			button2.textContent = "Update Profile";
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
@@ -8655,26 +8717,30 @@ var app = (function () {
     			attr(div13, "class", "mt-6");
     			attr(div14, "class", "w-full lg:w-9/12 px-4");
     			attr(h2, "class", "text-lg text-blueGray-400 mb-4");
-    			attr(div15, "class", "flex flex-col gap-2");
-    			attr(div16, "class", "mt-6");
-    			attr(div17, "class", "w-full lg:w-9/12 px-4");
-    			attr(div18, "class", "flex flex-wrap justify-center");
-    			attr(div19, "class", "mt-10 py-10 border-t border-blueGray-200 text-center w-full");
-    			attr(div20, "class", "flex flex-wrap justify-center");
-    			attr(div21, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
-    			attr(div22, "class", "mt-10 px-10");
-    			attr(div23, "class", "px-6");
-    			attr(div24, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(button0, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
-    			attr(button1, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
-    			attr(div25, "class", "flex justify-end mt-4 px-10");
-    			attr(div26, "class", "container mx-auto px-4");
+    			attr(input5, "class", "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline");
+    			attr(input5, "placeholder", "Enter relay URL...");
+    			attr(button0, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded ml-2");
+    			attr(div15, "class", "flex justify-between items-center mt-4");
+    			attr(div16, "class", "flex flex-col gap-2");
+    			attr(div17, "class", "mt-6");
+    			attr(div18, "class", "w-full lg:w-9/12 px-4");
+    			attr(div19, "class", "flex flex-wrap justify-center");
+    			attr(div20, "class", "mt-10 py-10 border-t border-blueGray-200 text-center w-full");
+    			attr(div21, "class", "flex flex-wrap justify-center");
+    			attr(div22, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
+    			attr(div23, "class", "mt-10 px-10");
+    			attr(div24, "class", "px-6");
+    			attr(div25, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
+    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
+    			attr(button2, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
+    			attr(div26, "class", "flex justify-end mt-4 px-10");
+    			attr(div27, "class", "container mx-auto px-4");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(main, "class", "profile-page");
     		},
     		m(target, anchor) {
-    			insert(target, div27, anchor);
-    			append(div27, main);
+    			insert(target, div28, anchor);
+    			append(div28, main);
     			append(main, section0);
     			append(section0, div1);
     			append(div1, span);
@@ -8686,16 +8752,16 @@ var app = (function () {
     			append(section0, div2);
     			append(main, t3);
     			append(main, section1);
-    			append(section1, div26);
-    			append(div26, div24);
-    			append(div24, div23);
-    			append(div23, div5);
+    			append(section1, div27);
+    			append(div27, div25);
+    			append(div25, div24);
+    			append(div24, div5);
     			append(div5, div4);
     			append(div4, div3);
     			if (if_block) if_block.m(div3, null);
-    			append(div23, t4);
-    			append(div23, div22);
-    			append(div22, div10);
+    			append(div24, t4);
+    			append(div24, div23);
+    			append(div23, div10);
     			append(div10, div9);
     			append(div9, label0);
     			append(div9, t6);
@@ -8719,10 +8785,10 @@ var app = (function () {
     			append(div7, t15);
     			append(div7, input2);
     			set_input_value(input2, /*git_proof*/ ctx[6]);
-    			append(div22, t16);
+    			append(div23, t16);
+    			append(div23, div22);
     			append(div22, div21);
-    			append(div21, div20);
-    			append(div20, div14);
+    			append(div21, div14);
     			append(div14, div13);
     			append(div13, div11);
     			append(div11, label4);
@@ -8735,37 +8801,45 @@ var app = (function () {
     			append(div12, t21);
     			append(div12, input4);
     			set_input_value(input4, /*banner*/ ctx[4]);
-    			append(div20, t22);
+    			append(div21, t22);
+    			append(div21, div20);
     			append(div20, div19);
     			append(div19, div18);
     			append(div18, div17);
+    			append(div17, h2);
+    			append(div17, t24);
     			append(div17, div16);
-    			append(div16, h2);
-    			append(div16, t24);
-    			append(div16, div15);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div15, null);
+    				each_blocks[i].m(div16, null);
     			}
 
-    			append(div26, t25);
-    			append(div26, div25);
-    			append(div25, button0);
-    			append(div25, t27);
-    			append(div25, button1);
+    			append(div16, t25);
+    			append(div16, div15);
+    			append(div15, input5);
+    			set_input_value(input5, /*newRelay*/ ctx[8]);
+    			append(div15, t26);
+    			append(div15, button0);
+    			append(div27, t28);
+    			append(div27, div26);
+    			append(div26, button1);
+    			append(div26, t30);
+    			append(div26, button2);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[10]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[11]),
+    					listen(input0, "input", /*input0_input_handler*/ ctx[13]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[14]),
     					listen(textarea, "input", autoResizeTextarea),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[12]),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[13]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[14]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[15]),
-    					listen(button0, "click", /*click_handler*/ ctx[16]),
-    					listen(button1, "click", /*updateProfile*/ ctx[8])
+    					listen(input1, "input", /*input1_input_handler*/ ctx[15]),
+    					listen(input2, "input", /*input2_input_handler*/ ctx[16]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[17]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[18]),
+    					listen(input5, "input", /*input5_input_handler*/ ctx[20]),
+    					listen(button0, "click", /*addRelay*/ ctx[11]),
+    					listen(button1, "click", /*click_handler_1*/ ctx[21]),
+    					listen(button2, "click", /*updateProfile*/ ctx[9])
     				];
 
     				mounted = true;
@@ -8825,7 +8899,7 @@ var app = (function () {
     				set_input_value(input4, /*banner*/ ctx[4]);
     			}
 
-    			if (dirty & /*relays*/ 128) {
+    			if (dirty & /*deleteRelay, relays*/ 1152) {
     				each_value = /*relays*/ ctx[7];
     				let i;
 
@@ -8837,7 +8911,7 @@ var app = (function () {
     					} else {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(div15, null);
+    						each_blocks[i].m(div16, t25);
     					}
     				}
 
@@ -8846,6 +8920,10 @@ var app = (function () {
     				}
 
     				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*newRelay*/ 256 && input5.value !== /*newRelay*/ ctx[8]) {
+    				set_input_value(input5, /*newRelay*/ ctx[8]);
     			}
     		},
     		i(local) {
@@ -8858,7 +8936,7 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div27);
+    			if (detaching) detach(div28);
     			if (if_block) if_block.d();
     			destroy_each(each_blocks, detaching);
     			mounted = false;
@@ -8882,10 +8960,12 @@ var app = (function () {
     	let git_username = "";
     	let git_proof = "";
     	let relays = [];
+    	let bitstarterHelper = null;
+    	let newRelay = "";
 
     	onMount(async () => {
     		try {
-    			const bitstarterHelper = get_store_value(helperStore);
+    			bitstarterHelper = get_store_value(helperStore);
     			$$invalidate(0, profile = await bitstarterHelper.getProfile(profile_id));
 
     			if (profile) {
@@ -8898,7 +8978,7 @@ var app = (function () {
     				$$invalidate(5, git_username = profile.githubUsername || "");
 
     				$$invalidate(6, git_proof = profile.githubProof || "");
-    				$$invalidate(7, relays = await bitstarterHelper.relays);
+    				$$invalidate(7, relays = await bitstarterHelper.clientRelays);
     			}
     		} catch(error) {
     			console.error("Error fetching profile:", error);
@@ -8934,6 +9014,30 @@ var app = (function () {
     		}
     	};
 
+    	const deleteRelay = async relay => {
+    		try {
+    			await bitstarterHelper.deleteRelay(relay);
+    			$$invalidate(7, relays = relays.filter(r => r !== relay));
+    		} catch(error) {
+    			console.error("Error deleting relay:", error); // Remove relay from relays array
+    		}
+    	};
+
+    	const addRelay = async () => {
+    		try {
+    			if (newRelay.trim()) {
+    				await bitstarterHelper.addRelay(newRelay);
+
+    				// Add the new relay to the local list
+    				$$invalidate(7, relays = [...relays, newRelay]);
+
+    				$$invalidate(8, newRelay = "");
+    			}
+    		} catch(error) {
+    			console.error("Error adding relay:", error);
+    		}
+    	};
+
     	function input0_input_handler() {
     		name = this.value;
     		$$invalidate(1, name);
@@ -8964,10 +9068,17 @@ var app = (function () {
     		$$invalidate(4, banner);
     	}
 
-    	const click_handler = () => navigate(`/overview`);
+    	const click_handler = relay => deleteRelay(relay);
+
+    	function input5_input_handler() {
+    		newRelay = this.value;
+    		$$invalidate(8, newRelay);
+    	}
+
+    	const click_handler_1 = () => navigate(`/overview`);
 
     	$$self.$$set = $$props => {
-    		if ("profile_id" in $$props) $$invalidate(9, profile_id = $$props.profile_id);
+    		if ("profile_id" in $$props) $$invalidate(12, profile_id = $$props.profile_id);
     	};
 
     	return [
@@ -8979,7 +9090,10 @@ var app = (function () {
     		git_username,
     		git_proof,
     		relays,
+    		newRelay,
     		updateProfile,
+    		deleteRelay,
+    		addRelay,
     		profile_id,
     		input0_input_handler,
     		textarea_input_handler,
@@ -8987,14 +9101,16 @@ var app = (function () {
     		input2_input_handler,
     		input3_input_handler,
     		input4_input_handler,
-    		click_handler
+    		click_handler,
+    		input5_input_handler,
+    		click_handler_1
     	];
     }
 
     class EditProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$1, create_fragment$2, safe_not_equal, { profile_id: 9 });
+    		init(this, options, instance$1, create_fragment$2, safe_not_equal, { profile_id: 12 });
     	}
     }
 

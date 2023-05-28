@@ -96,17 +96,25 @@ export default class NostrHelper {
     // Check if the relay_url already exists in the original relays
     const exists = originalRelays.find(relay => relay[1] === relay_url);
 
-    if (!exists) {
-      // Add the new relay to the list
-      originalRelays.push(["r", relay_url]);
-    }
+    // If the relay_url already exists, return
+    if (exists) return;
+
+    // Add the new relay to the list
+    originalRelays.push(["r", relay_url]);
 
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", originalRelays);
 
     // Send the relay list metadata event
-    await this.sendEvent(relayListEvent);
-  }
+    try {
+        await this.sendEvent(relayListEvent);
+        // If the addition was successful, add it to clientRelays
+        this.clientRelays.push(relay_url);
+    } catch (error) {
+        console.error("Error adding relay:", error);
+    }
+}
+
 
   async deleteRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
@@ -123,8 +131,15 @@ export default class NostrHelper {
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", updatedRelays);
 
-    // Send the relay list metadata event
-    await this.sendEvent(relayListEvent);
+    try {
+      // Send the relay list metadata event
+      await this.sendEvent(relayListEvent);
+
+      // Update the clientRelays array if the deletion was successful
+      this.clientRelays = this.clientRelays.filter(relay => relay !== relay_url);
+    } catch (error) {
+      console.error("Error deleting relay:", error);
+    }
   }
 
   async extensionAvailable() {
