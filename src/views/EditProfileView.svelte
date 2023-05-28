@@ -275,7 +275,7 @@
                                                     <h2 class="text-lg text-blueGray-400 mb-4">Relays</h2>
                                                     <div class="flex flex-col gap-2">
                                                         {#each relays as relay}
-                                                        <div class="flex justify-between px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md">
+                                                        <div class="flex justify-between px-3 py-1 rounded-full bg-white-800 text-sm text-black shadow-md">
                                                             <div>
                                                                 {relay}
                                                             </div>

@@ -166,7 +166,7 @@ export default class NostrHelper {
     if (!this.write_mode) return; // Do nothing in read-only mode
     if (!this.extensionAvailable()) return;
 
-    event.tags.push(["s", "bitstarter"]);
+    event.tags.push(["s", "bitspark"]);
     event = await window.nostr.signEvent(event);
 
     event.tags = uniqueTags(event.tags);
@@ -209,7 +209,7 @@ export default class NostrHelper {
   }
 
   async getIdeas() {
-    const filters = [{ kinds: [this.idea_kind], '#s': ['bitstarter'] }]
+    const filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }]
     let ideas = await this.pool.list(this.relays, filters);
 
     // Get the profiles for each idea and store them in the ideas
@@ -231,7 +231,7 @@ export default class NostrHelper {
       {
         kinds: [1],
         '#e': [event_id],
-        '#s': ['bitstarter']
+        '#s': ['bitspark']
       }
     ]
     let comments = await this.pool.list(this.relays, filters);
@@ -279,7 +279,7 @@ export default class NostrHelper {
       {
         kinds: [7],
         '#e': [event_id],
-        '#s': ['bitstarter']
+        '#s': ['bitspark']
       }
     ]);
     console.log("getLikes")

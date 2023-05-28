@@ -7964,7 +7964,7 @@ var app = (function () {
         if (!this.write_mode) return; // Do nothing in read-only mode
         if (!this.extensionAvailable()) return;
 
-        event.tags.push(["s", "bitstarter"]);
+        event.tags.push(["s", "bitspark"]);
         event = await window.nostr.signEvent(event);
 
         event.tags = uniqueTags(event.tags);
@@ -8007,7 +8007,7 @@ var app = (function () {
       }
 
       async getIdeas() {
-        const filters = [{ kinds: [this.idea_kind], '#s': ['bitstarter'] }];
+        const filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
         let ideas = await this.pool.list(this.relays, filters);
 
         // Get the profiles for each idea and store them in the ideas
@@ -8029,7 +8029,7 @@ var app = (function () {
           {
             kinds: [1],
             '#e': [event_id],
-            '#s': ['bitstarter']
+            '#s': ['bitspark']
           }
         ];
         let comments = await this.pool.list(this.relays, filters);
@@ -8077,7 +8077,7 @@ var app = (function () {
           {
             kinds: [7],
             '#e': [event_id],
-            '#s': ['bitstarter']
+            '#s': ['bitspark']
           }
         ]);
         console.log("getLikes");
@@ -8491,7 +8491,7 @@ var app = (function () {
     			button = element("button");
     			button.textContent = "X";
     			attr(button, "class", "bg-red-500 w-5 h-5 rounded-full flex justify-center items-center");
-    			attr(div1, "class", "flex justify-between px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md");
+    			attr(div1, "class", "flex justify-between px-3 py-1 rounded-full bg-white-800 text-sm text-black shadow-md");
     		},
     		m(target, anchor) {
     			insert(target, div1, anchor);
