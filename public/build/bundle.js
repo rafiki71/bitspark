@@ -2391,7 +2391,7 @@ var app = (function () {
     			t0 = space();
     			div0 = element("div");
 
-    			div0.innerHTML = `<h1 class="text-4xl font-bold text-white">Bitspark</h1> 
+    			div0.innerHTML = `<h1 class="text-4xl font-bold text-white">BitSpark</h1> 
           <h2 class="text-2xl font-light text-white">Idea Engine</h2>`;
 
     			t4 = space();

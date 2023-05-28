@@ -70,7 +70,7 @@
         <div
           class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
         >
-          <h1 class="text-4xl font-bold text-white">Bitspark</h1>
+          <h1 class="text-4xl font-bold text-white">BitSpark</h1>
           <h2 class="text-2xl font-light text-white">Idea Engine</h2>
         </div>
 
