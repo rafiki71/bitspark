@@ -124,7 +124,7 @@ export default class NostrHelper {
       this.publicKey = await window.nostr.getPublicKey();
       self.relays = await this.getAllRelays(self.publicKey); //fetch from the public first
       console.log(self.relays)
-      self.relays = this.getAllRelays(self.publicKey); //do it again since relays changed now.
+      self.relays = await this.getAllRelays(self.publicKey); //do it again since relays changed now.
       console.log(self.relays)
     }
     else {

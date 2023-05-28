@@ -14,6 +14,7 @@
     let banner = "";
     let git_username = "";
     let git_proof = "";
+    let relays = []
 
     onMount(async () => {
         try {
@@ -29,6 +30,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
+                relays = await bitstarterHelper.relays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -239,6 +241,23 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="mt-10 py-10 border-t border-blueGray-200 text-center w-full">
+                                        <div class="flex flex-wrap justify-center">
+                                            <div class="w-full lg:w-9/12 px-4">
+                                                <div class="mt-6">
+                                                    <h2 class="text-lg text-blueGray-400 mb-4">Relays</h2>
+                                                    <div class="flex flex-col gap-2">
+                                                        {#each relays as relay}
+                                                        <div class="px-3 py-1 rounded-full bg-blue-800 text-sm text-black shadow-md">
+                                                            {relay}
+                                                        </div>                                                        
+                                                        {/each}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
