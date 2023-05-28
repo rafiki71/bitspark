@@ -77,7 +77,7 @@ export default class NostrHelper {
 
     // Otherwise, take the first (most recent) event
     const event = events[0];
-
+    console.log("event:", event)
     // The relay URLs are stored in 'r' tags of the event
     const relayTags = event.tags.filter(tag => tag[0] === 'r');
 
@@ -86,21 +86,23 @@ export default class NostrHelper {
 
   async addRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-
+    console.log("relay_url", relay_url);
     // Get the original Relay List Metadata event
-    const originalEvent = await this.getRelays(this.publicKey);
-    let originalRelays = originalEvent ? originalEvent.tags : [];
-
+    let originalRelays = await this.getRelays(this.publicKey);
+    console.log("originalRelays", originalRelays);
     originalRelays = originalRelays || [];
+    console.log("originalRelays", originalRelays);
 
     // Check if the relay_url already exists in the original relays
     const exists = originalRelays.find(relay => relay[1] === relay_url);
-
+    console.log("exists:", exists);
     // If the relay_url already exists, return
     if (exists) return;
 
     // Add the new relay to the list
     originalRelays.push(["r", relay_url]);
+    console.log("originalRelaysAdded", originalRelays);
+
 
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", originalRelays);
@@ -120,8 +122,7 @@ export default class NostrHelper {
     if (!this.write_mode) return; // Do nothing in read-only mode
 
     // Get the original Relay List Metadata event
-    const originalEvent = await this.getRelays(this.publicKey);
-    let originalRelays = originalEvent ? originalEvent.tags : [];
+    let originalRelays = await this.getRelays(this.publicKey);
 
     originalRelays = originalRelays || [];
 
