@@ -1,8 +1,8 @@
 <script>
     import { Link } from "svelte-routing";
     import { helperStore } from "../helperStore.js";
-    import { get } from "svelte/store";
     import { onMount } from "svelte";
+    import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
 
     onMount(async () => {});
     let ideaName = "";
@@ -11,6 +11,23 @@
     let ideaBannerUrl = "";
     let ideaGithubRepo = "";
     let ideaLightningAddress = "";
+    let categories = [
+        "Art",
+        "BTC Adoption",
+        "Comics",
+        "Crafts",
+        "Design",
+        "Fashion",
+        "Film & Video",
+        "Food",
+        "Games",
+        "Journalism",
+        "Music",
+        "Photography",
+        "Publishing",
+        "Technology"
+    ];
+    let selectedCategories = [];
 
     function autoResizeTextarea(e) {
         e.target.style.height = "";
@@ -23,7 +40,6 @@
     }
 
     async function postIdea() {
-        //const helper = get(helperStore); // Verwenden Sie die get-Funktion aus svelte/store, um den aktuellen Wert zu holen
         if (helper) {
             await helper.postIdea(
                 ideaName,
@@ -53,7 +69,7 @@
             />
 
             <div
-                class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
+                class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-center justify-center h-full"
             >
                 <h1 class="text-4xl font-bold text-white">Bitstarter</h1>
                 <h2 class="text-2xl font-light text-white">Post Idea</h2>
@@ -89,63 +105,66 @@
             >
                 <h2 class="text-2xl font-semibold mb-4">Create Idea</h2>
                 <div>
-                    <div class="flex justify-center mb-4">
+                    <div class="mb-4">
                         <input
                             type="text"
                             placeholder="Idea Name"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaName}
                             style="width: 90%;"
                         />
                     </div>
 
-                    <div class="flex justify-center mb-4">
+                    <div class="mb-4">
                         <input
                             type="text"
                             placeholder="Idea Subtitle"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaSubtitle}
                             style="width: 90%;"
                         />
                     </div>
 
-                    <div class="flex justify-center mb-4">
+                    <div class="mb-4">
                         <textarea
                             rows="1"
                             placeholder="Idea Message"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
                             bind:value={ideaMessage}
                             on:input={autoResizeTextarea}
                             style="width: 90%;"
                         />
                     </div>
 
-                    <div class="flex justify-center mb-4">
+                    <div class="mb-4">
                         <input
                             type="text"
                             placeholder="Idea Banner URL"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaBannerUrl}
                             style="width: 90%;"
                         />
                     </div>
-                    <div class="flex justify-center mb-4">
+                    <div class="mb-4">
                         <input
                             type="text"
                             placeholder="Idea GitHub Repository"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaGithubRepo}
                             style="width: 90%;"
                         />
                     </div>
-                    <div class="flex justify-center">
+                    <div>
                         <input
                             type="text"
                             placeholder="Idea Lightning Address"
-                            class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaLightningAddress}
                             style="width: 90%;"
                         />
+                    </div>
+                    <div class="mb-4 mt-4" style="width: 90%;">
+                        <MultiSelectDropdown {categories} />
                     </div>
                 </div>
             </div>
