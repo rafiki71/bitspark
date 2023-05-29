@@ -10,8 +10,10 @@ var app = (function () {
             tar[k] = src[k];
         return tar;
     }
+    // Adapted from https://github.com/then/is-promise/blob/master/index.js
+    // Distributed under MIT License https://github.com/then/is-promise/blob/master/LICENSE
     function is_promise(value) {
-        return value && typeof value === 'object' && typeof value.then === 'function';
+        return !!value && (typeof value === 'object' || typeof value === 'function') && typeof value.then === 'function';
     }
     function run(fn) {
         return fn();
@@ -27,6 +29,14 @@ var app = (function () {
     }
     function safe_not_equal(a, b) {
         return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
+    }
+    let src_url_equal_anchor;
+    function src_url_equal(element_src, url) {
+        if (!src_url_equal_anchor) {
+            src_url_equal_anchor = document.createElement('a');
+        }
+        src_url_equal_anchor.href = url;
+        return element_src === src_url_equal_anchor.href;
     }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
@@ -75,12 +85,22 @@ var app = (function () {
         }
         return $$scope.dirty;
     }
-    function update_slot(slot, slot_definition, ctx, $$scope, dirty, get_slot_changes_fn, get_slot_context_fn) {
-        const slot_changes = get_slot_changes(slot_definition, $$scope, dirty, get_slot_changes_fn);
+    function update_slot_base(slot, slot_definition, ctx, $$scope, slot_changes, get_slot_context_fn) {
         if (slot_changes) {
             const slot_context = get_slot_context(slot_definition, ctx, $$scope, get_slot_context_fn);
             slot.p(slot_context, slot_changes);
         }
+    }
+    function get_all_dirty_from_scope($$scope) {
+        if ($$scope.ctx.length > 32) {
+            const dirty = [];
+            const length = $$scope.ctx.length / 32;
+            for (let i = 0; i < length; i++) {
+                dirty[i] = -1;
+            }
+            return dirty;
+        }
+        return -1;
     }
     function exclude_internal_props(props) {
         const result = {};
@@ -97,7 +117,6 @@ var app = (function () {
                 rest[k] = props[k];
         return rest;
     }
-
     function append(target, node) {
         target.appendChild(node);
     }
@@ -105,7 +124,9 @@ var app = (function () {
         target.insertBefore(node, anchor || null);
     }
     function detach(node) {
-        node.parentNode.removeChild(node);
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
     }
     function destroy_each(iterations, detaching) {
         for (let i = 0; i < iterations.length; i += 1) {
@@ -135,6 +156,14 @@ var app = (function () {
         else if (node.getAttribute(attribute) !== value)
             node.setAttribute(attribute, value);
     }
+    /**
+     * List of attributes that should always be set through the attr method,
+     * because updating them through the property setter doesn't work reliably.
+     * In the example of `width`/`height`, the problem is that the setter only
+     * accepts numeric values, but the attribute can also be set to a string like `50%`.
+     * If this list becomes too big, rethink this approach.
+     */
+    const always_set_through_set_attribute = ['width', 'height'];
     function set_attributes(node, attributes) {
         // @ts-ignore
         const descriptors = Object.getOwnPropertyDescriptors(node.__proto__);
@@ -148,7 +177,7 @@ var app = (function () {
             else if (key === '__value') {
                 node.value = node[key] = attributes[key];
             }
-            else if (descriptors[key] && descriptors[key].set) {
+            else if (descriptors[key] && descriptors[key].set && always_set_through_set_attribute.indexOf(key) === -1) {
                 node[key] = attributes[key];
             }
             else {
@@ -161,19 +190,28 @@ var app = (function () {
     }
     function set_data(text, data) {
         data = '' + data;
-        if (text.wholeText !== data)
-            text.data = data;
+        if (text.data === data)
+            return;
+        text.data = data;
     }
     function set_input_value(input, value) {
         input.value = value == null ? '' : value;
     }
     function set_style(node, key, value, important) {
-        node.style.setProperty(key, value, important ? 'important' : '');
+        if (value == null) {
+            node.style.removeProperty(key);
+        }
+        else {
+            node.style.setProperty(key, value, important ? 'important' : '');
+        }
     }
-    function custom_event(type, detail) {
+    function custom_event(type, detail, { bubbles = false, cancelable = false } = {}) {
         const e = document.createEvent('CustomEvent');
-        e.initCustomEvent(type, false, false, detail);
+        e.initCustomEvent(type, bubbles, cancelable, detail);
         return e;
+    }
+    function construct_svelte_component(component, props) {
+        return new component(props);
     }
 
     let current_component;
@@ -185,38 +223,85 @@ var app = (function () {
             throw new Error('Function called outside component initialization');
         return current_component;
     }
+    /**
+     * The `onMount` function schedules a callback to run as soon as the component has been mounted to the DOM.
+     * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
+     * it can be called from an external module).
+     *
+     * `onMount` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
+     *
+     * https://svelte.dev/docs#run-time-svelte-onmount
+     */
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
     }
+    /**
+     * Schedules a callback to run immediately before the component is unmounted.
+     *
+     * Out of `onMount`, `beforeUpdate`, `afterUpdate` and `onDestroy`, this is the
+     * only one that runs inside a server-side component.
+     *
+     * https://svelte.dev/docs#run-time-svelte-ondestroy
+     */
     function onDestroy(fn) {
         get_current_component().$$.on_destroy.push(fn);
     }
+    /**
+     * Creates an event dispatcher that can be used to dispatch [component events](/docs#template-syntax-component-directives-on-eventname).
+     * Event dispatchers are functions that can take two arguments: `name` and `detail`.
+     *
+     * Component events created with `createEventDispatcher` create a
+     * [CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent).
+     * These events do not [bubble](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Building_blocks/Events#Event_bubbling_and_capture).
+     * The `detail` argument corresponds to the [CustomEvent.detail](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/detail)
+     * property and can contain any type of data.
+     *
+     * https://svelte.dev/docs#run-time-svelte-createeventdispatcher
+     */
     function createEventDispatcher() {
         const component = get_current_component();
-        return (type, detail) => {
+        return (type, detail, { cancelable = false } = {}) => {
             const callbacks = component.$$.callbacks[type];
             if (callbacks) {
                 // TODO are there situations where events could be dispatched
                 // in a server (non-DOM) environment?
-                const event = custom_event(type, detail);
+                const event = custom_event(type, detail, { cancelable });
                 callbacks.slice().forEach(fn => {
                     fn.call(component, event);
                 });
+                return !event.defaultPrevented;
             }
+            return true;
         };
     }
+    /**
+     * Associates an arbitrary `context` object with the current component and the specified `key`
+     * and returns that object. The context is then available to children of the component
+     * (including slotted content) with `getContext`.
+     *
+     * Like lifecycle functions, this must be called during component initialisation.
+     *
+     * https://svelte.dev/docs#run-time-svelte-setcontext
+     */
     function setContext(key, context) {
         get_current_component().$$.context.set(key, context);
+        return context;
     }
+    /**
+     * Retrieves the context that belongs to the closest parent component with the specified `key`.
+     * Must be called during component initialisation.
+     *
+     * https://svelte.dev/docs#run-time-svelte-getcontext
+     */
     function getContext(key) {
         return get_current_component().$$.context.get(key);
     }
 
     const dirty_components = [];
     const binding_callbacks = [];
-    const render_callbacks = [];
+    let render_callbacks = [];
     const flush_callbacks = [];
-    const resolved_promise = Promise.resolve();
+    const resolved_promise = /* @__PURE__ */ Promise.resolve();
     let update_scheduled = false;
     function schedule_update() {
         if (!update_scheduled) {
@@ -227,22 +312,54 @@ var app = (function () {
     function add_render_callback(fn) {
         render_callbacks.push(fn);
     }
-    let flushing = false;
+    // flush() calls callbacks in this order:
+    // 1. All beforeUpdate callbacks, in order: parents before children
+    // 2. All bind:this callbacks, in reverse order: children before parents.
+    // 3. All afterUpdate callbacks, in order: parents before children. EXCEPT
+    //    for afterUpdates called during the initial onMount, which are called in
+    //    reverse order: children before parents.
+    // Since callbacks might update component values, which could trigger another
+    // call to flush(), the following steps guard against this:
+    // 1. During beforeUpdate, any updated components will be added to the
+    //    dirty_components array and will cause a reentrant call to flush(). Because
+    //    the flush index is kept outside the function, the reentrant call will pick
+    //    up where the earlier call left off and go through all dirty components. The
+    //    current_component value is saved and restored so that the reentrant call will
+    //    not interfere with the "parent" flush() call.
+    // 2. bind:this callbacks cannot trigger new flush() calls.
+    // 3. During afterUpdate, any updated components will NOT have their afterUpdate
+    //    callback called a second time; the seen_callbacks set, outside the flush()
+    //    function, guarantees this behavior.
     const seen_callbacks = new Set();
+    let flushidx = 0; // Do *not* move this inside the flush() function
     function flush() {
-        if (flushing)
+        // Do not reenter flush while dirty components are updated, as this can
+        // result in an infinite loop. Instead, let the inner flush handle it.
+        // Reentrancy is ok afterwards for bindings etc.
+        if (flushidx !== 0) {
             return;
-        flushing = true;
+        }
+        const saved_component = current_component;
         do {
             // first, call beforeUpdate functions
             // and update components
-            for (let i = 0; i < dirty_components.length; i += 1) {
-                const component = dirty_components[i];
-                set_current_component(component);
-                update(component.$$);
+            try {
+                while (flushidx < dirty_components.length) {
+                    const component = dirty_components[flushidx];
+                    flushidx++;
+                    set_current_component(component);
+                    update(component.$$);
+                }
+            }
+            catch (e) {
+                // reset dirty state to not end up in a deadlocked state and then rethrow
+                dirty_components.length = 0;
+                flushidx = 0;
+                throw e;
             }
             set_current_component(null);
             dirty_components.length = 0;
+            flushidx = 0;
             while (binding_callbacks.length)
                 binding_callbacks.pop()();
             // then, once components are updated, call
@@ -262,8 +379,8 @@ var app = (function () {
             flush_callbacks.pop()();
         }
         update_scheduled = false;
-        flushing = false;
         seen_callbacks.clear();
+        set_current_component(saved_component);
     }
     function update($$) {
         if ($$.fragment !== null) {
@@ -274,6 +391,16 @@ var app = (function () {
             $$.fragment && $$.fragment.p($$.ctx, dirty);
             $$.after_update.forEach(add_render_callback);
         }
+    }
+    /**
+     * Useful for example to execute remaining `afterUpdate` callbacks before executing `destroy`.
+     */
+    function flush_render_callbacks(fns) {
+        const filtered = [];
+        const targets = [];
+        render_callbacks.forEach((c) => fns.indexOf(c) === -1 ? filtered.push(c) : targets.push(c));
+        targets.forEach((c) => c());
+        render_callbacks = filtered;
     }
     const outroing = new Set();
     let outros;
@@ -310,6 +437,9 @@ var app = (function () {
                 }
             });
             block.o(local);
+        }
+        else if (callback) {
+            callback();
         }
     }
 
@@ -383,6 +513,17 @@ var app = (function () {
             info.resolved = promise;
         }
     }
+    function update_await_block_branch(info, ctx, dirty) {
+        const child_ctx = ctx.slice();
+        const { resolved } = info;
+        if (info.current === info.then) {
+            child_ctx[info.value] = resolved;
+        }
+        if (info.current === info.catch) {
+            child_ctx[info.error] = resolved;
+        }
+        info.block.p(child_ctx, dirty);
+    }
     function outro_and_destroy_block(block, lookup) {
         transition_out(block, 1, 1, () => {
             lookup.delete(block.key);
@@ -398,6 +539,7 @@ var app = (function () {
         const new_blocks = [];
         const new_lookup = new Map();
         const deltas = new Map();
+        const updates = [];
         i = n;
         while (i--) {
             const child_ctx = get_context(ctx, list, i);
@@ -408,7 +550,8 @@ var app = (function () {
                 block.c();
             }
             else if (dynamic) {
-                block.p(child_ctx, dirty);
+                // defer updates until all the DOM shuffling is done
+                updates.push(() => block.p(child_ctx, dirty));
             }
             new_lookup.set(key, new_blocks[i] = block);
             if (key in old_indexes)
@@ -461,6 +604,7 @@ var app = (function () {
         }
         while (n)
             insert(new_blocks[n - 1]);
+        run_all(updates);
         return new_blocks;
     }
 
@@ -504,14 +648,17 @@ var app = (function () {
         block && block.c();
     }
     function mount_component(component, target, anchor, customElement) {
-        const { fragment, on_mount, on_destroy, after_update } = component.$$;
+        const { fragment, after_update } = component.$$;
         fragment && fragment.m(target, anchor);
         if (!customElement) {
             // onMount happens before the initial afterUpdate
             add_render_callback(() => {
-                const new_on_destroy = on_mount.map(run).filter(is_function);
-                if (on_destroy) {
-                    on_destroy.push(...new_on_destroy);
+                const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+                // if the component was destroyed immediately
+                // it will update the `$$.on_destroy` reference to `null`.
+                // the destructured on_destroy may still reference to the old array
+                if (component.$$.on_destroy) {
+                    component.$$.on_destroy.push(...new_on_destroy);
                 }
                 else {
                     // Edge case - component was destroyed immediately,
@@ -526,6 +673,7 @@ var app = (function () {
     function destroy_component(component, detaching) {
         const $$ = component.$$;
         if ($$.fragment !== null) {
+            flush_render_callbacks($$.after_update);
             run_all($$.on_destroy);
             $$.fragment && $$.fragment.d(detaching);
             // TODO null out other refs, including component.$$ (but need to
@@ -542,12 +690,12 @@ var app = (function () {
         }
         component.$$.dirty[(i / 31) | 0] |= (1 << (i % 31));
     }
-    function init(component, options, instance, create_fragment, not_equal, props, dirty = [-1]) {
+    function init(component, options, instance, create_fragment, not_equal, props, append_styles, dirty = [-1]) {
         const parent_component = current_component;
         set_current_component(component);
         const $$ = component.$$ = {
             fragment: null,
-            ctx: null,
+            ctx: [],
             // state
             props,
             update: noop,
@@ -559,12 +707,14 @@ var app = (function () {
             on_disconnect: [],
             before_update: [],
             after_update: [],
-            context: new Map(parent_component ? parent_component.$$.context : []),
+            context: new Map(options.context || (parent_component ? parent_component.$$.context : [])),
             // everything else
             callbacks: blank_object(),
             dirty,
-            skip_bound: false
+            skip_bound: false,
+            root: options.target || parent_component.$$.root
         };
+        append_styles && append_styles($$.root);
         let ready = false;
         $$.ctx = instance
             ? instance(component, options.props || {}, (i, ret, ...rest) => {
@@ -610,6 +760,9 @@ var app = (function () {
             this.$destroy = noop;
         }
         $on(type, callback) {
+            if (!is_function(callback)) {
+                return noop;
+            }
             const callbacks = (this.$$.callbacks[type] || (this.$$.callbacks[type] = []));
             callbacks.push(callback);
             return () => {
@@ -631,7 +784,7 @@ var app = (function () {
     /**
      * Creates a `Readable` store that allows reading by subscription.
      * @param value initial value
-     * @param {StartStopNotifier}start start and stop notifications for subscriptions
+     * @param {StartStopNotifier} [start]
      */
     function readable(value, start) {
         return {
@@ -641,20 +794,19 @@ var app = (function () {
     /**
      * Create a `Writable` store that allows both updating and reading by subscription.
      * @param {*=}value initial value
-     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     * @param {StartStopNotifier=} start
      */
     function writable(value, start = noop) {
         let stop;
-        const subscribers = [];
+        const subscribers = new Set();
         function set(new_value) {
             if (safe_not_equal(value, new_value)) {
                 value = new_value;
                 if (stop) { // store is ready
                     const run_queue = !subscriber_queue.length;
-                    for (let i = 0; i < subscribers.length; i += 1) {
-                        const s = subscribers[i];
-                        s[1]();
-                        subscriber_queue.push(s, value);
+                    for (const subscriber of subscribers) {
+                        subscriber[1]();
+                        subscriber_queue.push(subscriber, value);
                     }
                     if (run_queue) {
                         for (let i = 0; i < subscriber_queue.length; i += 2) {
@@ -670,17 +822,14 @@ var app = (function () {
         }
         function subscribe(run, invalidate = noop) {
             const subscriber = [run, invalidate];
-            subscribers.push(subscriber);
-            if (subscribers.length === 1) {
+            subscribers.add(subscriber);
+            if (subscribers.size === 1) {
                 stop = start(set) || noop;
             }
             run(value);
             return () => {
-                const index = subscribers.indexOf(subscriber);
-                if (index !== -1) {
-                    subscribers.splice(index, 1);
-                }
-                if (subscribers.length === 0) {
+                subscribers.delete(subscriber);
+                if (subscribers.size === 0 && stop) {
                     stop();
                     stop = null;
                 }
@@ -695,7 +844,7 @@ var app = (function () {
             : stores;
         const auto = fn.length < 2;
         return readable(initial_value, (set) => {
-            let inited = false;
+            let started = false;
             const values = [];
             let pending = 0;
             let cleanup = noop;
@@ -715,17 +864,21 @@ var app = (function () {
             const unsubscribers = stores_array.map((store, i) => subscribe(store, (value) => {
                 values[i] = value;
                 pending &= ~(1 << i);
-                if (inited) {
+                if (started) {
                     sync();
                 }
             }, () => {
                 pending |= (1 << i);
             }));
-            inited = true;
+            started = true;
             sync();
             return function stop() {
                 run_all(unsubscribers);
                 cleanup();
+                // We need to set this to false because callbacks can still happen despite having unsubscribed:
+                // Callbacks might already be placed in the queue which doesn't know it should no longer
+                // invoke this derived store.
+                started = false;
             };
         });
     }
@@ -1086,7 +1239,7 @@ var app = (function () {
     const globalHistory = createHistory(canUseDOM ? window : createMemorySource());
     const { navigate } = globalHistory;
 
-    /* node_modules/svelte-routing/src/Router.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Router.svelte generated by Svelte v3.59.1 */
 
     const get_default_slot_changes$2 = dirty => ({
     	route: dirty & /*$activeRoute*/ 2,
@@ -1098,7 +1251,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1116,8 +1269,17 @@ var app = (function () {
     		},
     		p(ctx, [dirty]) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, $activeRoute, $location*/ 2051) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[11], dirty, get_default_slot_changes$2, get_default_slot_context$2);
+    				if (default_slot.p && (!current || dirty & /*$$scope, $activeRoute, $location*/ 2051)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[11],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[11], dirty, get_default_slot_changes$2),
+    						get_default_slot_context$2
+    					);
     				}
     			}
     		},
@@ -1136,10 +1298,10 @@ var app = (function () {
     	};
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
-    	let $base;
+    function instance$b($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
+    	let $base;
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { basepath = "/" } = $$props;
@@ -1149,7 +1311,7 @@ var app = (function () {
     	const locationContext = getContext(LOCATION);
     	const routerContext = getContext(ROUTER);
     	const routes = writable([]);
-    	component_subscribe($$self, routes, value => $$invalidate(10, $routes = value));
+    	component_subscribe($$self, routes, value => $$invalidate(9, $routes = value));
     	const activeRoute = writable(null);
     	component_subscribe($$self, activeRoute, value => $$invalidate(1, $activeRoute = value));
     	let hasActiveRoute = false; // Used in SSR to synchronously set that a Route is active.
@@ -1168,7 +1330,7 @@ var app = (function () {
     	? routerContext.routerBase
     	: writable({ path: basepath, uri: basepath });
 
-    	component_subscribe($$self, base, value => $$invalidate(9, $base = value));
+    	component_subscribe($$self, base, value => $$invalidate(10, $base = value));
 
     	const routerBase = derived([base, activeRoute], ([base, activeRoute]) => {
     		// If there is no activeRoute, the routerBase will be identical to the base.
@@ -1241,14 +1403,14 @@ var app = (function () {
     	});
 
     	$$self.$$set = $$props => {
-    		if ("basepath" in $$props) $$invalidate(6, basepath = $$props.basepath);
-    		if ("url" in $$props) $$invalidate(7, url = $$props.url);
-    		if ("history" in $$props) $$invalidate(8, history = $$props.history);
-    		if ("$$scope" in $$props) $$invalidate(11, $$scope = $$props.$$scope);
+    		if ('basepath' in $$props) $$invalidate(6, basepath = $$props.basepath);
+    		if ('url' in $$props) $$invalidate(7, url = $$props.url);
+    		if ('history' in $$props) $$invalidate(8, history = $$props.history);
+    		if ('$$scope' in $$props) $$invalidate(11, $$scope = $$props.$$scope);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$base*/ 512) {
+    		if ($$self.$$.dirty & /*$base*/ 1024) {
     			// This reactive statement will update all the Routes' path when
     			// the basepath changes.
     			{
@@ -1261,7 +1423,7 @@ var app = (function () {
     			}
     		}
 
-    		if ($$self.$$.dirty & /*$routes, $location*/ 1025) {
+    		if ($$self.$$.dirty & /*$routes, $location*/ 513) {
     			// This reactive statement will be run when the Router is created
     			// when there are no Routes and then again the following tick, so it
     			// will not find an active Route in SSR and in the browser it will only
@@ -1283,8 +1445,8 @@ var app = (function () {
     		basepath,
     		url,
     		history,
-    		$base,
     		$routes,
+    		$base,
     		$$scope,
     		slots
     	];
@@ -1293,11 +1455,11 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
-    /* node_modules/svelte-routing/src/Route.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Route.svelte generated by Svelte v3.59.1 */
     const get_default_slot_changes$1 = dirty => ({ params: dirty & /*routeParams*/ 4 });
     const get_default_slot_context$1 = ctx => ({ params: /*routeParams*/ ctx[2] });
 
@@ -1390,8 +1552,17 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, routeParams*/ 132) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[7], dirty, get_default_slot_changes$1, get_default_slot_context$1);
+    				if (default_slot.p && (!current || dirty & /*$$scope, routeParams*/ 132)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[7],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[7])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[7], dirty, get_default_slot_changes$1),
+    						get_default_slot_context$1
+    					);
     				}
     			}
     		},
@@ -1447,9 +1618,7 @@ var app = (function () {
     			info.ctx = ctx;
 
     			if (dirty & /*component*/ 1 && promise !== (promise = /*component*/ ctx[0]) && handle_promise(promise, info)) ; else {
-    				const child_ctx = ctx.slice();
-    				child_ctx[12] = info.resolved;
-    				info.block.p(child_ctx, dirty);
+    				update_await_block_branch(info, ctx, dirty);
     			}
     		},
     		i(local) {
@@ -1505,7 +1674,7 @@ var app = (function () {
     	}
 
     	if (switch_value) {
-    		switch_instance = new switch_value(switch_props());
+    		switch_instance = construct_svelte_component(switch_value, switch_props());
     	}
 
     	return {
@@ -1514,10 +1683,7 @@ var app = (function () {
     			switch_instance_anchor = empty();
     		},
     		m(target, anchor) {
-    			if (switch_instance) {
-    				mount_component(switch_instance, target, anchor);
-    			}
-
+    			if (switch_instance) mount_component(switch_instance, target, anchor);
     			insert(target, switch_instance_anchor, anchor);
     			current = true;
     		},
@@ -1529,7 +1695,7 @@ var app = (function () {
     				])
     			: {};
 
-    			if (switch_value !== (switch_value = /*resolvedComponent*/ ctx[12]?.default || /*resolvedComponent*/ ctx[12])) {
+    			if (dirty & /*component*/ 1 && switch_value !== (switch_value = /*resolvedComponent*/ ctx[12]?.default || /*resolvedComponent*/ ctx[12])) {
     				if (switch_instance) {
     					group_outros();
     					const old_component = switch_instance;
@@ -1542,7 +1708,7 @@ var app = (function () {
     				}
 
     				if (switch_value) {
-    					switch_instance = new switch_value(switch_props());
+    					switch_instance = construct_svelte_component(switch_value, switch_props());
     					create_component(switch_instance.$$.fragment);
     					transition_in(switch_instance.$$.fragment, 1);
     					mount_component(switch_instance, switch_instance_anchor.parentNode, switch_instance_anchor);
@@ -1581,7 +1747,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let if_block_anchor;
     	let current;
     	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$4(ctx);
@@ -1636,7 +1802,7 @@ var app = (function () {
     	};
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1661,9 +1827,9 @@ var app = (function () {
 
     	$$self.$$set = $$new_props => {
     		$$invalidate(11, $$props = assign(assign({}, $$props), exclude_internal_props($$new_props)));
-    		if ("path" in $$new_props) $$invalidate(6, path = $$new_props.path);
-    		if ("component" in $$new_props) $$invalidate(0, component = $$new_props.component);
-    		if ("$$scope" in $$new_props) $$invalidate(7, $$scope = $$new_props.$$scope);
+    		if ('path' in $$new_props) $$invalidate(6, path = $$new_props.path);
+    		if ('component' in $$new_props) $$invalidate(0, component = $$new_props.component);
+    		if ('$$scope' in $$new_props) $$invalidate(7, $$scope = $$new_props.$$scope);
     	};
 
     	$$self.$$.update = () => {
@@ -1700,15 +1866,15 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$a, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
-    /* node_modules/svelte-routing/src/Link.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Link.svelte generated by Svelte v3.59.1 */
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$9(ctx) {
+    function create_fragment$a(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1751,8 +1917,17 @@ var app = (function () {
     		},
     		p(ctx, [dirty]) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, ariaCurrent*/ 32772) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[15], dirty, get_default_slot_changes, get_default_slot_context);
+    				if (default_slot.p && (!current || dirty & /*$$scope, ariaCurrent*/ 32772)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[15],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[15])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[15], dirty, get_default_slot_changes),
+    						get_default_slot_context
+    					);
     				}
     			}
 
@@ -1781,21 +1956,21 @@ var app = (function () {
     	};
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
-    	let $base;
     	let $location;
+    	let $base;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { to = "#" } = $$props;
     	let { replace = false } = $$props;
     	let { state = {} } = $$props;
     	let { getProps = () => ({}) } = $$props;
     	const location = getContext(LOCATION);
-    	component_subscribe($$self, location, value => $$invalidate(14, $location = value));
+    	component_subscribe($$self, location, value => $$invalidate(13, $location = value));
     	const { base } = getContext(ROUTER);
-    	component_subscribe($$self, base, value => $$invalidate(13, $base = value));
+    	component_subscribe($$self, base, value => $$invalidate(14, $base = value));
     	const { navigate } = getContext(HISTORY);
     	const dispatch = createEventDispatcher();
     	let href, isPartiallyCurrent, isCurrent, props;
@@ -1817,23 +1992,23 @@ var app = (function () {
     	$$self.$$set = $$new_props => {
     		$$props = assign(assign({}, $$props), exclude_internal_props($$new_props));
     		$$invalidate(6, $$restProps = compute_rest_props($$props, omit_props_names));
-    		if ("to" in $$new_props) $$invalidate(7, to = $$new_props.to);
-    		if ("replace" in $$new_props) $$invalidate(8, replace = $$new_props.replace);
-    		if ("state" in $$new_props) $$invalidate(9, state = $$new_props.state);
-    		if ("getProps" in $$new_props) $$invalidate(10, getProps = $$new_props.getProps);
-    		if ("$$scope" in $$new_props) $$invalidate(15, $$scope = $$new_props.$$scope);
+    		if ('to' in $$new_props) $$invalidate(7, to = $$new_props.to);
+    		if ('replace' in $$new_props) $$invalidate(8, replace = $$new_props.replace);
+    		if ('state' in $$new_props) $$invalidate(9, state = $$new_props.state);
+    		if ('getProps' in $$new_props) $$invalidate(10, getProps = $$new_props.getProps);
+    		if ('$$scope' in $$new_props) $$invalidate(15, $$scope = $$new_props.$$scope);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*to, $base*/ 8320) {
+    		if ($$self.$$.dirty & /*to, $base*/ 16512) {
     			$$invalidate(0, href = to === "/" ? $base.uri : resolve(to, $base.uri));
     		}
 
-    		if ($$self.$$.dirty & /*$location, href*/ 16385) {
+    		if ($$self.$$.dirty & /*$location, href*/ 8193) {
     			$$invalidate(11, isPartiallyCurrent = $location.pathname.startsWith(href));
     		}
 
-    		if ($$self.$$.dirty & /*href, $location*/ 16385) {
+    		if ($$self.$$.dirty & /*href, $location*/ 8193) {
     			$$invalidate(12, isCurrent = href === $location.pathname);
     		}
 
@@ -1864,8 +2039,8 @@ var app = (function () {
     		getProps,
     		isPartiallyCurrent,
     		isCurrent,
-    		$base,
     		$location,
+    		$base,
     		$$scope,
     		slots
     	];
@@ -1875,7 +2050,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$8, create_fragment$9, safe_not_equal, {
+    		init(this, options, instance$9, create_fragment$a, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -1884,7 +2059,7 @@ var app = (function () {
     	}
     }
 
-    /* src/components/Cards/IdeaCard.svelte generated by Svelte v3.35.0 */
+    /* src/components/Cards/IdeaCard.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot$5(ctx) {
     	let t;
@@ -1902,7 +2077,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$9(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -1948,7 +2123,7 @@ var app = (function () {
     			t5 = space();
     			div1 = element("div");
     			create_component(link.$$.fragment);
-    			if (img.src !== (img_src_value = /*card*/ ctx[0].bannerImage)) attr(img, "src", img_src_value);
+    			if (!src_url_equal(img.src, img_src_value = /*card*/ ctx[0].bannerImage)) attr(img, "src", img_src_value);
     			attr(img, "alt", "Idea banner");
     			attr(img, "class", "w-full h-48 object-cover rounded-t-lg");
     			attr(h3, "class", "text-2xl font-semibold text-blueGray-700 mb-2");
@@ -1977,7 +2152,7 @@ var app = (function () {
     			current = true;
     		},
     		p(ctx, [dirty]) {
-    			if (!current || dirty & /*card*/ 1 && img.src !== (img_src_value = /*card*/ ctx[0].bannerImage)) {
+    			if (!current || dirty & /*card*/ 1 && !src_url_equal(img.src, img_src_value = /*card*/ ctx[0].bannerImage)) {
     				attr(img, "src", img_src_value);
     			}
 
@@ -2016,11 +2191,11 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$7($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
-    		if ("card" in $$props) $$invalidate(0, card = $$props.card);
+    		if ('card' in $$props) $$invalidate(0, card = $$props.card);
     	};
 
     	return [card];
@@ -2029,7 +2204,7 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { card: 0 });
+    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { card: 0 });
     	}
     }
 
@@ -2037,7 +2212,7 @@ var app = (function () {
 
     const helperStore = writable(null);
 
-    /* src/components/ProfileImg.svelte generated by Svelte v3.35.0 */
+    /* src/components/ProfileImg.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot$4(ctx) {
     	let img;
@@ -2047,8 +2222,8 @@ var app = (function () {
     	return {
     		c() {
     			img = element("img");
-    			attr(img, "class", img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? "" : "grayscale"));
-    			if (img.src !== (img_src_value = /*picture*/ ctx[1])) attr(img, "src", img_src_value);
+    			attr(img, "class", img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? '' : 'grayscale'));
+    			if (!src_url_equal(img.src, img_src_value = /*picture*/ ctx[1])) attr(img, "src", img_src_value);
     			attr(img, "alt", "Profile Img");
     			attr(img, "style", /*styleString*/ ctx[3]);
     		},
@@ -2056,11 +2231,11 @@ var app = (function () {
     			insert(target, img, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*githubVerified*/ 4 && img_class_value !== (img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? "" : "grayscale"))) {
+    			if (dirty & /*githubVerified*/ 4 && img_class_value !== (img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? '' : 'grayscale'))) {
     				attr(img, "class", img_class_value);
     			}
 
-    			if (dirty & /*picture*/ 2 && img.src !== (img_src_value = /*picture*/ ctx[1])) {
+    			if (dirty & /*picture*/ 2 && !src_url_equal(img.src, img_src_value = /*picture*/ ctx[1])) {
     				attr(img, "src", img_src_value);
     			}
 
@@ -2074,7 +2249,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$7(ctx) {
+    function create_fragment$8(ctx) {
     	let link;
     	let current;
 
@@ -2119,18 +2294,18 @@ var app = (function () {
     	};
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
-    	let { style = {} } = $$props; // new prop - it's now an object
+    	let { style = {} } = $$props;
     	let pubkey, picture, githubVerified; // initial declaration
 
     	// Converts style object to CSS string
-    	const toStyleString = styleObj => Object.entries(styleObj).map(([prop, value]) => `${prop}: ${value}`).join("; ");
+    	const toStyleString = styleObj => Object.entries(styleObj).map(([prop, value]) => `${prop}: ${value}`).join('; ');
 
     	$$self.$$set = $$props => {
-    		if ("profile" in $$props) $$invalidate(4, profile = $$props.profile);
-    		if ("style" in $$props) $$invalidate(5, style = $$props.style);
+    		if ('profile' in $$props) $$invalidate(4, profile = $$props.profile);
+    		if ('style' in $$props) $$invalidate(5, style = $$props.style);
     	};
 
     	$$self.$$.update = () => {
@@ -2148,7 +2323,7 @@ var app = (function () {
     		}
 
     		if ($$self.$$.dirty & /*style*/ 32) {
-    			$$invalidate(3, styleString = toStyleString({ ...style, "border-radius": "50%" })); // added border-radius here
+    			$$invalidate(3, styleString = toStyleString({ ...style, 'border-radius': '50%' })); // added border-radius here
     		}
     	};
 
@@ -2158,13 +2333,13 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$7, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
-    /* src/views/Overview.svelte generated by Svelte v3.35.0 */
+    /* src/views/Overview.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$2(ctx, list, i) {
+    function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[5] = list[i];
     	return child_ctx;
@@ -2234,6 +2409,7 @@ var app = (function () {
     		m(target, anchor) {
     			insert(target, button, anchor);
     		},
+    		p: noop,
     		d(detaching) {
     			if (detaching) detach(button);
     		}
@@ -2284,7 +2460,7 @@ var app = (function () {
     }
 
     // (135:10) {#each unverifiedCards as card}
-    function create_each_block$2(ctx) {
+    function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
     	let t;
@@ -2326,7 +2502,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$6(ctx) {
+    function create_fragment$7(ctx) {
     	let div8;
     	let main;
     	let section0;
@@ -2374,7 +2550,7 @@ var app = (function () {
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$3(get_each_context$3(ctx, each_value, i));
     	}
 
     	const out_1 = i => transition_out(each_blocks[i], 1, 1, () => {
@@ -2461,7 +2637,9 @@ var app = (function () {
     			append(div7, div4);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div4, null);
+    				if (each_blocks_1[i]) {
+    					each_blocks_1[i].m(div4, null);
+    				}
     			}
 
     			append(div7, t8);
@@ -2470,7 +2648,9 @@ var app = (function () {
     			append(div7, div6);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div6, null);
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div6, null);
+    				}
     			}
 
     			current = true;
@@ -2539,13 +2719,13 @@ var app = (function () {
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$2(ctx, each_value, i);
+    					const child_ctx = get_each_context$3(ctx, each_value, i);
 
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
     						transition_in(each_blocks[i], 1);
     					} else {
-    						each_blocks[i] = create_each_block$2(child_ctx);
+    						each_blocks[i] = create_each_block$3(child_ctx);
     						each_blocks[i].c();
     						transition_in(each_blocks[i], 1);
     						each_blocks[i].m(div6, null);
@@ -2603,7 +2783,7 @@ var app = (function () {
     	};
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$6($$self, $$props, $$invalidate) {
     	let verifiedCards = [];
     	let unverifiedCards = [];
     	let publicKey = "";
@@ -2653,7 +2833,7 @@ var app = (function () {
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$5, create_fragment$6, safe_not_equal, {});
+    		init(this, options, instance$6, create_fragment$7, safe_not_equal, {});
     	}
     }
 
@@ -2664,9 +2844,9 @@ var app = (function () {
         }
       }
 
-    /* src/views/IdeaDetail.svelte generated by Svelte v3.35.0 */
+    /* src/views/IdeaDetail.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$1(ctx, list, i) {
+    function get_each_context$2(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[11] = list[i];
     	return child_ctx;
@@ -2763,7 +2943,7 @@ var app = (function () {
     }
 
     // (211:12) {#each comments as comment (comment.id)}
-    function create_each_block$1(key_1, ctx) {
+    function create_each_block$2(key_1, ctx) {
     	let li;
     	let t0;
     	let div;
@@ -2869,13 +3049,14 @@ var app = (function () {
     		m(target, anchor) {
     			insert(target, button, anchor);
     		},
+    		p: noop,
     		d(detaching) {
     			if (detaching) detach(button);
     		}
     	};
     }
 
-    function create_fragment$5(ctx) {
+    function create_fragment$6(ctx) {
     	let div11;
     	let main;
     	let section0;
@@ -2943,9 +3124,9 @@ var app = (function () {
     	const get_key = ctx => /*comment*/ ctx[11].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		let child_ctx = get_each_context$1(ctx, each_value, i);
+    		let child_ctx = get_each_context$2(ctx, each_value, i);
     		let key = get_key(child_ctx);
-    		each_1_lookup.set(key, each_blocks[i] = create_each_block$1(key, child_ctx));
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block$2(key, child_ctx));
     	}
 
     	link = new Link({
@@ -3115,7 +3296,9 @@ var app = (function () {
     			append(div9, ul);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(ul, null);
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(ul, null);
+    				}
     			}
 
     			append(div9, t18);
@@ -3181,7 +3364,7 @@ var app = (function () {
     			if (dirty & /*comments*/ 2) {
     				each_value = /*comments*/ ctx[1];
     				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block$1, null, get_each_context$1);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block$2, null, get_each_context$2);
     				check_outros();
     			}
 
@@ -3233,7 +3416,7 @@ var app = (function () {
     	};
     }
 
-    function instance$4($$self, $$props, $$invalidate) {
+    function instance$5($$self, $$props, $$invalidate) {
     	let { id } = $$props;
 
     	let idea = {
@@ -3330,7 +3513,7 @@ var app = (function () {
     	}
 
     	$$self.$$set = $$props => {
-    		if ("id" in $$props) $$invalidate(6, id = $$props.id);
+    		if ('id' in $$props) $$invalidate(6, id = $$props.id);
     	};
 
     	return [
@@ -3348,11 +3531,228 @@ var app = (function () {
     class IdeaDetail extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { id: 6 });
+    		init(this, options, instance$5, create_fragment$6, safe_not_equal, { id: 6 });
     	}
     }
 
-    /* src/views/PostIdea.svelte generated by Svelte v3.35.0 */
+    /* src/components/Dropdowns/MultiSelectDropdown.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[8] = list[i];
+    	child_ctx[9] = list;
+    	child_ctx[10] = i;
+    	return child_ctx;
+    }
+
+    // (30:4) {#each categories as category}
+    function create_each_block$1(ctx) {
+    	let label;
+    	let input;
+    	let t0;
+    	let t1_value = /*category*/ ctx[8] + "";
+    	let t1;
+    	let t2;
+    	let mounted;
+    	let dispose;
+
+    	function input_change_handler() {
+    		/*input_change_handler*/ ctx[6].call(input, /*category*/ ctx[8]);
+    	}
+
+    	function change_handler() {
+    		return /*change_handler*/ ctx[7](/*category*/ ctx[8]);
+    	}
+
+    	return {
+    		c() {
+    			label = element("label");
+    			input = element("input");
+    			t0 = space();
+    			t1 = text(t1_value);
+    			t2 = space();
+    			attr(input, "type", "checkbox");
+    			attr(input, "class", "mr-2");
+    			attr(label, "class", "block px-4 py-2 hover:bg-blue-50 rounded-md");
+    		},
+    		m(target, anchor) {
+    			insert(target, label, anchor);
+    			append(label, input);
+    			input.checked = /*checkboxStates*/ ctx[2][/*category*/ ctx[8]];
+    			append(label, t0);
+    			append(label, t1);
+    			append(label, t2);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(input, "change", input_change_handler),
+    					listen(input, "change", change_handler)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*checkboxStates, categories*/ 5) {
+    				input.checked = /*checkboxStates*/ ctx[2][/*category*/ ctx[8]];
+    			}
+
+    			if (dirty & /*categories*/ 1 && t1_value !== (t1_value = /*category*/ ctx[8] + "")) set_data(t1, t1_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(label);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    function create_fragment$5(ctx) {
+    	let div1;
+    	let button;
+    	let t1;
+    	let div0;
+    	let div0_class_value;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*categories*/ ctx[0];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	return {
+    		c() {
+    			div1 = element("div");
+    			button = element("button");
+    			button.textContent = "Select Categories";
+    			t1 = space();
+    			div0 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr(button, "class", "w-full bg-white px-4 py-2 text-left border-2 border-gray-200 rounded-md");
+    			attr(div0, "class", div0_class_value = "" + ((/*dropdownOpen*/ ctx[1] ? 'block' : 'hidden') + " absolute w-full bg-white border-t-0 rounded-b-md border-2 border-gray-200 z-10"));
+    			attr(div1, "class", "block rounded-md border-1 border-gray-200 relative w-full");
+    		},
+    		m(target, anchor) {
+    			insert(target, div1, anchor);
+    			append(div1, button);
+    			append(div1, t1);
+    			append(div1, div0);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div0, null);
+    				}
+    			}
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", /*click_handler*/ ctx[5]);
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if (dirty & /*categories, checkboxStates, toggleCategory*/ 13) {
+    				each_value = /*categories*/ ctx[0];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div0, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*dropdownOpen*/ 2 && div0_class_value !== (div0_class_value = "" + ((/*dropdownOpen*/ ctx[1] ? 'block' : 'hidden') + " absolute w-full bg-white border-t-0 rounded-b-md border-2 border-gray-200 z-10"))) {
+    				attr(div0, "class", div0_class_value);
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d(detaching) {
+    			if (detaching) detach(div1);
+    			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+    }
+
+    function instance$4($$self, $$props, $$invalidate) {
+    	let { categories = [] } = $$props;
+    	let selectedCategories = [];
+    	let dropdownOpen = false; // Zustandsindikator hinzufügen
+    	let checkboxStates = {};
+
+    	function toggleCategory(category) {
+    		const isSelected = selectedCategories.includes(category);
+
+    		if (isSelected) {
+    			$$invalidate(4, selectedCategories = selectedCategories.filter(item => item !== category));
+    		} else if (selectedCategories.length < 3) {
+    			$$invalidate(4, selectedCategories = [...selectedCategories, category]);
+    		}
+    	}
+
+    	const click_handler = () => $$invalidate(1, dropdownOpen = !dropdownOpen);
+
+    	function input_change_handler(category) {
+    		checkboxStates[category] = this.checked;
+    		(($$invalidate(2, checkboxStates), $$invalidate(0, categories)), $$invalidate(4, selectedCategories));
+    	}
+
+    	const change_handler = category => toggleCategory(category);
+
+    	$$self.$$set = $$props => {
+    		if ('categories' in $$props) $$invalidate(0, categories = $$props.categories);
+    	};
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*categories, selectedCategories*/ 17) {
+    			categories.forEach(category => {
+    				$$invalidate(2, checkboxStates[category] = selectedCategories.includes(category), checkboxStates);
+    			});
+    		}
+    	};
+
+    	return [
+    		categories,
+    		dropdownOpen,
+    		checkboxStates,
+    		toggleCategory,
+    		selectedCategories,
+    		click_handler,
+    		input_change_handler,
+    		change_handler
+    	];
+    }
+
+    class MultiSelectDropdown extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { categories: 0 });
+    	}
+    }
+
+    /* src/views/PostIdea.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot$1(ctx) {
     	let t;
@@ -3375,11 +3775,11 @@ var app = (function () {
     	let section0;
     	let t5;
     	let section1;
+    	let div12;
     	let div11;
-    	let div10;
     	let h21;
     	let t7;
-    	let div9;
+    	let div10;
     	let div3;
     	let input0;
     	let t8;
@@ -3398,15 +3798,22 @@ var app = (function () {
     	let div8;
     	let input4;
     	let t13;
-    	let div12;
+    	let div9;
+    	let multiselectdropdown;
+    	let t14;
+    	let div13;
     	let button;
-    	let t15;
-    	let link;
     	let t16;
+    	let link;
+    	let t17;
     	let section2;
     	let current;
     	let mounted;
     	let dispose;
+
+    	multiselectdropdown = new MultiSelectDropdown({
+    			props: { categories: /*categories*/ ctx[6] }
+    		});
 
     	link = new Link({
     			props: {
@@ -3422,23 +3829,21 @@ var app = (function () {
     			main = element("main");
     			section0 = element("section");
 
-    			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="
-          background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80);
-        "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
+    			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
 
-            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><h1 class="text-4xl font-bold text-white">Bitstarter</h1> 
+            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-center justify-center h-full"><h1 class="text-4xl font-bold text-white">Bitstarter</h1> 
                 <h2 class="text-2xl font-light text-white">Post Idea</h2></div></div> 
         
         <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div>`;
 
     			t5 = space();
     			section1 = element("section");
+    			div12 = element("div");
     			div11 = element("div");
-    			div10 = element("div");
     			h21 = element("h2");
     			h21.textContent = "Create Idea";
     			t7 = space();
-    			div9 = element("div");
+    			div10 = element("div");
     			div3 = element("div");
     			input0 = element("input");
     			t8 = space();
@@ -3457,50 +3862,54 @@ var app = (function () {
     			div8 = element("div");
     			input4 = element("input");
     			t13 = space();
-    			div12 = element("div");
+    			div9 = element("div");
+    			create_component(multiselectdropdown.$$.fragment);
+    			t14 = space();
+    			div13 = element("div");
     			button = element("button");
     			button.textContent = "Post Idea";
-    			t15 = space();
-    			create_component(link.$$.fragment);
     			t16 = space();
+    			create_component(link.$$.fragment);
+    			t17 = space();
     			section2 = element("section");
     			attr(section0, "class", "relative block h-500-px");
     			attr(h21, "class", "text-2xl font-semibold mb-4");
     			attr(input0, "type", "text");
     			attr(input0, "placeholder", "Idea Name");
-    			attr(input0, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			attr(input0, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input0, "width", "90%");
-    			attr(div3, "class", "flex justify-center mb-4");
+    			attr(div3, "class", "mb-4");
     			attr(input1, "type", "text");
     			attr(input1, "placeholder", "Idea Subtitle");
-    			attr(input1, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			attr(input1, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input1, "width", "90%");
-    			attr(div4, "class", "flex justify-center mb-4");
+    			attr(div4, "class", "mb-4");
     			attr(textarea, "rows", "1");
     			attr(textarea, "placeholder", "Idea Message");
-    			attr(textarea, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
+    			attr(textarea, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
     			set_style(textarea, "width", "90%");
-    			attr(div5, "class", "flex justify-center mb-4");
+    			attr(div5, "class", "mb-4");
     			attr(input2, "type", "text");
     			attr(input2, "placeholder", "Idea Banner URL");
-    			attr(input2, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			attr(input2, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input2, "width", "90%");
-    			attr(div6, "class", "flex justify-center mb-4");
+    			attr(div6, "class", "mb-4");
     			attr(input3, "type", "text");
     			attr(input3, "placeholder", "Idea GitHub Repository");
-    			attr(input3, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			attr(input3, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input3, "width", "90%");
-    			attr(div7, "class", "flex justify-center mb-4");
+    			attr(div7, "class", "mb-4");
     			attr(input4, "type", "text");
     			attr(input4, "placeholder", "Idea Lightning Address");
-    			attr(input4, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			attr(input4, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input4, "width", "90%");
-    			attr(div8, "class", "flex justify-center");
-    			attr(div10, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
-    			set_style(div10, "width", "100%");
-    			attr(div11, "class", "container mx-auto px-4");
+    			attr(div9, "class", "mb-4 mt-4");
+    			set_style(div9, "width", "90%");
+    			attr(div11, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
+    			set_style(div11, "width", "100%");
+    			attr(div12, "class", "container mx-auto px-4");
     			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mt-2");
-    			attr(div12, "class", "container mx-auto px-4 flex justify-end");
+    			attr(div13, "class", "container mx-auto px-4 flex justify-end");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(section2, "class", "relative pb-16");
     			attr(main, "class", "profile-page");
@@ -3510,53 +3919,56 @@ var app = (function () {
     			append(main, section0);
     			append(main, t5);
     			append(main, section1);
-    			append(section1, div11);
+    			append(section1, div12);
+    			append(div12, div11);
+    			append(div11, h21);
+    			append(div11, t7);
     			append(div11, div10);
-    			append(div10, h21);
-    			append(div10, t7);
-    			append(div10, div9);
-    			append(div9, div3);
+    			append(div10, div3);
     			append(div3, input0);
     			set_input_value(input0, /*ideaName*/ ctx[0]);
-    			append(div9, t8);
-    			append(div9, div4);
+    			append(div10, t8);
+    			append(div10, div4);
     			append(div4, input1);
     			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
-    			append(div9, t9);
-    			append(div9, div5);
+    			append(div10, t9);
+    			append(div10, div5);
     			append(div5, textarea);
     			set_input_value(textarea, /*ideaMessage*/ ctx[2]);
-    			append(div9, t10);
-    			append(div9, div6);
+    			append(div10, t10);
+    			append(div10, div6);
     			append(div6, input2);
     			set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
-    			append(div9, t11);
-    			append(div9, div7);
+    			append(div10, t11);
+    			append(div10, div7);
     			append(div7, input3);
     			set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
-    			append(div9, t12);
-    			append(div9, div8);
+    			append(div10, t12);
+    			append(div10, div8);
     			append(div8, input4);
     			set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
-    			append(section1, t13);
-    			append(section1, div12);
-    			append(div12, button);
-    			append(div12, t15);
-    			mount_component(link, div12, null);
-    			append(main, t16);
+    			append(div10, t13);
+    			append(div10, div9);
+    			mount_component(multiselectdropdown, div9, null);
+    			append(section1, t14);
+    			append(section1, div13);
+    			append(div13, button);
+    			append(div13, t16);
+    			mount_component(link, div13, null);
+    			append(main, t17);
     			append(main, section2);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[8]),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[9]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[10]),
+    					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
+    					listen(input1, "input", /*input1_input_handler*/ ctx[10]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[11]),
     					listen(textarea, "input", autoResizeTextarea$1),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[11]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[12]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[13]),
-    					listen(button, "click", /*postIdea*/ ctx[6])
+    					listen(input2, "input", /*input2_input_handler*/ ctx[12]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[13]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[14]),
+    					listen(button, "click", /*postIdea*/ ctx[7])
     				];
 
     				mounted = true;
@@ -3589,7 +4001,7 @@ var app = (function () {
 
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 32768) {
+    			if (dirty & /*$$scope*/ 131072) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -3597,15 +4009,18 @@ var app = (function () {
     		},
     		i(local) {
     			if (current) return;
+    			transition_in(multiselectdropdown.$$.fragment, local);
     			transition_in(link.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
+    			transition_out(multiselectdropdown.$$.fragment, local);
     			transition_out(link.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
     			if (detaching) detach(main);
+    			destroy_component(multiselectdropdown);
     			destroy_component(link);
     			mounted = false;
     			run_all(dispose);
@@ -3620,7 +4035,7 @@ var app = (function () {
 
     function instance$3($$self, $$props, $$invalidate) {
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(7, $helperStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(8, $helperStore = $$value));
 
     	onMount(async () => {
     		
@@ -3632,10 +4047,26 @@ var app = (function () {
     	let ideaBannerUrl = "";
     	let ideaGithubRepo = "";
     	let ideaLightningAddress = "";
+
+    	let categories = [
+    		"Art",
+    		"BTC Adoption",
+    		"Comics",
+    		"Crafts",
+    		"Design",
+    		"Fashion",
+    		"Film & Video",
+    		"Food",
+    		"Games",
+    		"Journalism",
+    		"Music",
+    		"Photography",
+    		"Publishing",
+    		"Technology"
+    	];
     	let helper;
 
     	async function postIdea() {
-    		//const helper = get(helperStore); // Verwenden Sie die get-Funktion aus svelte/store, um den aktuellen Wert zu holen
     		if (helper) {
     			await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress);
     		} else {
@@ -3674,7 +4105,7 @@ var app = (function () {
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$helperStore*/ 128) {
+    		if ($$self.$$.dirty & /*$helperStore*/ 256) {
     			{
     				helper = $helperStore;
     			}
@@ -3688,6 +4119,7 @@ var app = (function () {
     		ideaBannerUrl,
     		ideaGithubRepo,
     		ideaLightningAddress,
+    		categories,
     		postIdea,
     		$helperStore,
     		input0_input_handler,
@@ -8282,7 +8714,7 @@ var app = (function () {
     })();
     */
 
-    /* src/views/Login.svelte generated by Svelte v3.35.0 */
+    /* src/views/Login.svelte generated by Svelte v3.59.1 */
 
     function create_fragment$3(ctx) {
     	let div4;
@@ -8413,7 +8845,7 @@ var app = (function () {
     	}
     }
 
-    /* src/views/EditProfileView.svelte generated by Svelte v3.35.0 */
+    /* src/views/EditProfileView.svelte generated by Svelte v3.59.1 */
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
@@ -8838,7 +9270,9 @@ var app = (function () {
     			append(div17, div16);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div16, null);
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div16, null);
+    				}
     			}
 
     			append(div16, t25);
@@ -9105,7 +9539,7 @@ var app = (function () {
     	const click_handler_1 = () => navigate(`/overview`);
 
     	$$self.$$set = $$props => {
-    		if ("profile_id" in $$props) $$invalidate(12, profile_id = $$props.profile_id);
+    		if ('profile_id' in $$props) $$invalidate(12, profile_id = $$props.profile_id);
     	};
 
     	return [
@@ -9141,7 +9575,7 @@ var app = (function () {
     	}
     }
 
-    /* src/views/ProfileView.svelte generated by Svelte v3.35.0 */
+    /* src/views/ProfileView.svelte generated by Svelte v3.59.1 */
 
     function create_if_block_1(ctx) {
     	let button;
@@ -9450,7 +9884,7 @@ var app = (function () {
     	const click_handler_1 = () => window.history.back();
 
     	$$self.$$set = $$props => {
-    		if ("profile_id" in $$props) $$invalidate(0, profile_id = $$props.profile_id);
+    		if ('profile_id' in $$props) $$invalidate(0, profile_id = $$props.profile_id);
     	};
 
     	return [
@@ -9472,7 +9906,7 @@ var app = (function () {
     	}
     }
 
-    /* src/App.svelte generated by Svelte v3.35.0 */
+    /* src/App.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot(ctx) {
     	let div;
