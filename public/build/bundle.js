@@ -3831,8 +3831,8 @@ var app = (function () {
 
     			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
 
-            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-center justify-center h-full"><h1 class="text-4xl font-bold text-white">Bitstarter</h1> 
-                <h2 class="text-2xl font-light text-white">Post Idea</h2></div></div> 
+            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><h1 class="text-4xl font-bold text-white">BitSpark</h1> 
+          <h2 class="text-2xl font-light text-white">Spark Idea</h2></div></div> 
         
         <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div>`;
 
@@ -3841,7 +3841,7 @@ var app = (function () {
     			div12 = element("div");
     			div11 = element("div");
     			h21 = element("h2");
-    			h21.textContent = "Create Idea";
+    			h21.textContent = "Spark Idea";
     			t7 = space();
     			div10 = element("div");
     			div3 = element("div");
@@ -3867,7 +3867,7 @@ var app = (function () {
     			t14 = space();
     			div13 = element("div");
     			button = element("button");
-    			button.textContent = "Post Idea";
+    			button.textContent = "Spark Idea";
     			t16 = space();
     			create_component(link.$$.fragment);
     			t17 = space();
@@ -3885,22 +3885,22 @@ var app = (function () {
     			set_style(input1, "width", "90%");
     			attr(div4, "class", "mb-4");
     			attr(textarea, "rows", "1");
-    			attr(textarea, "placeholder", "Idea Message");
+    			attr(textarea, "placeholder", "Description");
     			attr(textarea, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
     			set_style(textarea, "width", "90%");
     			attr(div5, "class", "mb-4");
     			attr(input2, "type", "text");
-    			attr(input2, "placeholder", "Idea Banner URL");
+    			attr(input2, "placeholder", "Banner URL");
     			attr(input2, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input2, "width", "90%");
     			attr(div6, "class", "mb-4");
     			attr(input3, "type", "text");
-    			attr(input3, "placeholder", "Idea GitHub Repository");
+    			attr(input3, "placeholder", "GitHub Repository");
     			attr(input3, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input3, "width", "90%");
     			attr(div7, "class", "mb-4");
     			attr(input4, "type", "text");
-    			attr(input4, "placeholder", "Idea Lightning Address");
+    			attr(input4, "placeholder", "Lightning Address");
     			attr(input4, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input4, "width", "90%");
     			attr(div9, "class", "mb-4 mt-4");

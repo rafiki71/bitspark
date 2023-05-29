@@ -69,11 +69,11 @@
             />
 
             <div
-                class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-center justify-center h-full"
-            >
-                <h1 class="text-4xl font-bold text-white">Bitstarter</h1>
-                <h2 class="text-2xl font-light text-white">Post Idea</h2>
-            </div>
+          class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
+        >
+          <h1 class="text-4xl font-bold text-white">BitSpark</h1>
+          <h2 class="text-2xl font-light text-white">Spark Idea</h2>
+        </div>
         </div>
         <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
         <div
@@ -103,7 +103,7 @@
                 class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg"
                 style="width: 100%;"
             >
-                <h2 class="text-2xl font-semibold mb-4">Create Idea</h2>
+                <h2 class="text-2xl font-semibold mb-4">Spark Idea</h2>
                 <div>
                     <div class="mb-4">
                         <input
@@ -128,7 +128,7 @@
                     <div class="mb-4">
                         <textarea
                             rows="1"
-                            placeholder="Idea Message"
+                            placeholder="Description"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
                             bind:value={ideaMessage}
                             on:input={autoResizeTextarea}
@@ -139,7 +139,7 @@
                     <div class="mb-4">
                         <input
                             type="text"
-                            placeholder="Idea Banner URL"
+                            placeholder="Banner URL"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaBannerUrl}
                             style="width: 90%;"
@@ -148,7 +148,7 @@
                     <div class="mb-4">
                         <input
                             type="text"
-                            placeholder="Idea GitHub Repository"
+                            placeholder="GitHub Repository"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaGithubRepo}
                             style="width: 90%;"
@@ -157,7 +157,7 @@
                     <div>
                         <input
                             type="text"
-                            placeholder="Idea Lightning Address"
+                            placeholder="Lightning Address"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaLightningAddress}
                             style="width: 90%;"
@@ -174,7 +174,7 @@
                 class="bg-red-500 text-white font-bold py-2 px-4 rounded mt-2"
                 on:click={postIdea}
             >
-                Post Idea
+                Spark Idea
             </button>
             <Link
                 to="/overview"
