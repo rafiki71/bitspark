@@ -3832,7 +3832,7 @@ var app = (function () {
     			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
 
             <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><h1 class="text-4xl font-bold text-white">BitSpark</h1> 
-          <h2 class="text-2xl font-light text-white">Spark Idea</h2></div></div> 
+                <h2 class="text-2xl font-light text-white">Spark Idea</h2></div></div> 
         
         <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div>`;
 
@@ -4049,20 +4049,31 @@ var app = (function () {
     	let ideaLightningAddress = "";
 
     	let categories = [
-    		"Art",
-    		"BTC Adoption",
-    		"Comics",
-    		"Crafts",
-    		"Design",
-    		"Fashion",
-    		"Film & Video",
-    		"Food",
-    		"Games",
-    		"Journalism",
-    		"Music",
-    		"Photography",
-    		"Publishing",
-    		"Technology"
+    		"Art & Design",
+    		"Bitcoin & P2P",
+    		"Comics & Graphic Novels",
+    		"Crafts & DIY",
+    		"Fashion & Beauty",
+    		"Film, Video & Animation",
+    		"Food & Beverages",
+    		"Games & Gaming",
+    		"Health & Fitness",
+    		"Journalism & News",
+    		"Music & Audio",
+    		"Photography & Visual Arts",
+    		"Publishing & Writing",
+    		"Technology & Software",
+    		"Education & Learning",
+    		"Environment & Sustainability",
+    		"Sports & Outdoors",
+    		"Travel & Tourism",
+    		"Non-Profit & Social Causes",
+    		"Business & Entrepreneurship",
+    		"Science & Research",
+    		"Home & Lifestyle",
+    		"Automotive & Transportation",
+    		"Pets & Animals",
+    		"Parenting & Family"
     	];
     	let helper;
 

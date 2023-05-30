@@ -12,20 +12,31 @@
     let ideaGithubRepo = "";
     let ideaLightningAddress = "";
     let categories = [
-        "Art",
-        "BTC Adoption",
-        "Comics",
-        "Crafts",
-        "Design",
-        "Fashion",
-        "Film & Video",
-        "Food",
-        "Games",
-        "Journalism",
-        "Music",
-        "Photography",
-        "Publishing",
-        "Technology"
+        "Art & Design",
+        "Bitcoin & P2P",
+        "Comics & Graphic Novels",
+        "Crafts & DIY",
+        "Fashion & Beauty",
+        "Film, Video & Animation",
+        "Food & Beverages",
+        "Games & Gaming",
+        "Health & Fitness",
+        "Journalism & News",
+        "Music & Audio",
+        "Photography & Visual Arts",
+        "Publishing & Writing",
+        "Technology & Software",
+        "Education & Learning",
+        "Environment & Sustainability",
+        "Sports & Outdoors",
+        "Travel & Tourism",
+        "Non-Profit & Social Causes",
+        "Business & Entrepreneurship",
+        "Science & Research",
+        "Home & Lifestyle",
+        "Automotive & Transportation",
+        "Pets & Animals",
+        "Parenting & Family",
     ];
     let selectedCategories = [];
 
@@ -69,11 +80,11 @@
             />
 
             <div
-          class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-        >
-          <h1 class="text-4xl font-bold text-white">BitSpark</h1>
-          <h2 class="text-2xl font-light text-white">Spark Idea</h2>
-        </div>
+                class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
+            >
+                <h1 class="text-4xl font-bold text-white">BitSpark</h1>
+                <h2 class="text-2xl font-light text-white">Spark Idea</h2>
+            </div>
         </div>
         <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
         <div
