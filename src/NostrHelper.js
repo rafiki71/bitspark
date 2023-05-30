@@ -16,6 +16,9 @@ export default class NostrHelper {
   }
 
   async getPublicRelaysString() {
+    let usePlugin = await this.extensionAvailable();
+    if (!usePlugin) return ["wss://relay.damus.io"]; // Do nothing in read-only mode
+
     // Get relays from getPublicRelays function
     let relaysFromGetPublicRelays = await this.getPublicRelays();
     // Transform it to include only relay URLs
@@ -50,6 +53,8 @@ export default class NostrHelper {
   }
 
   async getPublicRelays() {
+    if (!this.extensionAvailable()) return; // Do nothing in read-only mode
+
     let relayObject = await window.nostr.getRelays();
     let relayList = [];
 
@@ -117,7 +122,6 @@ export default class NostrHelper {
     }
   }
 
-
   async deleteRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
 
@@ -151,7 +155,7 @@ export default class NostrHelper {
   }
 
   async initialize() {
-    let useExtension = this.extensionAvailable();
+    let useExtension = await this.extensionAvailable();
     if (this.write_mode && useExtension) {
       this.publicKey = await window.nostr.getPublicKey();
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
@@ -160,6 +164,7 @@ export default class NostrHelper {
     }
     else {
       this.write_mode = false;
+      this.relays = await this.getPublicRelaysString(); //fetch from the public first
     }
   }
 
@@ -193,16 +198,21 @@ export default class NostrHelper {
     return event;
   }
 
-  async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress) {
+  async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-
-    const tags = [
+    console.log("categories:", categories)
+    let tags = [
       ["iName", ideaName],
       ["iSub", ideaSubtitle],
       ["ibUrl", bannerUrl],
       ["gitrepo", githubRepo],
       ["lnadress", lnAdress]
     ];
+
+    // Add each category to the tags
+    categories.forEach(category => {
+      tags.push(["c", category]);
+    });
 
     const ideaEvent = this.createEvent(this.idea_kind, content, tags);
     console.log("Idea Posted")
@@ -223,7 +233,7 @@ export default class NostrHelper {
 
     ideas = await Promise.all(profilePromises);
 
-    console.log("getIdeas()")
+    console.log("getIdeas:", ideas)
     return ideas;
   }
 
@@ -292,7 +302,7 @@ export default class NostrHelper {
       if (!profile.tags) {
         return null;
       }
-      
+
       const tag = profile.tags.find(tag => tag[0] === 'i' && tag[1].startsWith('github:'));
       if (!tag) {
         return null;
@@ -340,7 +350,7 @@ export default class NostrHelper {
 
     // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
     let profile = await this.profileBuffer.getProfile(pubkey);
-    
+
     if (profile) {
       console.log("getProfile speed up:", profile);
       return profile;

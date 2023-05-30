@@ -40,6 +40,10 @@
     ];
     let selectedCategories = [];
 
+    $: {
+    console.log(selectedCategories);
+    }
+
     function autoResizeTextarea(e) {
         e.target.style.height = "";
         e.target.style.height = e.target.scrollHeight + "px";
@@ -51,19 +55,21 @@
     }
 
     async function postIdea() {
-        if (helper) {
-            await helper.postIdea(
-                ideaName,
-                ideaSubtitle,
-                ideaMessage,
-                ideaBannerUrl,
-                ideaGithubRepo,
-                ideaLightningAddress
-            );
-        } else {
-            console.error("BitstarterHelper is not initialized");
-        }
+    if (helper) {
+        await helper.postIdea(
+            ideaName,
+            ideaSubtitle,
+            ideaMessage,
+            ideaBannerUrl,
+            ideaGithubRepo,
+            ideaLightningAddress,
+            selectedCategories
+        );
+    } else {
+        console.error("NostrHelper is not initialized");
     }
+}
+
 </script>
 
 <main class="profile-page">
@@ -175,7 +181,7 @@
                         />
                     </div>
                     <div class="mb-4 mt-4" style="width: 90%;">
-                        <MultiSelectDropdown {categories} />
+                        <MultiSelectDropdown {categories} bind:selected={selectedCategories} />
                     </div>
                 </div>
             </div>

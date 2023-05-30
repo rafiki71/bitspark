@@ -312,6 +312,9 @@ var app = (function () {
     function add_render_callback(fn) {
         render_callbacks.push(fn);
     }
+    function add_flush_callback(fn) {
+        flush_callbacks.push(fn);
+    }
     // flush() calls callbacks in this order:
     // 1. All beforeUpdate callbacks, in order: parents before children
     // 2. All bind:this callbacks, in reverse order: children before parents.
@@ -643,6 +646,14 @@ var app = (function () {
     }
     function get_spread_object(spread_props) {
         return typeof spread_props === 'object' && spread_props !== null ? spread_props : {};
+    }
+
+    function bind(component, name, callback) {
+        const index = component.$$.props[name];
+        if (index !== undefined) {
+            component.$$.bound[index] = callback;
+            callback(component.$$.ctx[index]);
+        }
     }
     function create_component(block) {
         block && block.c();
@@ -2403,7 +2414,7 @@ var app = (function () {
     	return {
     		c() {
     			button = element("button");
-    			button.textContent = "Create Idea";
+    			button.textContent = "Spark Idea";
     			attr(button, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
     		},
     		m(target, anchor) {
@@ -3698,17 +3709,17 @@ var app = (function () {
 
     function instance$4($$self, $$props, $$invalidate) {
     	let { categories = [] } = $$props;
-    	let selectedCategories = [];
-    	let dropdownOpen = false; // Zustandsindikator hinzufügen
+    	let { selected = [] } = $$props;
+    	let dropdownOpen = false;
     	let checkboxStates = {};
 
     	function toggleCategory(category) {
-    		const isSelected = selectedCategories.includes(category);
+    		const isSelected = selected.includes(category);
 
     		if (isSelected) {
-    			$$invalidate(4, selectedCategories = selectedCategories.filter(item => item !== category));
-    		} else if (selectedCategories.length < 3) {
-    			$$invalidate(4, selectedCategories = [...selectedCategories, category]);
+    			$$invalidate(4, selected = selected.filter(item => item !== category));
+    		} else if (selected.length < 3) {
+    			$$invalidate(4, selected = [...selected, category]);
     		}
     	}
 
@@ -3716,19 +3727,20 @@ var app = (function () {
 
     	function input_change_handler(category) {
     		checkboxStates[category] = this.checked;
-    		(($$invalidate(2, checkboxStates), $$invalidate(0, categories)), $$invalidate(4, selectedCategories));
+    		(($$invalidate(2, checkboxStates), $$invalidate(0, categories)), $$invalidate(4, selected));
     	}
 
     	const change_handler = category => toggleCategory(category);
 
     	$$self.$$set = $$props => {
     		if ('categories' in $$props) $$invalidate(0, categories = $$props.categories);
+    		if ('selected' in $$props) $$invalidate(4, selected = $$props.selected);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*categories, selectedCategories*/ 17) {
+    		if ($$self.$$.dirty & /*categories, selected*/ 17) {
     			categories.forEach(category => {
-    				$$invalidate(2, checkboxStates[category] = selectedCategories.includes(category), checkboxStates);
+    				$$invalidate(2, checkboxStates[category] = selected.includes(category), checkboxStates);
     			});
     		}
     	};
@@ -3738,7 +3750,7 @@ var app = (function () {
     		dropdownOpen,
     		checkboxStates,
     		toggleCategory,
-    		selectedCategories,
+    		selected,
     		click_handler,
     		input_change_handler,
     		change_handler
@@ -3748,7 +3760,7 @@ var app = (function () {
     class MultiSelectDropdown extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { categories: 0 });
+    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { categories: 0, selected: 4 });
     	}
     }
 
@@ -3800,6 +3812,7 @@ var app = (function () {
     	let t13;
     	let div9;
     	let multiselectdropdown;
+    	let updating_selected;
     	let t14;
     	let div13;
     	let button;
@@ -3811,9 +3824,18 @@ var app = (function () {
     	let mounted;
     	let dispose;
 
-    	multiselectdropdown = new MultiSelectDropdown({
-    			props: { categories: /*categories*/ ctx[6] }
-    		});
+    	function multiselectdropdown_selected_binding(value) {
+    		/*multiselectdropdown_selected_binding*/ ctx[16](value);
+    	}
+
+    	let multiselectdropdown_props = { categories: /*categories*/ ctx[7] };
+
+    	if (/*selectedCategories*/ ctx[0] !== void 0) {
+    		multiselectdropdown_props.selected = /*selectedCategories*/ ctx[0];
+    	}
+
+    	multiselectdropdown = new MultiSelectDropdown({ props: multiselectdropdown_props });
+    	binding_callbacks.push(() => bind(multiselectdropdown, 'selected', multiselectdropdown_selected_binding));
 
     	link = new Link({
     			props: {
@@ -3926,27 +3948,27 @@ var app = (function () {
     			append(div11, div10);
     			append(div10, div3);
     			append(div3, input0);
-    			set_input_value(input0, /*ideaName*/ ctx[0]);
+    			set_input_value(input0, /*ideaName*/ ctx[1]);
     			append(div10, t8);
     			append(div10, div4);
     			append(div4, input1);
-    			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			set_input_value(input1, /*ideaSubtitle*/ ctx[2]);
     			append(div10, t9);
     			append(div10, div5);
     			append(div5, textarea);
-    			set_input_value(textarea, /*ideaMessage*/ ctx[2]);
+    			set_input_value(textarea, /*ideaMessage*/ ctx[3]);
     			append(div10, t10);
     			append(div10, div6);
     			append(div6, input2);
-    			set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
+    			set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
     			append(div10, t11);
     			append(div10, div7);
     			append(div7, input3);
-    			set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
+    			set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
     			append(div10, t12);
     			append(div10, div8);
     			append(div8, input4);
-    			set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
+    			set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
     			append(div10, t13);
     			append(div10, div9);
     			mount_component(multiselectdropdown, div9, null);
@@ -3961,47 +3983,56 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[10]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[11]),
+    					listen(input0, "input", /*input0_input_handler*/ ctx[10]),
+    					listen(input1, "input", /*input1_input_handler*/ ctx[11]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[12]),
     					listen(textarea, "input", autoResizeTextarea$1),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[12]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[13]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[14]),
-    					listen(button, "click", /*postIdea*/ ctx[7])
+    					listen(input2, "input", /*input2_input_handler*/ ctx[13]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[14]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[15]),
+    					listen(button, "click", /*postIdea*/ ctx[8])
     				];
 
     				mounted = true;
     			}
     		},
     		p(ctx, [dirty]) {
-    			if (dirty & /*ideaName*/ 1 && input0.value !== /*ideaName*/ ctx[0]) {
-    				set_input_value(input0, /*ideaName*/ ctx[0]);
+    			if (dirty & /*ideaName*/ 2 && input0.value !== /*ideaName*/ ctx[1]) {
+    				set_input_value(input0, /*ideaName*/ ctx[1]);
     			}
 
-    			if (dirty & /*ideaSubtitle*/ 2 && input1.value !== /*ideaSubtitle*/ ctx[1]) {
-    				set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			if (dirty & /*ideaSubtitle*/ 4 && input1.value !== /*ideaSubtitle*/ ctx[2]) {
+    				set_input_value(input1, /*ideaSubtitle*/ ctx[2]);
     			}
 
-    			if (dirty & /*ideaMessage*/ 4) {
-    				set_input_value(textarea, /*ideaMessage*/ ctx[2]);
+    			if (dirty & /*ideaMessage*/ 8) {
+    				set_input_value(textarea, /*ideaMessage*/ ctx[3]);
     			}
 
-    			if (dirty & /*ideaBannerUrl*/ 8 && input2.value !== /*ideaBannerUrl*/ ctx[3]) {
-    				set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
+    			if (dirty & /*ideaBannerUrl*/ 16 && input2.value !== /*ideaBannerUrl*/ ctx[4]) {
+    				set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
     			}
 
-    			if (dirty & /*ideaGithubRepo*/ 16 && input3.value !== /*ideaGithubRepo*/ ctx[4]) {
-    				set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
+    			if (dirty & /*ideaGithubRepo*/ 32 && input3.value !== /*ideaGithubRepo*/ ctx[5]) {
+    				set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
     			}
 
-    			if (dirty & /*ideaLightningAddress*/ 32 && input4.value !== /*ideaLightningAddress*/ ctx[5]) {
-    				set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
+    			if (dirty & /*ideaLightningAddress*/ 64 && input4.value !== /*ideaLightningAddress*/ ctx[6]) {
+    				set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
     			}
 
+    			const multiselectdropdown_changes = {};
+
+    			if (!updating_selected && dirty & /*selectedCategories*/ 1) {
+    				updating_selected = true;
+    				multiselectdropdown_changes.selected = /*selectedCategories*/ ctx[0];
+    				add_flush_callback(() => updating_selected = false);
+    			}
+
+    			multiselectdropdown.$set(multiselectdropdown_changes);
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 131072) {
+    			if (dirty & /*$$scope*/ 262144) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -4035,7 +4066,7 @@ var app = (function () {
 
     function instance$3($$self, $$props, $$invalidate) {
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(8, $helperStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(9, $helperStore = $$value));
 
     	onMount(async () => {
     		
@@ -4075,48 +4106,61 @@ var app = (function () {
     		"Pets & Animals",
     		"Parenting & Family"
     	];
+
+    	let selectedCategories = [];
     	let helper;
 
     	async function postIdea() {
     		if (helper) {
-    			await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress);
+    			await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
     		} else {
-    			console.error("BitstarterHelper is not initialized");
+    			console.error("NostrHelper is not initialized");
     		}
     	}
 
     	function input0_input_handler() {
     		ideaName = this.value;
-    		$$invalidate(0, ideaName);
+    		$$invalidate(1, ideaName);
     	}
 
     	function input1_input_handler() {
     		ideaSubtitle = this.value;
-    		$$invalidate(1, ideaSubtitle);
+    		$$invalidate(2, ideaSubtitle);
     	}
 
     	function textarea_input_handler() {
     		ideaMessage = this.value;
-    		$$invalidate(2, ideaMessage);
+    		$$invalidate(3, ideaMessage);
     	}
 
     	function input2_input_handler() {
     		ideaBannerUrl = this.value;
-    		$$invalidate(3, ideaBannerUrl);
+    		$$invalidate(4, ideaBannerUrl);
     	}
 
     	function input3_input_handler() {
     		ideaGithubRepo = this.value;
-    		$$invalidate(4, ideaGithubRepo);
+    		$$invalidate(5, ideaGithubRepo);
     	}
 
     	function input4_input_handler() {
     		ideaLightningAddress = this.value;
-    		$$invalidate(5, ideaLightningAddress);
+    		$$invalidate(6, ideaLightningAddress);
+    	}
+
+    	function multiselectdropdown_selected_binding(value) {
+    		selectedCategories = value;
+    		$$invalidate(0, selectedCategories);
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$helperStore*/ 256) {
+    		if ($$self.$$.dirty & /*selectedCategories*/ 1) {
+    			{
+    				console.log(selectedCategories);
+    			}
+    		}
+
+    		if ($$self.$$.dirty & /*$helperStore*/ 512) {
     			{
     				helper = $helperStore;
     			}
@@ -4124,6 +4168,7 @@ var app = (function () {
     	};
 
     	return [
+    		selectedCategories,
     		ideaName,
     		ideaSubtitle,
     		ideaMessage,
@@ -4138,7 +4183,8 @@ var app = (function () {
     		textarea_input_handler,
     		input2_input_handler,
     		input3_input_handler,
-    		input4_input_handler
+    		input4_input_handler,
+    		multiselectdropdown_selected_binding
     	];
     }
 
@@ -8257,6 +8303,9 @@ var app = (function () {
       }
 
       async getPublicRelaysString() {
+        let usePlugin = await this.extensionAvailable();
+        if (!usePlugin) return ["wss://relay.damus.io"]; // Do nothing in read-only mode
+
         // Get relays from getPublicRelays function
         let relaysFromGetPublicRelays = await this.getPublicRelays();
         // Transform it to include only relay URLs
@@ -8291,6 +8340,8 @@ var app = (function () {
       }
 
       async getPublicRelays() {
+        if (!this.extensionAvailable()) return; // Do nothing in read-only mode
+
         let relayObject = await window.nostr.getRelays();
         let relayList = [];
 
@@ -8358,7 +8409,6 @@ var app = (function () {
         }
       }
 
-
       async deleteRelay(relay_url) {
         if (!this.write_mode) return; // Do nothing in read-only mode
 
@@ -8392,7 +8442,7 @@ var app = (function () {
       }
 
       async initialize() {
-        let useExtension = this.extensionAvailable();
+        let useExtension = await this.extensionAvailable();
         if (this.write_mode && useExtension) {
           this.publicKey = await window.nostr.getPublicKey();
           this.relays = await this.getPublicRelaysString(); //fetch from the public first
@@ -8401,6 +8451,7 @@ var app = (function () {
         }
         else {
           this.write_mode = false;
+          this.relays = await this.getPublicRelaysString(); //fetch from the public first
         }
       }
 
@@ -8434,16 +8485,21 @@ var app = (function () {
         return event;
       }
 
-      async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress) {
+      async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
         if (!this.write_mode) return; // Do nothing in read-only mode
-
-        const tags = [
+        console.log("categories:", categories);
+        let tags = [
           ["iName", ideaName],
           ["iSub", ideaSubtitle],
           ["ibUrl", bannerUrl],
           ["gitrepo", githubRepo],
           ["lnadress", lnAdress]
         ];
+
+        // Add each category to the tags
+        categories.forEach(category => {
+          tags.push(["c", category]);
+        });
 
         const ideaEvent = this.createEvent(this.idea_kind, content, tags);
         console.log("Idea Posted");
@@ -8464,7 +8520,7 @@ var app = (function () {
 
         ideas = await Promise.all(profilePromises);
 
-        console.log("getIdeas()");
+        console.log("getIdeas:", ideas);
         return ideas;
       }
 
@@ -8533,7 +8589,7 @@ var app = (function () {
           if (!profile.tags) {
             return null;
           }
-          
+
           const tag = profile.tags.find(tag => tag[0] === 'i' && tag[1].startsWith('github:'));
           if (!tag) {
             return null;
@@ -8581,7 +8637,7 @@ var app = (function () {
 
         // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
         let profile = await this.profileBuffer.getProfile(pubkey);
-        
+
         if (profile) {
           console.log("getProfile speed up:", profile);
           return profile;

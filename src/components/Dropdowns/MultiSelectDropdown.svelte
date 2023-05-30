@@ -1,21 +1,21 @@
 <script>
   export let categories = [];
-  
-  let selectedCategories = [];
-  let dropdownOpen = false; // Zustandsindikator hinzufügen
+  export let selected = []; // Hinweis: der Name "selected" wurde in Übereinstimmung mit dem Namen der übergeordneten Variable gewählt
+
+  let dropdownOpen = false; 
 
   let checkboxStates = {};
 
   $: categories.forEach(category => {
-    checkboxStates[category] = selectedCategories.includes(category);
+    checkboxStates[category] = selected.includes(category);
   });
 
   function toggleCategory(category) {
-    const isSelected = selectedCategories.includes(category);
+    const isSelected = selected.includes(category);
     if (isSelected) {
-      selectedCategories = selectedCategories.filter(item => item !== category);
-    } else if (selectedCategories.length < 3) {
-      selectedCategories = [...selectedCategories, category];
+      selected = selected.filter(item => item !== category);
+    } else if (selected.length < 3) {
+      selected = [...selected, category];
     }
   }
 </script>
