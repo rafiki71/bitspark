@@ -2,6 +2,7 @@ import 'websocket-polyfill'
 //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
 const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 import ProfileBuffer from './ProfileBuffer.js';
+import { helperStore } from "./helperStore.js"; // Import the store
 
 export default class NostrHelper {
   constructor(write_mode) {
@@ -17,13 +18,23 @@ export default class NostrHelper {
 
   async getPublicRelaysString() {
     let usePlugin = await this.extensionAvailable();
-    if (!usePlugin) return ["wss://relay.damus.io"]; // Do nothing in read-only mode
+    if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
+                                                "wss://relay.damus.io/",
+                                                "wss://relay.damus.io",
+                                                "wss://nostr1.tunnelsats.com",
+                                                "wss://nostr-pub.wellorder.net",
+                                                "wss://relay.nostr.info",
+                                                "wss://nostr-relay.wlvs.space",
+                                                "wss://nostr.bitcoiner.social",
+                                                "wss://nostr-01.bolt.observer",
+                                                "wss://relayer.fiatjaf.com"];
 
     // Get relays from getPublicRelays function
     let relaysFromGetPublicRelays = await this.getPublicRelays();
     // Transform it to include only relay URLs
     relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
     this.publicRelays = relaysFromGetPublicRelays;
+    console.log(relaysFromGetPublicRelays)
     return relaysFromGetPublicRelays
   }
 
@@ -54,7 +65,6 @@ export default class NostrHelper {
 
   async getPublicRelays() {
     if (!this.extensionAvailable()) return; // Do nothing in read-only mode
-
     let relayObject = await window.nostr.getRelays();
     let relayList = [];
 
@@ -453,10 +463,32 @@ function uniqueTags(tags) {
 }
 
 NostrHelper.create = async function (write_mode) {
-  const instance = new NostrHelper(write_mode);
-  await instance.initialize();
-  return instance;
+  // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
+  if (write_mode !== undefined) {
+    const instance = new NostrHelper(write_mode);
+    await instance.initialize();
+    helperStore.set(instance);
+    return instance;
+  }
+
+  // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
+  let storedInstance = null;
+  const unsubscribe = helperStore.subscribe(value => {
+    storedInstance = value;
+  });
+
+  // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
+  if (storedInstance === null) {
+    const instance = new NostrHelper(false);
+    await instance.initialize();
+    helperStore.set(instance);
+    storedInstance = instance;
+  }
+
+  unsubscribe();
+  return storedInstance;
 }
+
 
 /*
 (async function() {

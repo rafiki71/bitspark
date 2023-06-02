@@ -5,9 +5,9 @@
   import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
   import { Link, navigate } from "svelte-routing";
-  import { helperStore } from "../helperStore.js";
-  import { get } from "svelte/store";
   import ProfileImg from "../components/ProfileImg.svelte";
+  import NostrHelper from "../NostrHelper.js";
+
 
   let verifiedCards = [];
   let unverifiedCards = [];
@@ -17,11 +17,11 @@
 
   onMount(async () => {
     try {
-      const bitstarterHelper = get(helperStore);
-      publicKey = bitstarterHelper.publicKey;
-      profile = await bitstarterHelper.getProfile(publicKey);
+      const nostrHelper = await NostrHelper.create();
+      publicKey = nostrHelper.publicKey;
+      profile = await nostrHelper.getProfile(publicKey);
       profilePicture = profile.picture;
-      const ideas = await bitstarterHelper.getIdeas();
+      const ideas = await nostrHelper.getIdeas();
       let verified = [];
       let unverified = [];
       ideas.forEach((idea) => {

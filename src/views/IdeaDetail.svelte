@@ -2,10 +2,9 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
-  import { helperStore } from "../helperStore.js";
-  import { get } from "svelte/store";
   import { sendSatsLNurl } from "../LNHelper.js";
   import ProfileImg from "../components/ProfileImg.svelte";
+  import NostrHelper from "../NostrHelper.js";
 
   export let id;
 
@@ -30,8 +29,9 @@
 
   async function fetchData() {
     try {
-      const bitstarterHelper = get(helperStore);
-      const fetchedIdea = await bitstarterHelper.getEvent(id);
+      
+      const nostrHelper = await NostrHelper.create();
+      const fetchedIdea = await nostrHelper.getEvent(id);
 
       // Konvertiere die Tags in ein einfacher zu handhabendes Objekt
       const tags = fetchedIdea.tags.reduce(
@@ -50,7 +50,7 @@
         pubkey: fetchedIdea.pubkey,
       };
       // Laden Sie das Profil des Erstellers der Idee
-      creator_profile = await bitstarterHelper.getProfile(fetchedIdea.pubkey);
+      creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey);
       console.log("creator_profile");
       console.log(creator_profile);
       profiles[creator_profile.pubkey] = creator_profile;

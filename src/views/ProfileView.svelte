@@ -1,9 +1,8 @@
 <script>
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
-    import { get } from "svelte/store";
     import ProfileImg from "../components/ProfileImg.svelte";
+    import NostrHelper from "../NostrHelper.js";
 
     export let profile_id;
 
@@ -17,11 +16,11 @@
 
     onMount(async () => {
         try {
-            const bitstarterHelper = get(helperStore);
-            publicKey = bitstarterHelper.publicKey;
+            const nostrHelper = await NostrHelper.create();
+            publicKey = nostrHelper.publicKey;
             console.log(profile_id);
             console.log(publicKey);
-            profile = await bitstarterHelper.getProfile(profile_id);
+            profile = await nostrHelper.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
                 about = profile.dev_about;

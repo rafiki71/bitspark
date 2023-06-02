@@ -1,9 +1,9 @@
 <script>
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
-    import { get } from "svelte/store";
     import ProfileImg from "../components/ProfileImg.svelte";
+    import NostrHelper from "../NostrHelper.js";
+
 
     export let profile_id;
 
@@ -20,8 +20,8 @@
 
     onMount(async () => {
         try {
-            bitstarterHelper = get(helperStore);
-            profile = await bitstarterHelper.getProfile(profile_id);
+            const nostrHelper = await NostrHelper.create();
+            profile = await nostrHelper.getProfile(profile_id);
 
             if (profile) {
                 name = profile.name;
@@ -32,7 +32,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
-                relays = await bitstarterHelper.clientRelays;
+                relays = await nostrHelper.clientRelays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);

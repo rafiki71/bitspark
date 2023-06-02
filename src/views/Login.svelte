@@ -2,7 +2,6 @@
   import { link } from "svelte-routing";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
-  import { helperStore } from "../helperStore.js"; // Import the store
   import NostrHelper from "../NostrHelper.js";
   import { navigate } from "svelte-routing";
   import 'websocket-polyfill'
@@ -10,18 +9,13 @@
   const privateKey = writable("");
 
   async function handleLogin() {
-  if ($helperStore) {
-    navigate("/overview");
-  }
-
   // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
   const helper = await NostrHelper.create(true);
 
   // Erstelle einen neuen NostrHelper und speichere ihn in helperStore
-  await helperStore.set(helper);
 
   // Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
-  if ($helperStore) {
+  if (helper) {
     console.log("NostrHelper successfully saved in store");
     // Danach leiten wir den Benutzer zur Übersichtsseite
     navigate("/overview");

@@ -1,7 +1,7 @@
 <script>
     import { Link } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
     import { onMount } from "svelte";
+    import NostrHelper from "../NostrHelper.js";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
 
     onMount(async () => {});
@@ -40,22 +40,13 @@
     ];
     let selectedCategories = [];
 
-    $: {
-    console.log(selectedCategories);
-    }
-
     function autoResizeTextarea(e) {
         e.target.style.height = "";
         e.target.style.height = e.target.scrollHeight + "px";
     }
 
-    let helper;
-    $: {
-        helper = $helperStore;
-    }
-
     async function postIdea() {
-    if (helper) {
+        const helper = await NostrHelper.create();
         await helper.postIdea(
             ideaName,
             ideaSubtitle,
@@ -64,12 +55,8 @@
             ideaGithubRepo,
             ideaLightningAddress,
             selectedCategories
-        );
-    } else {
-        console.error("NostrHelper is not initialized");
+            );
     }
-}
-
 </script>
 
 <main class="profile-page">
@@ -181,7 +168,10 @@
                         />
                     </div>
                     <div class="mb-4 mt-4" style="width: 90%;">
-                        <MultiSelectDropdown {categories} bind:selected={selectedCategories} />
+                        <MultiSelectDropdown
+                            {categories}
+                            bind:selected={selectedCategories}
+                        />
                     </div>
                 </div>
             </div>

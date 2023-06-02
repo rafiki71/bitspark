@@ -1763,10 +1763,6 @@ select {
   height: 1px;
 }
 
-.max-h-60 {
-  max-height: 15rem;
-}
-
 .max-h-full {
   max-height: 100%;
 }
