@@ -11,6 +11,8 @@ import { terser } from "rollup-plugin-terser";
 import alias from "@rollup/plugin-alias";
 import fs from "fs";
 import json from '@rollup/plugin-json';
+import image from 'rollup-plugin-image';
+import url from 'rollup-plugin-url';
 
 
 const production = !process.env.ROLLUP_WATCH;
@@ -156,6 +158,8 @@ export default {
   },
   plugins: [
     json(),
+    url(),
+    image(),
     svelte({
       // enable run-time checks when not in production
       dev: !production,

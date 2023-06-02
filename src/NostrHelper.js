@@ -17,17 +17,16 @@ export default class NostrHelper {
   }
 
   async getPublicRelaysString() {
+    return ["wss://relay.damus.io",
+            "wss://nostr-pub.wellorder.net",
+            "wss://nostr.bitcoiner.social",
+            "wss://nostr-01.bolt.observer"];
+
     let usePlugin = await this.extensionAvailable();
     if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
-                                                "wss://relay.damus.io/",
-                                                "wss://relay.damus.io",
-                                                "wss://nostr1.tunnelsats.com",
                                                 "wss://nostr-pub.wellorder.net",
-                                                "wss://relay.nostr.info",
-                                                "wss://nostr-relay.wlvs.space",
                                                 "wss://nostr.bitcoiner.social",
-                                                "wss://nostr-01.bolt.observer",
-                                                "wss://relayer.fiatjaf.com"];
+                                                "wss://nostr-01.bolt.observer"];
 
     // Get relays from getPublicRelays function
     let relaysFromGetPublicRelays = await this.getPublicRelays();
@@ -101,23 +100,17 @@ export default class NostrHelper {
 
   async addRelay(relay_url) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-    console.log("relay_url", relay_url);
     // Get the original Relay List Metadata event
     let originalRelays = await this.getRelays(this.publicKey);
-    console.log("originalRelays", originalRelays);
     originalRelays = originalRelays || [];
-    console.log("originalRelays", originalRelays);
 
     // Check if the relay_url already exists in the original relays
     const exists = originalRelays.find(relay => relay[1] === relay_url);
-    console.log("exists:", exists);
     // If the relay_url already exists, return
     if (exists) return;
 
     // Add the new relay to the list
     originalRelays.push(["r", relay_url]);
-    console.log("originalRelaysAdded", originalRelays);
-
 
     // Create the relay list metadata event
     const relayListEvent = this.createEvent(10002, "", originalRelays);
@@ -210,7 +203,6 @@ export default class NostrHelper {
 
   async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
-    console.log("categories:", categories)
     let tags = [
       ["iName", ideaName],
       ["iSub", ideaSubtitle],
@@ -330,7 +322,7 @@ export default class NostrHelper {
     }
   }
 
-  async validateGithubIdent(pubkey, proof) {
+  async validateGithubIdent(username, pubkey, proof) {
     try {
       const gistUrl = `https://api.github.com/gists/${proof}`;
 
@@ -342,8 +334,9 @@ export default class NostrHelper {
       const expectedText = `${nPubKey}`;
 
       for (const file in data.files) {
-        if (data.files[file].content.includes(expectedText)) {
-          console.log(data.files[file].content)
+        if (data.files[file].content.includes(expectedText) &&
+            data.files[file].raw_url.includes(username)) {
+              console.log(username, "verified!")
           return true;
         }
       }
@@ -394,7 +387,7 @@ export default class NostrHelper {
       event.githubProof = githubIdent.proof;
 
       // Überprüfen der Github-Verifikation und speichern des Ergebnisses in profile.githubVerified
-      event.githubVerified = await this.validateGithubIdent(pubkey, githubIdent.proof);
+      event.githubVerified = await this.validateGithubIdent(githubIdent.username, pubkey, githubIdent.proof);
     }
 
     // Den ursprünglichen content entfernen

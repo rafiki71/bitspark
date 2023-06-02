@@ -6451,25 +6451,10 @@ var app = (function () {
       }
 
       async getPublicRelaysString() {
-        let usePlugin = await this.extensionAvailable();
-        if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
-                                                    "wss://relay.damus.io/",
-                                                    "wss://relay.damus.io",
-                                                    "wss://nostr1.tunnelsats.com",
-                                                    "wss://nostr-pub.wellorder.net",
-                                                    "wss://relay.nostr.info",
-                                                    "wss://nostr-relay.wlvs.space",
-                                                    "wss://nostr.bitcoiner.social",
-                                                    "wss://nostr-01.bolt.observer",
-                                                    "wss://relayer.fiatjaf.com"];
-
-        // Get relays from getPublicRelays function
-        let relaysFromGetPublicRelays = await this.getPublicRelays();
-        // Transform it to include only relay URLs
-        relaysFromGetPublicRelays = relaysFromGetPublicRelays.map(relay => relay[0]);
-        this.publicRelays = relaysFromGetPublicRelays;
-        console.log(relaysFromGetPublicRelays);
-        return relaysFromGetPublicRelays
+        return ["wss://relay.damus.io",
+                "wss://nostr-pub.wellorder.net",
+                "wss://nostr.bitcoiner.social",
+                "wss://nostr-01.bolt.observer"];
       }
 
       async getRelaysString(pubkey) {
@@ -6535,23 +6520,17 @@ var app = (function () {
 
       async addRelay(relay_url) {
         if (!this.write_mode) return; // Do nothing in read-only mode
-        console.log("relay_url", relay_url);
         // Get the original Relay List Metadata event
         let originalRelays = await this.getRelays(this.publicKey);
-        console.log("originalRelays", originalRelays);
         originalRelays = originalRelays || [];
-        console.log("originalRelays", originalRelays);
 
         // Check if the relay_url already exists in the original relays
         const exists = originalRelays.find(relay => relay[1] === relay_url);
-        console.log("exists:", exists);
         // If the relay_url already exists, return
         if (exists) return;
 
         // Add the new relay to the list
         originalRelays.push(["r", relay_url]);
-        console.log("originalRelaysAdded", originalRelays);
-
 
         // Create the relay list metadata event
         const relayListEvent = this.createEvent(10002, "", originalRelays);
@@ -6644,7 +6623,6 @@ var app = (function () {
 
       async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
         if (!this.write_mode) return; // Do nothing in read-only mode
-        console.log("categories:", categories);
         let tags = [
           ["iName", ideaName],
           ["iSub", ideaSubtitle],
@@ -6764,7 +6742,7 @@ var app = (function () {
         }
       }
 
-      async validateGithubIdent(pubkey, proof) {
+      async validateGithubIdent(username, pubkey, proof) {
         try {
           const gistUrl = `https://api.github.com/gists/${proof}`;
 
@@ -6776,8 +6754,9 @@ var app = (function () {
           const expectedText = `${nPubKey}`;
 
           for (const file in data.files) {
-            if (data.files[file].content.includes(expectedText)) {
-              console.log(data.files[file].content);
+            if (data.files[file].content.includes(expectedText) &&
+                data.files[file].raw_url.includes(username)) {
+                  console.log(username, "verified!");
               return true;
             }
           }
@@ -6828,7 +6807,7 @@ var app = (function () {
           event.githubProof = githubIdent.proof;
 
           // Überprüfen der Github-Verifikation und speichern des Ergebnisses in profile.githubVerified
-          event.githubVerified = await this.validateGithubIdent(pubkey, githubIdent.proof);
+          event.githubVerified = await this.validateGithubIdent(githubIdent.username, pubkey, githubIdent.proof);
         }
 
         // Den ursprünglichen content entfernen
@@ -7475,7 +7454,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (131:12) {#if creator_profile && creator_profile.picture}
+    // (129:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1$1(ctx) {
     	let div;
     	let profileimg;
@@ -7520,7 +7499,7 @@ var app = (function () {
     	};
     }
 
-    // (213:16) {#if comment.picture}
+    // (211:16) {#if comment.picture}
     function create_if_block$2(ctx) {
     	let div;
     	let profileimg;
@@ -7565,7 +7544,7 @@ var app = (function () {
     	};
     }
 
-    // (211:12) {#each comments as comment (comment.id)}
+    // (209:12) {#each comments as comment (comment.id)}
     function create_each_block$2(key_1, ctx) {
     	let li;
     	let t0;
@@ -7658,7 +7637,7 @@ var app = (function () {
     	};
     }
 
-    // (247:8) <Link to="/overview">
+    // (245:8) <Link to="/overview">
     function create_default_slot$2(ctx) {
     	let button;
 
@@ -7777,7 +7756,7 @@ var app = (function () {
     			t4 = space();
     			div0 = element("div");
     			button0 = element("button");
-    			button0.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			button0.innerHTML = `<img src="../../img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
     			t5 = space();
     			if (if_block) if_block.c();
     			t6 = space();
@@ -7804,7 +7783,7 @@ var app = (function () {
     			p1.textContent = "Support via";
     			t14 = space();
     			button1 = element("button");
-    			button1.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			button1.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
     			t15 = space();
     			div9 = element("div");
     			h4 = element("h4");
@@ -9659,7 +9638,7 @@ var app = (function () {
     			insert(target, button, anchor);
 
     			if (!mounted) {
-    				dispose = listen(button, "click", /*click_handler*/ ctx[6]);
+    				dispose = listen(button, "click", /*click_handler*/ ctx[8]);
     				mounted = true;
     			}
     		},
@@ -9672,7 +9651,7 @@ var app = (function () {
     	};
     }
 
-    // (97:36) {#if profile && profile.picture}
+    // (118:36) {#if profile && profile.picture}
     function create_if_block(ctx) {
     	let profileimg;
     	let current;
@@ -9720,153 +9699,187 @@ var app = (function () {
     }
 
     function create_fragment$1(ctx) {
-    	let div14;
+    	let div15;
     	let main;
     	let section0;
-    	let div1;
+    	let div2;
     	let span;
     	let t0;
     	let div0;
     	let t1;
-    	let div1_style_value;
     	let t2;
-    	let div2;
+    	let div1;
+    	let button0;
     	let t3;
-    	let section1;
-    	let div13;
-    	let div11;
+    	let a;
+    	let i;
+    	let a_href_value;
+    	let div2_style_value;
     	let t4;
-    	let div10;
-    	let div5;
-    	let div4;
     	let div3;
     	let t5;
+    	let section1;
+    	let div14;
+    	let div12;
+    	let t6;
+    	let div11;
+    	let div6;
+    	let div5;
+    	let div4;
+    	let t7;
+    	let div10;
     	let div9;
     	let div8;
     	let div7;
-    	let div6;
-    	let t6;
-    	let div12;
-    	let button;
+    	let t8;
+    	let div13;
+    	let button1;
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[5] && create_if_block_1(ctx);
+    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[6] && create_if_block_1(ctx);
     	let if_block1 = /*profile*/ ctx[1] && /*profile*/ ctx[1].picture && create_if_block(ctx);
 
     	return {
     		c() {
-    			div14 = element("div");
+    			div15 = element("div");
     			main = element("main");
     			section0 = element("section");
-    			div1 = element("div");
+    			div2 = element("div");
     			span = element("span");
     			t0 = space();
     			div0 = element("div");
     			t1 = text(/*name*/ ctx[2]);
     			t2 = space();
-    			div2 = element("div");
-    			div2.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			div1 = element("div");
+    			button0 = element("button");
+    			button0.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
     			t3 = space();
-    			section1 = element("section");
-    			div13 = element("div");
-    			div11 = element("div");
-    			if (if_block0) if_block0.c();
+    			a = element("a");
+    			i = element("i");
     			t4 = space();
-    			div10 = element("div");
+    			div3 = element("div");
+    			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			t5 = space();
+    			section1 = element("section");
+    			div14 = element("div");
+    			div12 = element("div");
+    			if (if_block0) if_block0.c();
+    			t6 = space();
+    			div11 = element("div");
+    			div6 = element("div");
     			div5 = element("div");
     			div4 = element("div");
-    			div3 = element("div");
     			if (if_block1) if_block1.c();
-    			t5 = space();
+    			t7 = space();
+    			div10 = element("div");
     			div9 = element("div");
     			div8 = element("div");
     			div7 = element("div");
-    			div6 = element("div");
-    			t6 = space();
-    			div12 = element("div");
-    			button = element("button");
-    			button.textContent = "Back";
+    			t8 = space();
+    			div13 = element("div");
+    			button1 = element("button");
+    			button1.textContent = "Back";
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(div0, "class", "absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5");
-    			attr(div1, "class", "absolute top-0 w-full h-full bg-center bg-cover");
-    			attr(div1, "style", div1_style_value = `background-image: url(${/*banner*/ ctx[4]});`);
-    			attr(div2, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
-    			set_style(div2, "transform", "translateZ(0)");
+    			set_style(button0, "padding", "0");
+    			attr(i, "class", "fab fa-github text-white");
+    			set_style(i, "font-size", "2.5rem");
+    			attr(a, "href", a_href_value = "https://www.github.com/" + /*ghUser*/ ctx[5]);
+    			attr(a, "target", "_blank");
+    			attr(div1, "class", "absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6");
+    			attr(div2, "class", "absolute top-0 w-full h-full bg-center bg-cover");
+    			attr(div2, "style", div2_style_value = `background-image: url(${/*banner*/ ctx[4]});`);
+    			attr(div3, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
+    			set_style(div3, "transform", "translateZ(0)");
     			attr(section0, "class", "relative block h-500-px");
-    			set_style(div3, "width", "150px");
-    			set_style(div3, "height", "150px");
-    			set_style(div3, "border-radius", "50%");
-    			set_style(div3, "overflow", "hidden");
-    			set_style(div3, "position", "relative");
-    			set_style(div3, "top", "-75px");
-    			attr(div4, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
-    			attr(div5, "class", "flex flex-wrap justify-center");
-    			attr(div6, "class", "text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line");
-    			attr(div7, "class", "w-full lg:w-9/12 px-4");
-    			attr(div8, "class", "flex flex-wrap justify-center");
-    			attr(div9, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
-    			attr(div10, "class", "px-6");
-    			attr(div11, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
-    			attr(div12, "class", "flex justify-end mt-0");
-    			attr(div13, "class", "container mx-auto px-4");
+    			set_style(div4, "width", "150px");
+    			set_style(div4, "height", "150px");
+    			set_style(div4, "border-radius", "50%");
+    			set_style(div4, "overflow", "hidden");
+    			set_style(div4, "position", "relative");
+    			set_style(div4, "top", "-75px");
+    			attr(div5, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
+    			attr(div6, "class", "flex flex-wrap justify-center");
+    			attr(div7, "class", "text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line");
+    			attr(div8, "class", "w-full lg:w-9/12 px-4");
+    			attr(div9, "class", "flex flex-wrap justify-center");
+    			attr(div10, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
+    			attr(div11, "class", "px-6");
+    			attr(div12, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
+    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
+    			attr(div13, "class", "flex justify-end mt-0");
+    			attr(div14, "class", "container mx-auto px-4");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(main, "class", "profile-page");
     		},
     		m(target, anchor) {
-    			insert(target, div14, anchor);
-    			append(div14, main);
+    			insert(target, div15, anchor);
+    			append(div15, main);
     			append(main, section0);
-    			append(section0, div1);
-    			append(div1, span);
-    			append(div1, t0);
-    			append(div1, div0);
-    			append(div0, t1);
-    			append(section0, t2);
     			append(section0, div2);
-    			append(main, t3);
+    			append(div2, span);
+    			append(div2, t0);
+    			append(div2, div0);
+    			append(div0, t1);
+    			append(div2, t2);
+    			append(div2, div1);
+    			append(div1, button0);
+    			append(div1, t3);
+    			append(div1, a);
+    			append(a, i);
+    			append(section0, t4);
+    			append(section0, div3);
+    			append(main, t5);
     			append(main, section1);
-    			append(section1, div13);
-    			append(div13, div11);
-    			if (if_block0) if_block0.m(div11, null);
-    			append(div11, t4);
-    			append(div11, div10);
-    			append(div10, div5);
+    			append(section1, div14);
+    			append(div14, div12);
+    			if (if_block0) if_block0.m(div12, null);
+    			append(div12, t6);
+    			append(div12, div11);
+    			append(div11, div6);
+    			append(div6, div5);
     			append(div5, div4);
-    			append(div4, div3);
-    			if (if_block1) if_block1.m(div3, null);
-    			append(div10, t5);
+    			if (if_block1) if_block1.m(div4, null);
+    			append(div11, t7);
+    			append(div11, div10);
     			append(div10, div9);
     			append(div9, div8);
     			append(div8, div7);
-    			append(div7, div6);
-    			div6.innerHTML = /*about*/ ctx[3];
-    			append(div13, t6);
-    			append(div13, div12);
-    			append(div12, button);
+    			div7.innerHTML = /*about*/ ctx[3];
+    			append(div14, t8);
+    			append(div14, div13);
+    			append(div13, button1);
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen(button, "click", /*click_handler_1*/ ctx[7]);
+    				dispose = [
+    					listen(button0, "click", /*supportIdea*/ ctx[7]),
+    					listen(button1, "click", /*click_handler_1*/ ctx[9])
+    				];
+
     				mounted = true;
     			}
     		},
     		p(ctx, [dirty]) {
     			if (!current || dirty & /*name*/ 4) set_data(t1, /*name*/ ctx[2]);
 
-    			if (!current || dirty & /*banner*/ 16 && div1_style_value !== (div1_style_value = `background-image: url(${/*banner*/ ctx[4]});`)) {
-    				attr(div1, "style", div1_style_value);
+    			if (!current || dirty & /*ghUser*/ 32 && a_href_value !== (a_href_value = "https://www.github.com/" + /*ghUser*/ ctx[5])) {
+    				attr(a, "href", a_href_value);
     			}
 
-    			if (/*profile_id*/ ctx[0] === /*publicKey*/ ctx[5]) {
+    			if (!current || dirty & /*banner*/ 16 && div2_style_value !== (div2_style_value = `background-image: url(${/*banner*/ ctx[4]});`)) {
+    				attr(div2, "style", div2_style_value);
+    			}
+
+    			if (/*profile_id*/ ctx[0] === /*publicKey*/ ctx[6]) {
     				if (if_block0) {
     					if_block0.p(ctx, dirty);
     				} else {
     					if_block0 = create_if_block_1(ctx);
     					if_block0.c();
-    					if_block0.m(div11, t4);
+    					if_block0.m(div12, t6);
     				}
     			} else if (if_block0) {
     				if_block0.d(1);
@@ -9884,7 +9897,7 @@ var app = (function () {
     					if_block1 = create_if_block(ctx);
     					if_block1.c();
     					transition_in(if_block1, 1);
-    					if_block1.m(div3, null);
+    					if_block1.m(div4, null);
     				}
     			} else if (if_block1) {
     				group_outros();
@@ -9896,7 +9909,7 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if (!current || dirty & /*about*/ 8) div6.innerHTML = /*about*/ ctx[3];		},
+    			if (!current || dirty & /*about*/ 8) div7.innerHTML = /*about*/ ctx[3];		},
     		i(local) {
     			if (current) return;
     			transition_in(if_block1);
@@ -9907,11 +9920,11 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div14);
+    			if (detaching) detach(div15);
     			if (if_block0) if_block0.d();
     			if (if_block1) if_block1.d();
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
     }
@@ -9923,12 +9936,14 @@ var app = (function () {
     	let about = "";
     	let picture = "";
     	let banner = "";
+    	let ghUser = "";
+    	let lnAdress = "";
     	let publicKey = "";
 
     	onMount(async () => {
     		try {
     			const nostrHelper = await NostrHelper.create();
-    			$$invalidate(5, publicKey = nostrHelper.publicKey);
+    			$$invalidate(6, publicKey = nostrHelper.publicKey);
     			console.log(profile_id);
     			console.log(publicKey);
     			$$invalidate(1, profile = await nostrHelper.getProfile(profile_id));
@@ -9938,11 +9953,17 @@ var app = (function () {
     				$$invalidate(3, about = profile.dev_about);
     				picture = profile.picture;
     				$$invalidate(4, banner = profile.banner);
+    				$$invalidate(5, ghUser = profile.githubUsername);
+    				lnAdress = profile.lud16;
     			}
     		} catch(error) {
     			console.error("Error fetching profile:", error);
     		}
     	});
+
+    	async function supportIdea() {
+    		await sendSatsLNurl(lnAdress);
+    	}
 
     	const click_handler = () => navigate(`/edit_profile/${publicKey}`);
     	const click_handler_1 = () => window.history.back();
@@ -9957,7 +9978,9 @@ var app = (function () {
     		name,
     		about,
     		banner,
+    		ghUser,
     		publicKey,
+    		supportIdea,
     		click_handler,
     		click_handler_1
     	];

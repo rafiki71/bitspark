@@ -118,12 +118,10 @@
           <h2 class="text-2xl font-light text-white">{idea.subtitle}</h2>
 
           <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-          <div
-            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-          >
+          <div class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6">
             <button on:click={supportIdea} style="padding: 0;">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg"
+                src="../../img/lightning.png"
                 style="height: 2.5rem; width: 2.5rem;"
                 alt="Support via Bitcoin Lightning"
               />
@@ -193,7 +191,7 @@
                   style="padding: 0; display: flex; align-items: center;"
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg"
+                    src="/img/lightning.png"
                     style="height: 2.5rem; width: 2.5rem;"
                     alt="Support via Bitcoin Lightning"
                   />
