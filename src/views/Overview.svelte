@@ -119,11 +119,6 @@
               <ProfileImg {profile} style={{ width: "40px", height: "40px" }} />
             </div>
           {/if}
-          <Link to="/postidea">
-            <button class="bg-green-500 text-white font-bold py-2 px-4 rounded">
-              Spark Idea
-            </button>
-          </Link>
         </div>
       </div>
       <!-- ... -->

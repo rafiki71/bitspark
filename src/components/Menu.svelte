@@ -39,26 +39,26 @@
         // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
         console.log("Logging in...");
         await NostrHelper.create(true);
-        menuState.update(state => ({ ...state, logged_in: true }));
+        menuState.update((state) => ({ ...state, logged_in: true }));
     }
-    
+
     async function logout() {
         console.log("Logging out...");
         await NostrHelper.create(false);
-        menuState.update(state => ({ ...state, logged_in: false }));
+        menuState.update((state) => ({ ...state, logged_in: false }));
     }
 
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
-        console.log("nostrHelper:", nostrHelper)
-        const loggedIn = await nostrHelper.publicKey != null;
+        console.log("nostrHelper:", nostrHelper);
+        const loggedIn = (await nostrHelper.publicKey) != null;
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
 </script>
 
 <div class="menu-card">
-    <ul>
+    <ul class="flex flex-col items-start">
         <li>
             <div
                 on:mouseover={handleMouseOver}
@@ -96,6 +96,9 @@
                 >
             {/if}
         </li>
+        <li>
+            <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">Spark Idea</Link>
+        </li>             
     </ul>
 </div>
 
