@@ -8891,11 +8891,11 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[22] = list[i];
+    	child_ctx[23] = list[i];
     	return child_ctx;
     }
 
-    // (161:36) {#if profile && profile.picture}
+    // (160:36) {#if profile && profile.picture}
     function create_if_block$1(ctx) {
     	let profileimg;
     	let current;
@@ -8942,11 +8942,11 @@ var app = (function () {
     	};
     }
 
-    // (277:56) {#each relays as relay}
+    // (276:56) {#each relays as relay}
     function create_each_block(ctx) {
     	let div1;
     	let div0;
-    	let t0_value = /*relay*/ ctx[22] + "";
+    	let t0_value = /*relay*/ ctx[23] + "";
     	let t0;
     	let t1;
     	let button;
@@ -8954,7 +8954,7 @@ var app = (function () {
     	let dispose;
 
     	function click_handler() {
-    		return /*click_handler*/ ctx[19](/*relay*/ ctx[22]);
+    		return /*click_handler*/ ctx[19](/*relay*/ ctx[23]);
     	}
 
     	return {
@@ -8982,7 +8982,7 @@ var app = (function () {
     		},
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty & /*relays*/ 128 && t0_value !== (t0_value = /*relay*/ ctx[22] + "")) set_data(t0, t0_value);
+    			if (dirty & /*relays*/ 128 && t0_value !== (t0_value = /*relay*/ ctx[23] + "")) set_data(t0, t0_value);
     		},
     		d(detaching) {
     			if (detaching) detach(div1);
@@ -9466,10 +9466,11 @@ var app = (function () {
     	let git_proof = "";
     	let relays = [];
     	let newRelay = "";
+    	let nostrHelper = null;
 
     	onMount(async () => {
     		try {
-    			const nostrHelper = await NostrHelper.create();
+    			nostrHelper = await NostrHelper.create();
     			$$invalidate(0, profile = await nostrHelper.getProfile(profile_id));
 
     			if (profile) {
@@ -9491,8 +9492,6 @@ var app = (function () {
 
     	const updateProfile = async () => {
     		try {
-    			const bitstarterHelper = get(helperStore);
-
     			const updatedIdentities = profile && profile.identities
     			? [
     					...profile.identities.filter(identity => identity.platform !== "github"),
@@ -9511,7 +9510,7 @@ var app = (function () {
     				];
 
     			console.log(updatedIdentities);
-    			await bitstarterHelper.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
+    			await nostrHelper.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
     			await navigate("/overview"); // navigate back to home page after saving
     		} catch(error) {
     			console.error("Error updating profile:", error);

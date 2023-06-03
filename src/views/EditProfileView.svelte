@@ -4,7 +4,6 @@
     import ProfileImg from "../components/ProfileImg.svelte";
     import NostrHelper from "../NostrHelper.js";
 
-
     export let profile_id;
 
     let profile = null;
@@ -17,10 +16,11 @@
     let relays = [];
     let bitstarterHelper = null;
     let newRelay = "";
+    let nostrHelper = null
 
     onMount(async () => {
         try {
-            const nostrHelper = await NostrHelper.create();
+            nostrHelper = await NostrHelper.create();
             profile = await nostrHelper.getProfile(profile_id);
 
             if (profile) {
@@ -41,7 +41,6 @@
 
     const updateProfile = async () => {
         try {
-            const bitstarterHelper = get(helperStore);
             const updatedIdentities =
                 profile && profile.identities
                     ? [
@@ -62,7 +61,7 @@
                           },
                       ];
             console.log(updatedIdentities);
-            await bitstarterHelper.updateProfile(
+            await nostrHelper.updateProfile(
                 name,
                 picture,
                 banner,
