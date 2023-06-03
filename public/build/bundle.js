@@ -1260,7 +1260,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$d(ctx) {
+    function create_fragment$c(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1307,7 +1307,7 @@ var app = (function () {
     	};
     }
 
-    function instance$c($$self, $$props, $$invalidate) {
+    function instance$b($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
     	let $base;
@@ -1464,7 +1464,7 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$c, create_fragment$d, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
@@ -1756,7 +1756,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$c(ctx) {
+    function create_fragment$b(ctx) {
     	let if_block_anchor;
     	let current;
     	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$5(ctx);
@@ -1811,7 +1811,7 @@ var app = (function () {
     	};
     }
 
-    function instance$b($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1875,7 +1875,7 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
@@ -1883,7 +1883,7 @@ var app = (function () {
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$b(ctx) {
+    function create_fragment$a(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1965,7 +1965,7 @@ var app = (function () {
     	};
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
@@ -2059,7 +2059,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$a, create_fragment$b, safe_not_equal, {
+    		init(this, options, instance$9, create_fragment$a, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -2086,7 +2086,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$9(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -2200,7 +2200,7 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
@@ -2213,7 +2213,7 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$a, safe_not_equal, { card: 0 });
+    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { card: 0 });
     	}
     }
 
@@ -2254,7 +2254,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$9(ctx) {
+    function create_fragment$8(ctx) {
     	let link;
     	let current;
 
@@ -2299,7 +2299,7 @@ var app = (function () {
     	};
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
     	let { style = {} } = $$props;
@@ -2338,7 +2338,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -6436,7 +6436,7 @@ var app = (function () {
 
     // helperStore.js
 
-    const helperStore$1 = writable(null);
+    const helperStore = writable(null);
 
     //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
     const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
@@ -6447,7 +6447,7 @@ var app = (function () {
         this.relays = [];//get set by initialize()
         this.idea_kind = 1338;
         this.write_mode = write_mode;
-        this.publicKey = "";
+        this.publicKey = null;
         this.publicRelays = [];
         this.clientRelays = [];
         this.profileBuffer = new ProfileBuffer();
@@ -6883,13 +6883,13 @@ var app = (function () {
       if (write_mode !== undefined) {
         const instance = new NostrHelper(write_mode);
         await instance.initialize();
-        helperStore$1.set(instance);
+        helperStore.set(instance);
         return instance;
       }
 
       // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
       let storedInstance = null;
-      const unsubscribe = helperStore$1.subscribe(value => {
+      const unsubscribe = helperStore.subscribe(value => {
         storedInstance = value;
       });
 
@@ -6897,7 +6897,7 @@ var app = (function () {
       if (storedInstance === null) {
         const instance = new NostrHelper(false);
         await instance.initialize();
-        helperStore$1.set(instance);
+        helperStore.set(instance);
         storedInstance = instance;
       }
 
@@ -6976,14 +6976,14 @@ var app = (function () {
 
     function get_each_context$4(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[10] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
-    // (67:20) <Link to={`/overview/${category}`}                         >
+    // (79:20) <Link to={`/overview/${category}`}                         >
     function create_default_slot$4(ctx) {
     	let div;
-    	let t_value = /*category*/ ctx[10] + "";
+    	let t_value = /*category*/ ctx[12] + "";
     	let t;
 
     	return {
@@ -7003,14 +7003,14 @@ var app = (function () {
     	};
     }
 
-    // (66:16) {#each categories as category}
+    // (78:16) {#each categories as category}
     function create_each_block$4(ctx) {
     	let link_1;
     	let current;
 
     	link_1 = new Link({
     			props: {
-    				to: `/overview/${/*category*/ ctx[10]}`,
+    				to: `/overview/${/*category*/ ctx[12]}`,
     				$$slots: { default: [create_default_slot$4] },
     				$$scope: { ctx }
     			}
@@ -7027,7 +7027,7 @@ var app = (function () {
     		p(ctx, dirty) {
     			const link_1_changes = {};
 
-    			if (dirty & /*$$scope*/ 8192) {
+    			if (dirty & /*$$scope*/ 32768) {
     				link_1_changes.$$scope = { dirty, ctx };
     			}
 
@@ -7048,7 +7048,7 @@ var app = (function () {
     	};
     }
 
-    // (81:12) {:else}
+    // (93:12) {:else}
     function create_else_block(ctx) {
     	let button;
     	let mounted;
@@ -7065,8 +7065,8 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen(button, "click", /*login*/ ctx[7]),
-    					listen(button, "keydown", /*login*/ ctx[7])
+    					listen(button, "click", /*login*/ ctx[8]),
+    					listen(button, "keydown", /*login*/ ctx[8])
     				];
 
     				mounted = true;
@@ -7081,7 +7081,7 @@ var app = (function () {
     	};
     }
 
-    // (77:42) 
+    // (89:43) 
     function create_if_block_1$2(ctx) {
     	let button;
     	let mounted;
@@ -7098,8 +7098,8 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen(button, "click", /*logout*/ ctx[8]),
-    					listen(button, "keydown", /*logout*/ ctx[8])
+    					listen(button, "click", /*logout*/ ctx[9]),
+    					listen(button, "keydown", /*logout*/ ctx[9])
     				];
 
     				mounted = true;
@@ -7114,7 +7114,7 @@ var app = (function () {
     	};
     }
 
-    // (74:12) {#if !menuState.use_extension}
+    // (86:12) {#if !$menuState.use_extension}
     function create_if_block$4(ctx) {
     	let a;
     	let t;
@@ -7138,7 +7138,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$7(ctx) {
     	let div2;
     	let ul;
     	let li0;
@@ -7151,7 +7151,7 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let each_value = /*categories*/ ctx[2];
+    	let each_value = /*categories*/ ctx[3];
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
@@ -7163,8 +7163,8 @@ var app = (function () {
     	});
 
     	function select_block_type(ctx, dirty) {
-    		if (!/*menuState*/ ctx[0].use_extension) return create_if_block$4;
-    		if (/*menuState*/ ctx[0].logged_in) return create_if_block_1$2;
+    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$4;
+    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$2;
     		return create_else_block;
     	}
 
@@ -7189,7 +7189,7 @@ var app = (function () {
     			li1 = element("li");
     			if_block.c();
 
-    			attr(div1, "class", div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
+    			attr(div1, "class", div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[0]
     			? "categories"
     			: "categories hidden") + " svelte-1dsy1pg"));
 
@@ -7216,22 +7216,22 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen(div0, "mouseover", /*handleMouseOver*/ ctx[3]),
-    					listen(div0, "mouseout", /*handleMouseOut*/ ctx[4]),
-    					listen(div0, "focus", /*handleFocus*/ ctx[5]),
-    					listen(div0, "blur", /*handleBlur*/ ctx[6]),
-    					listen(div1, "mouseover", /*handleMouseOver*/ ctx[3]),
-    					listen(div1, "mouseout", /*handleMouseOut*/ ctx[4]),
-    					listen(div1, "focus", /*handleFocus*/ ctx[5]),
-    					listen(div1, "blur", /*handleBlur*/ ctx[6])
+    					listen(div0, "mouseover", /*handleMouseOver*/ ctx[4]),
+    					listen(div0, "mouseout", /*handleMouseOut*/ ctx[5]),
+    					listen(div0, "focus", /*handleFocus*/ ctx[6]),
+    					listen(div0, "blur", /*handleBlur*/ ctx[7]),
+    					listen(div1, "mouseover", /*handleMouseOver*/ ctx[4]),
+    					listen(div1, "mouseout", /*handleMouseOut*/ ctx[5]),
+    					listen(div1, "focus", /*handleFocus*/ ctx[6]),
+    					listen(div1, "blur", /*handleBlur*/ ctx[7])
     				];
 
     				mounted = true;
     			}
     		},
     		p(ctx, [dirty]) {
-    			if (dirty & /*categories*/ 4) {
-    				each_value = /*categories*/ ctx[2];
+    			if (dirty & /*categories*/ 8) {
+    				each_value = /*categories*/ ctx[3];
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
@@ -7257,7 +7257,7 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if (!current || dirty & /*showCategories*/ 2 && div1_class_value !== (div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
+    			if (!current || dirty & /*showCategories*/ 1 && div1_class_value !== (div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[0]
     			? "categories"
     			: "categories hidden") + " svelte-1dsy1pg"))) {
     				attr(div1, "class", div1_class_value);
@@ -7306,32 +7306,35 @@ var app = (function () {
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
 
-    function instance$7($$self, $$props, $$invalidate) {
-    	let { menuState = { logged_in: false, use_extension: false } } = $$props;
+    function instance$6($$self, $$props, $$invalidate) {
+    	let $menuState;
+    	const menuState = writable({ logged_in: false, use_extension: false });
+    	component_subscribe($$self, menuState, value => $$invalidate(1, $menuState = value));
+    	let nostrHelper = null;
     	const categories = ["Category 1", "Category 2", "Category 3"];
     	let showCategories = false;
     	let timeoutId;
 
     	function handleMouseOver() {
     		clearTimeout(timeoutId);
-    		$$invalidate(1, showCategories = true);
+    		$$invalidate(0, showCategories = true);
     	}
 
     	function handleMouseOut() {
     		timeoutId = setTimeout(
     			() => {
-    				$$invalidate(1, showCategories = false);
+    				$$invalidate(0, showCategories = false);
     			},
     			200
     		); // 200ms delay before hiding categories
     	}
 
     	function handleFocus() {
-    		$$invalidate(1, showCategories = true);
+    		$$invalidate(0, showCategories = true);
     	}
 
     	function handleBlur() {
-    		$$invalidate(1, showCategories = false);
+    		$$invalidate(0, showCategories = false);
     	}
 
     	async function login() {
@@ -7339,20 +7342,31 @@ var app = (function () {
     		console.log("Logging in...");
 
     		await NostrHelper.create(true);
+    		menuState.update(state => ({ ...state, logged_in: true }));
     	}
 
     	async function logout() {
     		console.log("Logging out...");
     		await NostrHelper.create(false);
+    		menuState.update(state => ({ ...state, logged_in: false }));
     	}
 
-    	$$self.$$set = $$props => {
-    		if ('menuState' in $$props) $$invalidate(0, menuState = $$props.menuState);
-    	};
+    	onMount(async () => {
+    		nostrHelper = await NostrHelper.create();
+    		console.log("nostrHelper:", nostrHelper);
+    		const loggedIn = await nostrHelper.publicKey != null;
+    		const usingExtension = await nostrHelper.extensionAvailable();
+
+    		menuState.set({
+    			logged_in: loggedIn,
+    			use_extension: usingExtension
+    		});
+    	});
 
     	return [
-    		menuState,
     		showCategories,
+    		$menuState,
+    		menuState,
     		categories,
     		handleMouseOver,
     		handleMouseOut,
@@ -7366,28 +7380,28 @@ var app = (function () {
     class Menu extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { menuState: 0 });
+    		init(this, options, instance$6, create_fragment$7, safe_not_equal, {});
     	}
     }
 
-    var css_248z = ".menu-container.svelte-zh2lg1{width:300px;padding-left:40px}.content-container.svelte-zh2lg1{flex-grow:1}";
+    var css_248z = ".menu-container.svelte-8hf5w1{width:300px;padding-left:40px}.content-container.svelte-8hf5w1{flex-grow:1}";
     styleInject(css_248z);
 
     /* src/views/Overview.svelte generated by Svelte v3.59.1 */
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[6] = list[i];
+    	child_ctx[8] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[6] = list[i];
+    	child_ctx[8] = list[i];
     	return child_ctx;
     }
 
-    // (102:10) {#if profile}
+    // (116:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7432,7 +7446,7 @@ var app = (function () {
     	};
     }
 
-    // (108:10) <Link to="/postidea">
+    // (122:10) <Link to="/postidea">
     function create_default_slot$3(ctx) {
     	let button;
 
@@ -7452,13 +7466,13 @@ var app = (function () {
     	};
     }
 
-    // (125:12) {#each verifiedCards as card}
+    // (139:12) {#each verifiedCards as card}
     function create_each_block_1(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[6] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
 
     	return {
     		c() {
@@ -7476,7 +7490,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[6];
+    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[8];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7495,13 +7509,13 @@ var app = (function () {
     	};
     }
 
-    // (140:12) {#each unverifiedCards as card}
+    // (154:12) {#each unverifiedCards as card}
     function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[6] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
 
     	return {
     		c() {
@@ -7519,7 +7533,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[6];
+    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[8];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7538,7 +7552,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$7(ctx) {
+    function create_fragment$6(ctx) {
     	let div10;
     	let main;
     	let section0;
@@ -7653,7 +7667,7 @@ var app = (function () {
     			attr(div3, "class", "absolute top-0 w-full h-full bg-center bg-cover");
     			set_style(div3, "background-image", "url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80)");
     			attr(section0, "class", "relative block h-500-px");
-    			attr(div4, "class", "menu-container svelte-zh2lg1");
+    			attr(div4, "class", "menu-container svelte-8hf5w1");
     			attr(div5, "class", "row");
     			set_style(div6, "margin-top", "2rem");
     			set_style(div6, "margin-bottom", "2rem");
@@ -7662,7 +7676,7 @@ var app = (function () {
     			attr(div6, "class", "w-full");
     			attr(div7, "class", "row");
     			attr(div8, "class", "container mx-auto px-4");
-    			attr(div9, "class", "content-container svelte-zh2lg1");
+    			attr(div9, "class", "content-container svelte-8hf5w1");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			set_style(section1, "display", "flex");
     			attr(main, "class", "overview-page");
@@ -7737,7 +7751,7 @@ var app = (function () {
 
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 2048) {
+    			if (dirty & /*$$scope*/ 8192) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -7842,13 +7856,22 @@ var app = (function () {
     	};
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$5($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(4, $helperStore = $$value));
     	let verifiedCards = [];
     	let unverifiedCards = [];
     	let publicKey = "";
     	let profilePicture = "";
     	let profile = null;
     	let menuState = { logged_in: false, use_extension: true };
+
+    	async function update() {
+    		const nostrHelper = await NostrHelper.create();
+    		publicKey = nostrHelper.publicKey;
+    		$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
+    		profilePicture = profile.picture;
+    	}
 
     	onMount(async () => {
     		try {
@@ -7887,13 +7910,23 @@ var app = (function () {
     		}
     	});
 
-    	return [verifiedCards, unverifiedCards, profile, menuState];
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$helperStore*/ 16) {
+    			if ($helperStore) {
+    				update();
+    			} else {
+    				update();
+    			}
+    		}
+    	};
+
+    	return [verifiedCards, unverifiedCards, profile, menuState, $helperStore];
     }
 
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$7, safe_not_equal, {});
+    		init(this, options, instance$5, create_fragment$6, safe_not_equal, {});
     	}
     }
 
@@ -8116,7 +8149,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$6(ctx) {
+    function create_fragment$5(ctx) {
     	let div11;
     	let main;
     	let section0;
@@ -8476,7 +8509,7 @@ var app = (function () {
     	};
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$4($$self, $$props, $$invalidate) {
     	let { id } = $$props;
 
     	let idea = {
@@ -8533,7 +8566,7 @@ var app = (function () {
 
     	async function fetchComments() {
     		try {
-    			const bitstarterHelper = get(helperStore);
+    			const bitstarterHelper = await NostrHelper.create();
     			const fetchedComments = await bitstarterHelper.getComments(id);
 
     			$$invalidate(1, comments = await Promise.all(fetchedComments.map(async comment => {
@@ -8558,7 +8591,7 @@ var app = (function () {
     		if (newComment.trim() === "") return;
 
     		try {
-    			const bitstarterHelper = get(helperStore);
+    			const bitstarterHelper = await NostrHelper.create();
     			const commentId = await bitstarterHelper.postComment(id, newComment);
     			await fetchComments();
     			$$invalidate(2, newComment = "");
@@ -8591,7 +8624,7 @@ var app = (function () {
     class IdeaDetail extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$5, create_fragment$6, safe_not_equal, { id: 6 });
+    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { id: 6 });
     	}
     }
 
@@ -8669,7 +8702,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$5(ctx) {
+    function create_fragment$4(ctx) {
     	let div1;
     	let button;
     	let t1;
@@ -8756,7 +8789,7 @@ var app = (function () {
     	};
     }
 
-    function instance$4($$self, $$props, $$invalidate) {
+    function instance$3($$self, $$props, $$invalidate) {
     	let { categories = [] } = $$props;
     	let { selected = [] } = $$props;
     	let dropdownOpen = false;
@@ -8809,7 +8842,7 @@ var app = (function () {
     class MultiSelectDropdown extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { categories: 0, selected: 4 });
+    		init(this, options, instance$3, create_fragment$4, safe_not_equal, { categories: 0, selected: 4 });
     	}
     }
 
@@ -8831,7 +8864,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$4(ctx) {
+    function create_fragment$3(ctx) {
     	let main;
     	let section0;
     	let t5;
@@ -9113,7 +9146,7 @@ var app = (function () {
     	e.target.style.height = e.target.scrollHeight + "px";
     }
 
-    function instance$3($$self, $$props, $$invalidate) {
+    function instance$2($$self, $$props, $$invalidate) {
     	onMount(async () => {
     		
     	});
@@ -9216,129 +9249,6 @@ var app = (function () {
     }
 
     class PostIdea extends SvelteComponent {
-    	constructor(options) {
-    		super();
-    		init(this, options, instance$3, create_fragment$4, safe_not_equal, {});
-    	}
-    }
-
-    /* src/views/Login.svelte generated by Svelte v3.59.1 */
-
-    function create_fragment$3(ctx) {
-    	let div4;
-    	let div3;
-    	let h2;
-    	let t1;
-    	let div2;
-    	let div0;
-    	let input;
-    	let t2;
-    	let div1;
-    	let button;
-    	let mounted;
-    	let dispose;
-
-    	return {
-    		c() {
-    			div4 = element("div");
-    			div3 = element("div");
-    			h2 = element("h2");
-    			h2.textContent = "Login";
-    			t1 = space();
-    			div2 = element("div");
-    			div0 = element("div");
-    			input = element("input");
-    			t2 = space();
-    			div1 = element("div");
-    			button = element("button");
-    			button.textContent = "Sign In";
-    			attr(h2, "class", "text-2xl font-bold mb-6 text-center text-green-800");
-    			attr(input, "id", "privateKey");
-    			attr(input, "type", "password");
-    			attr(input, "class", "border border-gray-200 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500");
-    			attr(input, "placeholder", "Private Key");
-    			attr(div0, "class", "flex flex-col");
-    			attr(button, "class", "w-full bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-lg font-bold text-lg hover:bg-gradient-to-r hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 transition duration-150 shadow-md");
-    			attr(div1, "class", "flex items-center justify-center mt-6");
-    			attr(div2, "class", "space-y-3");
-    			attr(div3, "class", "w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-4 py-6 backdrop-blur-md rounded-lg shadow-lg");
-    			set_style(div3, "background-color", "rgba(0, 255, 0, 0.1)");
-    			attr(div4, "class", "flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-400 to-indigo-500");
-    			set_style(div4, "background-image", "url('https://images.wallpaperscraft.com/image/single/leaves_plant_dark_129098_3840x2400.jpg')");
-    			set_style(div4, "background-repeat", "no-repeat");
-    			set_style(div4, "background-size", "cover");
-    		},
-    		m(target, anchor) {
-    			insert(target, div4, anchor);
-    			append(div4, div3);
-    			append(div3, h2);
-    			append(div3, t1);
-    			append(div3, div2);
-    			append(div2, div0);
-    			append(div0, input);
-    			set_input_value(input, /*$privateKey*/ ctx[0]);
-    			append(div2, t2);
-    			append(div2, div1);
-    			append(div1, button);
-
-    			if (!mounted) {
-    				dispose = [
-    					listen(input, "input", /*input_input_handler*/ ctx[3]),
-    					listen(button, "click", /*handleLogin*/ ctx[2])
-    				];
-
-    				mounted = true;
-    			}
-    		},
-    		p(ctx, [dirty]) {
-    			if (dirty & /*$privateKey*/ 1 && input.value !== /*$privateKey*/ ctx[0]) {
-    				set_input_value(input, /*$privateKey*/ ctx[0]);
-    			}
-    		},
-    		i: noop,
-    		o: noop,
-    		d(detaching) {
-    			if (detaching) detach(div4);
-    			mounted = false;
-    			run_all(dispose);
-    		}
-    	};
-    }
-
-    function instance$2($$self, $$props, $$invalidate) {
-    	let $privateKey;
-    	const privateKey = writable("");
-    	component_subscribe($$self, privateKey, value => $$invalidate(0, $privateKey = value));
-
-    	async function handleLogin() {
-    		// Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
-    		const helper = await NostrHelper.create(true);
-
-    		// Erstelle einen neuen NostrHelper und speichere ihn in helperStore
-    		// Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
-    		if (helper) {
-    			console.log("NostrHelper successfully saved in store");
-
-    			// Danach leiten wir den Benutzer zur Übersichtsseite
-    			navigate("/overview");
-    		} else {
-    			console.error("Failed to save NostrHelper in store");
-    		}
-    	}
-
-    	onMount(() => {
-    		document.body.style.overflow = "auto";
-    	});
-
-    	function input_input_handler() {
-    		$privateKey = this.value;
-    		privateKey.set($privateKey);
-    	}
-
-    	return [$privateKey, privateKey, handleLogin, input_input_handler];
-    }
-
-    class Login extends SvelteComponent {
     	constructor(options) {
     		super();
     		init(this, options, instance$2, create_fragment$3, safe_not_equal, {});
@@ -10469,7 +10379,10 @@ var app = (function () {
     	let t5;
     	let route5;
     	let current;
-    	route0 = new Route({ props: { path: "/", component: Login } });
+
+    	route0 = new Route({
+    			props: { path: "/", component: Overview }
+    		});
 
     	route1 = new Route({
     			props: { path: "/overview", component: Overview }

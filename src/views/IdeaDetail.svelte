@@ -65,7 +65,7 @@
 
   async function fetchComments() {
     try {
-      const bitstarterHelper = get(helperStore);
+      const bitstarterHelper = await NostrHelper.create();
       const fetchedComments = await bitstarterHelper.getComments(id);
       comments = await Promise.all(
         fetchedComments.map(async (comment) => {
@@ -90,7 +90,7 @@
     if (newComment.trim() === "") return;
 
     try {
-      const bitstarterHelper = get(helperStore);
+      const bitstarterHelper = await NostrHelper.create();
       const commentId = await bitstarterHelper.postComment(id, newComment);
       await fetchComments();
       newComment = "";

@@ -9,6 +9,7 @@
   import NostrHelper from "../NostrHelper.js";
   import Menu from "../components/Menu.svelte";
   import "websocket-polyfill";
+  import { helperStore } from "../helperStore.js"; // Import the store
 
   let verifiedCards = [];
   let unverifiedCards = [];
@@ -16,6 +17,13 @@
   let profilePicture = "";
   let profile = null;
   let menuState = { logged_in: false, use_extension: true };
+
+  async function update() {
+    const nostrHelper = await NostrHelper.create();
+    publicKey = nostrHelper.publicKey;
+    profile = await nostrHelper.getProfile(publicKey);
+    profilePicture = profile.picture;
+  }
 
   onMount(async () => {
     try {
@@ -52,6 +60,12 @@
       console.error("Error fetching cards:", error);
     }
   });
+
+  $: if ($helperStore) {
+    update();
+  } else {
+    update();
+  }
 </script>
 
 <div style="position: relative;">
@@ -157,7 +171,7 @@
     width: 300px;
     padding-left: 40px; /* Dies schafft Platz zwischen dem Menü und dem Inhalt */
   }
-  
+
   .content-container {
     flex-grow: 1;
   }

@@ -3,10 +3,13 @@
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import NostrHelper from "../NostrHelper.js";
-    export let menuState = { logged_in: false, use_extension: false };
+    import { writable } from "svelte/store";
+
+    const menuState = writable({ logged_in: false, use_extension: false });
 
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
+    let nostrHelper = null;
 
     const categories = ["Category 1", "Category 2", "Category 3"];
     let showCategories = false;
@@ -36,13 +39,22 @@
         // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
         console.log("Logging in...");
         await NostrHelper.create(true);
+        menuState.update(state => ({ ...state, logged_in: true }));
     }
-
+    
     async function logout() {
         console.log("Logging out...");
         await NostrHelper.create(false);
-
+        menuState.update(state => ({ ...state, logged_in: false }));
     }
+
+    onMount(async () => {
+        nostrHelper = await NostrHelper.create();
+        console.log("nostrHelper:", nostrHelper)
+        const loggedIn = await nostrHelper.publicKey != null;
+        const usingExtension = await nostrHelper.extensionAvailable();
+        menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
+    });
 </script>
 
 <div class="menu-card">
@@ -71,10 +83,10 @@
             </div>
         </li>
         <li>
-            {#if !menuState.use_extension}
+            {#if !$menuState.use_extension}
                 <a href={link} class="menu-item" target="_blank">{optionText}</a
                 >
-            {:else if menuState.logged_in}
+            {:else if $menuState.logged_in}
                 <button class="menu-item" on:click={logout} on:keydown={logout}
                     >Logout</button
                 >

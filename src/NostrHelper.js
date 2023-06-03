@@ -10,7 +10,7 @@ export default class NostrHelper {
     this.relays = [];//get set by initialize()
     this.idea_kind = 1338;
     this.write_mode = write_mode;
-    this.publicKey = "";
+    this.publicKey = null;
     this.publicRelays = [];
     this.clientRelays = [];
     this.profileBuffer = new ProfileBuffer();

@@ -5891,6 +5891,10 @@ select {
   content: var(--tw-content);
 }
 
+.\[key\:string\] {
+  key: string;
+}
+
 @media (min-width: 640px) {
   .sm\:container {
     width: 100%;

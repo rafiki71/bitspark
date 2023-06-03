@@ -22,7 +22,7 @@
       <!-- Navigation links here -->
     </nav>
     <main>
-      <Route path="/" component={Login} />
+      <Route path="/" component={Overview} />
       <Route path="/overview" component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
       <Route path="/postidea" component={PostIdea} />
