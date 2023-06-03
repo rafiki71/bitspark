@@ -4,25 +4,25 @@
   import { writable } from "svelte/store";
   import NostrHelper from "../NostrHelper.js";
   import { navigate } from "svelte-routing";
-  import 'websocket-polyfill'
+  import "websocket-polyfill";
 
   const privateKey = writable("");
 
   async function handleLogin() {
-  // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
-  const helper = await NostrHelper.create(true);
+    // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
+    const helper = await NostrHelper.create(true);
 
-  // Erstelle einen neuen NostrHelper und speichere ihn in helperStore
+    // Erstelle einen neuen NostrHelper und speichere ihn in helperStore
 
-  // Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
-  if (helper) {
-    console.log("NostrHelper successfully saved in store");
-    // Danach leiten wir den Benutzer zur Übersichtsseite
-    navigate("/overview");
-  } else {
-    console.error("Failed to save NostrHelper in store");
+    // Überprüfe, ob der NostrHelper korrekt im Store gespeichert wurde
+    if (helper) {
+      console.log("NostrHelper successfully saved in store");
+      // Danach leiten wir den Benutzer zur Übersichtsseite
+      navigate("/overview");
+    } else {
+      console.error("Failed to save NostrHelper in store");
+    }
   }
-}
 
   onMount(() => {
     document.body.style.overflow = "auto";

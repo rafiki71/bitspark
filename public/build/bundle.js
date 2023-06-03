@@ -112,6 +112,9 @@ var app = (function () {
                 rest[k] = props[k];
         return rest;
     }
+    function null_to_empty(value) {
+        return value == null ? '' : value;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -1257,7 +1260,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$c(ctx) {
+    function create_fragment$d(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1304,7 +1307,7 @@ var app = (function () {
     	};
     }
 
-    function instance$b($$self, $$props, $$invalidate) {
+    function instance$c($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
     	let $base;
@@ -1461,7 +1464,7 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$c, create_fragment$d, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
@@ -1470,12 +1473,12 @@ var app = (function () {
     const get_default_slot_context$1 = ctx => ({ params: /*routeParams*/ ctx[2] });
 
     // (44:0) {#if $activeRoute && $activeRoute.route === route}
-    function create_if_block$4(ctx) {
+    function create_if_block$5(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_1$2, create_else_block];
+    	const if_block_creators = [create_if_block_1$3, create_else_block$1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -1540,7 +1543,7 @@ var app = (function () {
     }
 
     // (53:4) {:else}
-    function create_else_block(ctx) {
+    function create_else_block$1(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[8].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[7], get_default_slot_context$1);
@@ -1588,7 +1591,7 @@ var app = (function () {
     }
 
     // (45:4) {#if component}
-    function create_if_block_1$2(ctx) {
+    function create_if_block_1$3(ctx) {
     	let await_block_anchor;
     	let promise;
     	let current;
@@ -1753,10 +1756,10 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let if_block_anchor;
     	let current;
-    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$4(ctx);
+    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$5(ctx);
 
     	return {
     		c() {
@@ -1777,7 +1780,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$4(ctx);
+    					if_block = create_if_block$5(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(if_block_anchor.parentNode, if_block_anchor);
@@ -1808,7 +1811,7 @@ var app = (function () {
     	};
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
+    function instance$b($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1872,7 +1875,7 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
@@ -1880,7 +1883,7 @@ var app = (function () {
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1962,7 +1965,7 @@ var app = (function () {
     	};
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
@@ -2056,7 +2059,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$9, create_fragment$a, safe_not_equal, {
+    		init(this, options, instance$a, create_fragment$b, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -2067,7 +2070,7 @@ var app = (function () {
 
     /* src/components/Cards/IdeaCard.svelte generated by Svelte v3.59.1 */
 
-    function create_default_slot$5(ctx) {
+    function create_default_slot$6(ctx) {
     	let t;
 
     	return {
@@ -2083,7 +2086,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$9(ctx) {
+    function create_fragment$a(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -2108,7 +2111,7 @@ var app = (function () {
     			props: {
     				class: "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150",
     				to: `/idea/${/*card*/ ctx[0].id}`,
-    				$$slots: { default: [create_default_slot$5] },
+    				$$slots: { default: [create_default_slot$6] },
     				$$scope: { ctx }
     			}
     		});
@@ -2197,7 +2200,7 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
@@ -2210,13 +2213,13 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { card: 0 });
+    		init(this, options, instance$9, create_fragment$a, safe_not_equal, { card: 0 });
     	}
     }
 
     /* src/components/ProfileImg.svelte generated by Svelte v3.59.1 */
 
-    function create_default_slot$4(ctx) {
+    function create_default_slot$5(ctx) {
     	let img;
     	let img_class_value;
     	let img_src_value;
@@ -2251,14 +2254,14 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$9(ctx) {
     	let link;
     	let current;
 
     	link = new Link({
     			props: {
     				to: `/profile/${/*pubkey*/ ctx[0]}`,
-    				$$slots: { default: [create_default_slot$4] },
+    				$$slots: { default: [create_default_slot$5] },
     				$$scope: { ctx }
     			}
     		});
@@ -2296,7 +2299,7 @@ var app = (function () {
     	};
     }
 
-    function instance$7($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
     	let { style = {} } = $$props;
@@ -2335,7 +2338,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -6939,21 +6942,452 @@ var app = (function () {
     })();
     */
 
+    function styleInject(css, ref) {
+      if ( ref === void 0 ) ref = {};
+      var insertAt = ref.insertAt;
+
+      if (!css || typeof document === 'undefined') { return; }
+
+      var head = document.head || document.getElementsByTagName('head')[0];
+      var style = document.createElement('style');
+      style.type = 'text/css';
+
+      if (insertAt === 'top') {
+        if (head.firstChild) {
+          head.insertBefore(style, head.firstChild);
+        } else {
+          head.appendChild(style);
+        }
+      } else {
+        head.appendChild(style);
+      }
+
+      if (style.styleSheet) {
+        style.styleSheet.cssText = css;
+      } else {
+        style.appendChild(document.createTextNode(css));
+      }
+    }
+
+    var css_248z$1 = "a.menu-item.svelte-1dsy1pg{color:#000;text-decoration:none}a.menu-item.svelte-1dsy1pg:hover{color:#007bff}.menu-card.svelte-1dsy1pg{width:200px;border-radius:20px;padding:20px;color:#000;background:#fff;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);transition:box-shadow 0.5s;position:relative}.menu-card.svelte-1dsy1pg:hover{box-shadow:0px 30px 100px -10px rgba(0, 0, 0, 0.4)}.menu-item.svelte-1dsy1pg{font-size:1rem;padding:15px;cursor:pointer;transition:color 0.3s}.menu-item.svelte-1dsy1pg:hover{color:#007bff}.categories.svelte-1dsy1pg{position:absolute;top:0;left:100%;background:#fff;width:150px;padding:10px 0;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);border-radius:20px;transition:opacity 0.3s, visibility 0.3s;opacity:1;visibility:visible}.categories.hidden.svelte-1dsy1pg{opacity:0;visibility:hidden}.category-item.svelte-1dsy1pg{color:#000;padding:10px 15px;cursor:pointer;transition:color 0.3s}.category-item.svelte-1dsy1pg:hover{color:#007bff}";
+    styleInject(css_248z$1);
+
+    /* src/components/Menu.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$4(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[10] = list[i];
+    	return child_ctx;
+    }
+
+    // (67:20) <Link to={`/overview/${category}`}                         >
+    function create_default_slot$4(ctx) {
+    	let div;
+    	let t_value = /*category*/ ctx[10] + "";
+    	let t;
+
+    	return {
+    		c() {
+    			div = element("div");
+    			t = text(t_value);
+    			attr(div, "class", "category-item svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, t);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(div);
+    		}
+    	};
+    }
+
+    // (66:16) {#each categories as category}
+    function create_each_block$4(ctx) {
+    	let link_1;
+    	let current;
+
+    	link_1 = new Link({
+    			props: {
+    				to: `/overview/${/*category*/ ctx[10]}`,
+    				$$slots: { default: [create_default_slot$4] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			create_component(link_1.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(link_1, target, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const link_1_changes = {};
+
+    			if (dirty & /*$$scope*/ 8192) {
+    				link_1_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link_1.$set(link_1_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(link_1.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(link_1.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(link_1, detaching);
+    		}
+    	};
+    }
+
+    // (81:12) {:else}
+    function create_else_block(ctx) {
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	return {
+    		c() {
+    			button = element("button");
+    			button.textContent = "Login";
+    			attr(button, "class", "menu-item svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(button, "click", /*login*/ ctx[7]),
+    					listen(button, "keydown", /*login*/ ctx[7])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    // (77:42) 
+    function create_if_block_1$2(ctx) {
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	return {
+    		c() {
+    			button = element("button");
+    			button.textContent = "Logout";
+    			attr(button, "class", "menu-item svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(button, "click", /*logout*/ ctx[8]),
+    					listen(button, "keydown", /*logout*/ ctx[8])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    // (74:12) {#if !menuState.use_extension}
+    function create_if_block$4(ctx) {
+    	let a;
+    	let t;
+
+    	return {
+    		c() {
+    			a = element("a");
+    			t = text(optionText);
+    			attr(a, "href", link);
+    			attr(a, "class", "menu-item svelte-1dsy1pg");
+    			attr(a, "target", "_blank");
+    		},
+    		m(target, anchor) {
+    			insert(target, a, anchor);
+    			append(a, t);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(a);
+    		}
+    	};
+    }
+
+    function create_fragment$8(ctx) {
+    	let div2;
+    	let ul;
+    	let li0;
+    	let div0;
+    	let t1;
+    	let div1;
+    	let div1_class_value;
+    	let t2;
+    	let li1;
+    	let current;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*categories*/ ctx[2];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$4(get_each_context$4(ctx, each_value, i));
+    	}
+
+    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
+
+    	function select_block_type(ctx, dirty) {
+    		if (!/*menuState*/ ctx[0].use_extension) return create_if_block$4;
+    		if (/*menuState*/ ctx[0].logged_in) return create_if_block_1$2;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
+    	return {
+    		c() {
+    			div2 = element("div");
+    			ul = element("ul");
+    			li0 = element("li");
+    			div0 = element("div");
+    			div0.innerHTML = `<span class="menu-item svelte-1dsy1pg">Overview</span>`;
+    			t1 = space();
+    			div1 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t2 = space();
+    			li1 = element("li");
+    			if_block.c();
+
+    			attr(div1, "class", div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
+    			? "categories"
+    			: "categories hidden") + " svelte-1dsy1pg"));
+
+    			attr(div2, "class", "menu-card svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, div2, anchor);
+    			append(div2, ul);
+    			append(ul, li0);
+    			append(li0, div0);
+    			append(li0, t1);
+    			append(li0, div1);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div1, null);
+    				}
+    			}
+
+    			append(ul, t2);
+    			append(ul, li1);
+    			if_block.m(li1, null);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(div0, "mouseover", /*handleMouseOver*/ ctx[3]),
+    					listen(div0, "mouseout", /*handleMouseOut*/ ctx[4]),
+    					listen(div0, "focus", /*handleFocus*/ ctx[5]),
+    					listen(div0, "blur", /*handleBlur*/ ctx[6]),
+    					listen(div1, "mouseover", /*handleMouseOver*/ ctx[3]),
+    					listen(div1, "mouseout", /*handleMouseOut*/ ctx[4]),
+    					listen(div1, "focus", /*handleFocus*/ ctx[5]),
+    					listen(div1, "blur", /*handleBlur*/ ctx[6])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if (dirty & /*categories*/ 4) {
+    				each_value = /*categories*/ ctx[2];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$4(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$4(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(div1, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+
+    			if (!current || dirty & /*showCategories*/ 2 && div1_class_value !== (div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
+    			? "categories"
+    			: "categories hidden") + " svelte-1dsy1pg"))) {
+    				attr(div1, "class", div1_class_value);
+    			}
+
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(li1, null);
+    				}
+    			}
+    		},
+    		i(local) {
+    			if (current) return;
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div2);
+    			destroy_each(each_blocks, detaching);
+    			if_block.d();
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    let optionText = "getAlby";
+    let link = "https://www.getalby.com";
+
+    function instance$7($$self, $$props, $$invalidate) {
+    	let { menuState = { logged_in: false, use_extension: false } } = $$props;
+    	const categories = ["Category 1", "Category 2", "Category 3"];
+    	let showCategories = false;
+    	let timeoutId;
+
+    	function handleMouseOver() {
+    		clearTimeout(timeoutId);
+    		$$invalidate(1, showCategories = true);
+    	}
+
+    	function handleMouseOut() {
+    		timeoutId = setTimeout(
+    			() => {
+    				$$invalidate(1, showCategories = false);
+    			},
+    			200
+    		); // 200ms delay before hiding categories
+    	}
+
+    	function handleFocus() {
+    		$$invalidate(1, showCategories = true);
+    	}
+
+    	function handleBlur() {
+    		$$invalidate(1, showCategories = false);
+    	}
+
+    	async function login() {
+    		// Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
+    		console.log("Logging in...");
+
+    		await NostrHelper.create(true);
+    	}
+
+    	async function logout() {
+    		console.log("Logging out...");
+    		await NostrHelper.create(false);
+    	}
+
+    	$$self.$$set = $$props => {
+    		if ('menuState' in $$props) $$invalidate(0, menuState = $$props.menuState);
+    	};
+
+    	return [
+    		menuState,
+    		showCategories,
+    		categories,
+    		handleMouseOver,
+    		handleMouseOut,
+    		handleFocus,
+    		handleBlur,
+    		login,
+    		logout
+    	];
+    }
+
+    class Menu extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { menuState: 0 });
+    	}
+    }
+
+    var css_248z = ".menu-container.svelte-zh2lg1{width:300px;padding-left:40px}.content-container.svelte-zh2lg1{flex-grow:1}";
+    styleInject(css_248z);
+
     /* src/views/Overview.svelte generated by Svelte v3.59.1 */
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
+    	child_ctx[6] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
+    	child_ctx[6] = list[i];
     	return child_ctx;
     }
 
-    // (100:10) {#if profile}
+    // (102:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -6998,7 +7432,7 @@ var app = (function () {
     	};
     }
 
-    // (106:10) <Link to="/postidea">
+    // (108:10) <Link to="/postidea">
     function create_default_slot$3(ctx) {
     	let button;
 
@@ -7018,13 +7452,13 @@ var app = (function () {
     	};
     }
 
-    // (120:10) {#each verifiedCards as card}
+    // (125:12) {#each verifiedCards as card}
     function create_each_block_1(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[5] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[6] } });
 
     	return {
     		c() {
@@ -7042,7 +7476,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[5];
+    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[6];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7061,13 +7495,13 @@ var app = (function () {
     	};
     }
 
-    // (135:10) {#each unverifiedCards as card}
+    // (140:12) {#each unverifiedCards as card}
     function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[5] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[6] } });
 
     	return {
     		c() {
@@ -7085,7 +7519,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[5];
+    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[6];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7105,7 +7539,7 @@ var app = (function () {
     }
 
     function create_fragment$7(ctx) {
-    	let div8;
+    	let div10;
     	let main;
     	let section0;
     	let div3;
@@ -7120,12 +7554,16 @@ var app = (function () {
     	let link;
     	let t7;
     	let section1;
-    	let div7;
     	let div4;
+    	let menu;
     	let t8;
+    	let div9;
+    	let div8;
     	let div5;
     	let t9;
     	let div6;
+    	let t10;
+    	let div7;
     	let current;
     	let if_block = /*profile*/ ctx[2] && create_if_block$3(ctx);
 
@@ -7135,6 +7573,10 @@ var app = (function () {
     				$$slots: { default: [create_default_slot$3] },
     				$$scope: { ctx }
     			}
+    		});
+
+    	menu = new Menu({
+    			props: { menuState: /*menuState*/ ctx[3] }
     		});
 
     	let each_value_1 = /*verifiedCards*/ ctx[0];
@@ -7161,7 +7603,7 @@ var app = (function () {
 
     	return {
     		c() {
-    			div8 = element("div");
+    			div10 = element("div");
     			main = element("main");
     			section0 = element("section");
     			div3 = element("div");
@@ -7182,17 +7624,21 @@ var app = (function () {
     			create_component(link.$$.fragment);
     			t7 = space();
     			section1 = element("section");
-    			div7 = element("div");
     			div4 = element("div");
+    			create_component(menu.$$.fragment);
+    			t8 = space();
+    			div9 = element("div");
+    			div8 = element("div");
+    			div5 = element("div");
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
-    			t8 = space();
-    			div5 = element("div");
     			t9 = space();
     			div6 = element("div");
+    			t10 = space();
+    			div7 = element("div");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
@@ -7207,20 +7653,24 @@ var app = (function () {
     			attr(div3, "class", "absolute top-0 w-full h-full bg-center bg-cover");
     			set_style(div3, "background-image", "url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80)");
     			attr(section0, "class", "relative block h-500-px");
-    			attr(div4, "class", "row");
-    			set_style(div5, "margin-top", "2rem");
-    			set_style(div5, "margin-bottom", "2rem");
-    			set_style(div5, "height", "2px");
-    			set_style(div5, "background-color", "gray");
-    			attr(div5, "class", "w-full");
-    			attr(div6, "class", "row");
-    			attr(div7, "class", "container mx-auto px-4");
+    			attr(div4, "class", "menu-container svelte-zh2lg1");
+    			attr(div5, "class", "row");
+    			set_style(div6, "margin-top", "2rem");
+    			set_style(div6, "margin-bottom", "2rem");
+    			set_style(div6, "height", "2px");
+    			set_style(div6, "background-color", "gray");
+    			attr(div6, "class", "w-full");
+    			attr(div7, "class", "row");
+    			attr(div8, "class", "container mx-auto px-4");
+    			attr(div9, "class", "content-container svelte-zh2lg1");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
-    			attr(main, "class", "profile-page");
+    			set_style(section1, "display", "flex");
+    			attr(main, "class", "overview-page");
+    			set_style(div10, "position", "relative");
     		},
     		m(target, anchor) {
-    			insert(target, div8, anchor);
-    			append(div8, main);
+    			insert(target, div10, anchor);
+    			append(div10, main);
     			append(main, section0);
     			append(section0, div3);
     			append(div3, span);
@@ -7235,23 +7685,27 @@ var app = (function () {
     			mount_component(link, div2, null);
     			append(main, t7);
     			append(main, section1);
-    			append(section1, div7);
-    			append(div7, div4);
+    			append(section1, div4);
+    			mount_component(menu, div4, null);
+    			append(section1, t8);
+    			append(section1, div9);
+    			append(div9, div8);
+    			append(div8, div5);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				if (each_blocks_1[i]) {
-    					each_blocks_1[i].m(div4, null);
+    					each_blocks_1[i].m(div5, null);
     				}
     			}
 
-    			append(div7, t8);
-    			append(div7, div5);
-    			append(div7, t9);
-    			append(div7, div6);
+    			append(div8, t9);
+    			append(div8, div6);
+    			append(div8, t10);
+    			append(div8, div7);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				if (each_blocks[i]) {
-    					each_blocks[i].m(div6, null);
+    					each_blocks[i].m(div7, null);
     				}
     			}
 
@@ -7283,7 +7737,7 @@ var app = (function () {
 
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 1024) {
+    			if (dirty & /*$$scope*/ 2048) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -7303,7 +7757,7 @@ var app = (function () {
     						each_blocks_1[i] = create_each_block_1(child_ctx);
     						each_blocks_1[i].c();
     						transition_in(each_blocks_1[i], 1);
-    						each_blocks_1[i].m(div4, null);
+    						each_blocks_1[i].m(div5, null);
     					}
     				}
 
@@ -7330,7 +7784,7 @@ var app = (function () {
     						each_blocks[i] = create_each_block$3(child_ctx);
     						each_blocks[i].c();
     						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div6, null);
+    						each_blocks[i].m(div7, null);
     					}
     				}
 
@@ -7347,6 +7801,7 @@ var app = (function () {
     			if (current) return;
     			transition_in(if_block);
     			transition_in(link.$$.fragment, local);
+    			transition_in(menu.$$.fragment, local);
 
     			for (let i = 0; i < each_value_1.length; i += 1) {
     				transition_in(each_blocks_1[i]);
@@ -7361,6 +7816,7 @@ var app = (function () {
     		o(local) {
     			transition_out(if_block);
     			transition_out(link.$$.fragment, local);
+    			transition_out(menu.$$.fragment, local);
     			each_blocks_1 = each_blocks_1.filter(Boolean);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
@@ -7376,9 +7832,10 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div8);
+    			if (detaching) detach(div10);
     			if (if_block) if_block.d();
     			destroy_component(link);
+    			destroy_component(menu);
     			destroy_each(each_blocks_1, detaching);
     			destroy_each(each_blocks, detaching);
     		}
@@ -7391,6 +7848,7 @@ var app = (function () {
     	let publicKey = "";
     	let profilePicture = "";
     	let profile = null;
+    	let menuState = { logged_in: false, use_extension: true };
 
     	onMount(async () => {
     		try {
@@ -7429,7 +7887,7 @@ var app = (function () {
     		}
     	});
 
-    	return [verifiedCards, unverifiedCards, profile];
+    	return [verifiedCards, unverifiedCards, profile, menuState];
     }
 
     class Overview extends SvelteComponent {

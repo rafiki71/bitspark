@@ -13,6 +13,7 @@ import fs from "fs";
 import json from '@rollup/plugin-json';
 import image from 'rollup-plugin-image';
 import url from 'rollup-plugin-url';
+import postcss from 'rollup-plugin-postcss';
 
 
 const production = !process.env.ROLLUP_WATCH;
@@ -157,6 +158,9 @@ export default {
     file: "public/build/bundle.js",
   },
   plugins: [
+    postcss({
+      extensions: ['.css'],
+    }),
     json(),
     url(),
     image(),

@@ -1,4 +1,4 @@
-<!-- Profile.svelte -->
+<!-- Overview.svelte -->
 
 <script>
   // Core components
@@ -7,13 +7,15 @@
   import { Link, navigate } from "svelte-routing";
   import ProfileImg from "../components/ProfileImg.svelte";
   import NostrHelper from "../NostrHelper.js";
-
+  import Menu from "../components/Menu.svelte";
+  import "websocket-polyfill";
 
   let verifiedCards = [];
   let unverifiedCards = [];
   let publicKey = "";
   let profilePicture = "";
   let profile = null;
+  let menuState = { logged_in: false, use_extension: true };
 
   onMount(async () => {
     try {
@@ -52,8 +54,8 @@
   });
 </script>
 
-<div>
-  <main class="profile-page">
+<div style="position: relative;">
+  <main class="overview-page">
     <section class="relative block h-500-px">
       <div
         class="absolute top-0 w-full h-full bg-center bg-cover"
@@ -113,35 +115,50 @@
       <!-- ... -->
     </section>
     <!-- Hauptkomponente -->
-
-    <section class="relative py-16 bg-blueGray-200">
-      <div class="container mx-auto px-4">
-        <div class="row">
-          {#each verifiedCards as card}
-            <div
-              class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-              style="margin-bottom: 2rem;"
-            >
-              <IdeaCard {card} />
-            </div>
-          {/each}
-        </div>
-        <!-- Divider -->
-        <div
-          style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
-          class="w-full"
-        />
-        <div class="row">
-          {#each unverifiedCards as card}
-            <div
-              class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-              style="margin-top: 2rem;"
-            >
-              <IdeaCard {card} />
-            </div>
-          {/each}
+    <section class="relative py-16 bg-blueGray-200" style="display: flex;">
+      <div class="menu-container">
+        <Menu {menuState} />
+      </div>
+      <div class="content-container">
+        <div class="container mx-auto px-4">
+          <div class="row">
+            {#each verifiedCards as card}
+              <div
+                class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                style="margin-bottom: 2rem;"
+              >
+                <IdeaCard {card} />
+              </div>
+            {/each}
+          </div>
+          <!-- Divider -->
+          <div
+            style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
+            class="w-full"
+          />
+          <div class="row">
+            {#each unverifiedCards as card}
+              <div
+                class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                style="margin-top: 2rem;"
+              >
+                <IdeaCard {card} />
+              </div>
+            {/each}
+          </div>
         </div>
       </div>
     </section>
   </main>
 </div>
+
+<style>
+  .menu-container {
+    width: 300px;
+    padding-left: 40px; /* Dies schafft Platz zwischen dem Menü und dem Inhalt */
+  }
+  
+  .content-container {
+    flex-grow: 1;
+  }
+</style>
