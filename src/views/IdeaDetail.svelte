@@ -2,10 +2,9 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
-  import { helperStore } from "../helperStore.js";
-  import { get } from "svelte/store";
   import { sendSatsLNurl } from "../LNHelper.js";
   import ProfileImg from "../components/ProfileImg.svelte";
+  import NostrHelper from "../NostrHelper.js";
 
   export let id;
 
@@ -30,8 +29,9 @@
 
   async function fetchData() {
     try {
-      const bitstarterHelper = get(helperStore);
-      const fetchedIdea = await bitstarterHelper.getEvent(id);
+      
+      const nostrHelper = await NostrHelper.create();
+      const fetchedIdea = await nostrHelper.getEvent(id);
 
       // Konvertiere die Tags in ein einfacher zu handhabendes Objekt
       const tags = fetchedIdea.tags.reduce(
@@ -50,7 +50,7 @@
         pubkey: fetchedIdea.pubkey,
       };
       // Laden Sie das Profil des Erstellers der Idee
-      creator_profile = await bitstarterHelper.getProfile(fetchedIdea.pubkey);
+      creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey);
       console.log("creator_profile");
       console.log(creator_profile);
       profiles[creator_profile.pubkey] = creator_profile;
@@ -65,7 +65,7 @@
 
   async function fetchComments() {
     try {
-      const bitstarterHelper = get(helperStore);
+      const bitstarterHelper = await NostrHelper.create();
       const fetchedComments = await bitstarterHelper.getComments(id);
       comments = await Promise.all(
         fetchedComments.map(async (comment) => {
@@ -90,7 +90,7 @@
     if (newComment.trim() === "") return;
 
     try {
-      const bitstarterHelper = get(helperStore);
+      const bitstarterHelper = await NostrHelper.create();
       const commentId = await bitstarterHelper.postComment(id, newComment);
       await fetchComments();
       newComment = "";
@@ -118,12 +118,10 @@
           <h2 class="text-2xl font-light text-white">{idea.subtitle}</h2>
 
           <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-          <div
-            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-          >
+          <div class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6">
             <button on:click={supportIdea} style="padding: 0;">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg"
+                src="../../img/lightning.png"
                 style="height: 2.5rem; width: 2.5rem;"
                 alt="Support via Bitcoin Lightning"
               />
@@ -193,7 +191,7 @@
                   style="padding: 0; display: flex; align-items: center;"
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg"
+                    src="/img/lightning.png"
                     style="height: 2.5rem; width: 2.5rem;"
                     alt="Support via Bitcoin Lightning"
                   />

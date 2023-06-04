@@ -11,6 +11,9 @@ import { terser } from "rollup-plugin-terser";
 import alias from "@rollup/plugin-alias";
 import fs from "fs";
 import json from '@rollup/plugin-json';
+import image from 'rollup-plugin-image';
+import url from 'rollup-plugin-url';
+import postcss from 'rollup-plugin-postcss';
 
 
 const production = !process.env.ROLLUP_WATCH;
@@ -59,7 +62,7 @@ const indexTemplate = `<!--
       href="/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css"
     />
     <link rel="stylesheet" href="/assets/styles/tailwind.css" />
-    <title>Notus Svelte</title>
+    <title>BitSpark</title>
 
     <script>
       if (process === undefined) {
@@ -155,7 +158,12 @@ export default {
     file: "public/build/bundle.js",
   },
   plugins: [
+    postcss({
+      extensions: ['.css'],
+    }),
     json(),
+    url(),
+    image(),
     svelte({
       // enable run-time checks when not in production
       dev: !production,

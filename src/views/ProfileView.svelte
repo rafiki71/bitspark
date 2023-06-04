@@ -1,9 +1,9 @@
 <script>
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
-    import { get } from "svelte/store";
     import ProfileImg from "../components/ProfileImg.svelte";
+    import NostrHelper from "../NostrHelper.js";
+    import { sendSatsLNurl } from "../LNHelper.js";
 
     export let profile_id;
 
@@ -12,26 +12,35 @@
     let about = "";
     let picture = "";
     let banner = "";
+    let ghUser = "";
+    let lnAdress = "";
 
     let publicKey = "";
 
+
     onMount(async () => {
         try {
-            const bitstarterHelper = get(helperStore);
-            publicKey = bitstarterHelper.publicKey;
+            const nostrHelper = await NostrHelper.create();
+            publicKey = nostrHelper.publicKey;
             console.log(profile_id);
             console.log(publicKey);
-            profile = await bitstarterHelper.getProfile(profile_id);
+            profile = await nostrHelper.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
                 about = profile.dev_about;
                 picture = profile.picture;
                 banner = profile.banner;
+                ghUser = profile.githubUsername;
+                lnAdress = profile.lud16;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
         }
     });
+
+    async function supportIdea() {
+    await sendSatsLNurl(lnAdress);
+  }
 </script>
 
 <div>
@@ -45,11 +54,22 @@
                     id="blackOverlay"
                     class="w-full h-full absolute opacity-50 bg-black"
                 />
-                <div
-                    class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5"
-                >
+                <div class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5">
                     {name}
                 </div>
+                <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
+          <div class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6">
+            <button on:click={supportIdea} style="padding: 0;">
+              <img
+                src="/img/lightning.png"
+                style="height: 2.5rem; width: 2.5rem;"
+                alt="Support via Bitcoin Lightning"
+              />
+            </button>
+            <a href={"https://www.github.com/"+ghUser} target="_blank">
+              <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
+            </a>
+          </div>
             </div>
             <div
                 class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"

@@ -10,8 +10,10 @@ var app = (function () {
             tar[k] = src[k];
         return tar;
     }
+    // Adapted from https://github.com/then/is-promise/blob/master/index.js
+    // Distributed under MIT License https://github.com/then/is-promise/blob/master/LICENSE
     function is_promise(value) {
-        return value && typeof value === 'object' && typeof value.then === 'function';
+        return !!value && (typeof value === 'object' || typeof value === 'function') && typeof value.then === 'function';
     }
     function run(fn) {
         return fn();
@@ -28,6 +30,14 @@ var app = (function () {
     function safe_not_equal(a, b) {
         return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
     }
+    let src_url_equal_anchor;
+    function src_url_equal(element_src, url) {
+        if (!src_url_equal_anchor) {
+            src_url_equal_anchor = document.createElement('a');
+        }
+        src_url_equal_anchor.href = url;
+        return element_src === src_url_equal_anchor.href;
+    }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
@@ -37,11 +47,6 @@ var app = (function () {
         }
         const unsub = store.subscribe(...callbacks);
         return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
-    }
-    function get_store_value(store) {
-        let value;
-        subscribe(store, _ => value = _)();
-        return value;
     }
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
@@ -75,12 +80,22 @@ var app = (function () {
         }
         return $$scope.dirty;
     }
-    function update_slot(slot, slot_definition, ctx, $$scope, dirty, get_slot_changes_fn, get_slot_context_fn) {
-        const slot_changes = get_slot_changes(slot_definition, $$scope, dirty, get_slot_changes_fn);
+    function update_slot_base(slot, slot_definition, ctx, $$scope, slot_changes, get_slot_context_fn) {
         if (slot_changes) {
             const slot_context = get_slot_context(slot_definition, ctx, $$scope, get_slot_context_fn);
             slot.p(slot_context, slot_changes);
         }
+    }
+    function get_all_dirty_from_scope($$scope) {
+        if ($$scope.ctx.length > 32) {
+            const dirty = [];
+            const length = $$scope.ctx.length / 32;
+            for (let i = 0; i < length; i++) {
+                dirty[i] = -1;
+            }
+            return dirty;
+        }
+        return -1;
     }
     function exclude_internal_props(props) {
         const result = {};
@@ -97,7 +112,9 @@ var app = (function () {
                 rest[k] = props[k];
         return rest;
     }
-
+    function null_to_empty(value) {
+        return value == null ? '' : value;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -105,7 +122,9 @@ var app = (function () {
         target.insertBefore(node, anchor || null);
     }
     function detach(node) {
-        node.parentNode.removeChild(node);
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
     }
     function destroy_each(iterations, detaching) {
         for (let i = 0; i < iterations.length; i += 1) {
@@ -135,6 +154,14 @@ var app = (function () {
         else if (node.getAttribute(attribute) !== value)
             node.setAttribute(attribute, value);
     }
+    /**
+     * List of attributes that should always be set through the attr method,
+     * because updating them through the property setter doesn't work reliably.
+     * In the example of `width`/`height`, the problem is that the setter only
+     * accepts numeric values, but the attribute can also be set to a string like `50%`.
+     * If this list becomes too big, rethink this approach.
+     */
+    const always_set_through_set_attribute = ['width', 'height'];
     function set_attributes(node, attributes) {
         // @ts-ignore
         const descriptors = Object.getOwnPropertyDescriptors(node.__proto__);
@@ -148,7 +175,7 @@ var app = (function () {
             else if (key === '__value') {
                 node.value = node[key] = attributes[key];
             }
-            else if (descriptors[key] && descriptors[key].set) {
+            else if (descriptors[key] && descriptors[key].set && always_set_through_set_attribute.indexOf(key) === -1) {
                 node[key] = attributes[key];
             }
             else {
@@ -161,19 +188,28 @@ var app = (function () {
     }
     function set_data(text, data) {
         data = '' + data;
-        if (text.wholeText !== data)
-            text.data = data;
+        if (text.data === data)
+            return;
+        text.data = data;
     }
     function set_input_value(input, value) {
         input.value = value == null ? '' : value;
     }
     function set_style(node, key, value, important) {
-        node.style.setProperty(key, value, important ? 'important' : '');
+        if (value == null) {
+            node.style.removeProperty(key);
+        }
+        else {
+            node.style.setProperty(key, value, important ? 'important' : '');
+        }
     }
-    function custom_event(type, detail) {
+    function custom_event(type, detail, { bubbles = false, cancelable = false } = {}) {
         const e = document.createEvent('CustomEvent');
-        e.initCustomEvent(type, false, false, detail);
+        e.initCustomEvent(type, bubbles, cancelable, detail);
         return e;
+    }
+    function construct_svelte_component(component, props) {
+        return new component(props);
     }
 
     let current_component;
@@ -185,38 +221,85 @@ var app = (function () {
             throw new Error('Function called outside component initialization');
         return current_component;
     }
+    /**
+     * The `onMount` function schedules a callback to run as soon as the component has been mounted to the DOM.
+     * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
+     * it can be called from an external module).
+     *
+     * `onMount` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
+     *
+     * https://svelte.dev/docs#run-time-svelte-onmount
+     */
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
     }
+    /**
+     * Schedules a callback to run immediately before the component is unmounted.
+     *
+     * Out of `onMount`, `beforeUpdate`, `afterUpdate` and `onDestroy`, this is the
+     * only one that runs inside a server-side component.
+     *
+     * https://svelte.dev/docs#run-time-svelte-ondestroy
+     */
     function onDestroy(fn) {
         get_current_component().$$.on_destroy.push(fn);
     }
+    /**
+     * Creates an event dispatcher that can be used to dispatch [component events](/docs#template-syntax-component-directives-on-eventname).
+     * Event dispatchers are functions that can take two arguments: `name` and `detail`.
+     *
+     * Component events created with `createEventDispatcher` create a
+     * [CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent).
+     * These events do not [bubble](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Building_blocks/Events#Event_bubbling_and_capture).
+     * The `detail` argument corresponds to the [CustomEvent.detail](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/detail)
+     * property and can contain any type of data.
+     *
+     * https://svelte.dev/docs#run-time-svelte-createeventdispatcher
+     */
     function createEventDispatcher() {
         const component = get_current_component();
-        return (type, detail) => {
+        return (type, detail, { cancelable = false } = {}) => {
             const callbacks = component.$$.callbacks[type];
             if (callbacks) {
                 // TODO are there situations where events could be dispatched
                 // in a server (non-DOM) environment?
-                const event = custom_event(type, detail);
+                const event = custom_event(type, detail, { cancelable });
                 callbacks.slice().forEach(fn => {
                     fn.call(component, event);
                 });
+                return !event.defaultPrevented;
             }
+            return true;
         };
     }
+    /**
+     * Associates an arbitrary `context` object with the current component and the specified `key`
+     * and returns that object. The context is then available to children of the component
+     * (including slotted content) with `getContext`.
+     *
+     * Like lifecycle functions, this must be called during component initialisation.
+     *
+     * https://svelte.dev/docs#run-time-svelte-setcontext
+     */
     function setContext(key, context) {
         get_current_component().$$.context.set(key, context);
+        return context;
     }
+    /**
+     * Retrieves the context that belongs to the closest parent component with the specified `key`.
+     * Must be called during component initialisation.
+     *
+     * https://svelte.dev/docs#run-time-svelte-getcontext
+     */
     function getContext(key) {
         return get_current_component().$$.context.get(key);
     }
 
     const dirty_components = [];
     const binding_callbacks = [];
-    const render_callbacks = [];
+    let render_callbacks = [];
     const flush_callbacks = [];
-    const resolved_promise = Promise.resolve();
+    const resolved_promise = /* @__PURE__ */ Promise.resolve();
     let update_scheduled = false;
     function schedule_update() {
         if (!update_scheduled) {
@@ -227,22 +310,57 @@ var app = (function () {
     function add_render_callback(fn) {
         render_callbacks.push(fn);
     }
-    let flushing = false;
+    function add_flush_callback(fn) {
+        flush_callbacks.push(fn);
+    }
+    // flush() calls callbacks in this order:
+    // 1. All beforeUpdate callbacks, in order: parents before children
+    // 2. All bind:this callbacks, in reverse order: children before parents.
+    // 3. All afterUpdate callbacks, in order: parents before children. EXCEPT
+    //    for afterUpdates called during the initial onMount, which are called in
+    //    reverse order: children before parents.
+    // Since callbacks might update component values, which could trigger another
+    // call to flush(), the following steps guard against this:
+    // 1. During beforeUpdate, any updated components will be added to the
+    //    dirty_components array and will cause a reentrant call to flush(). Because
+    //    the flush index is kept outside the function, the reentrant call will pick
+    //    up where the earlier call left off and go through all dirty components. The
+    //    current_component value is saved and restored so that the reentrant call will
+    //    not interfere with the "parent" flush() call.
+    // 2. bind:this callbacks cannot trigger new flush() calls.
+    // 3. During afterUpdate, any updated components will NOT have their afterUpdate
+    //    callback called a second time; the seen_callbacks set, outside the flush()
+    //    function, guarantees this behavior.
     const seen_callbacks = new Set();
+    let flushidx = 0; // Do *not* move this inside the flush() function
     function flush() {
-        if (flushing)
+        // Do not reenter flush while dirty components are updated, as this can
+        // result in an infinite loop. Instead, let the inner flush handle it.
+        // Reentrancy is ok afterwards for bindings etc.
+        if (flushidx !== 0) {
             return;
-        flushing = true;
+        }
+        const saved_component = current_component;
         do {
             // first, call beforeUpdate functions
             // and update components
-            for (let i = 0; i < dirty_components.length; i += 1) {
-                const component = dirty_components[i];
-                set_current_component(component);
-                update(component.$$);
+            try {
+                while (flushidx < dirty_components.length) {
+                    const component = dirty_components[flushidx];
+                    flushidx++;
+                    set_current_component(component);
+                    update(component.$$);
+                }
+            }
+            catch (e) {
+                // reset dirty state to not end up in a deadlocked state and then rethrow
+                dirty_components.length = 0;
+                flushidx = 0;
+                throw e;
             }
             set_current_component(null);
             dirty_components.length = 0;
+            flushidx = 0;
             while (binding_callbacks.length)
                 binding_callbacks.pop()();
             // then, once components are updated, call
@@ -262,8 +380,8 @@ var app = (function () {
             flush_callbacks.pop()();
         }
         update_scheduled = false;
-        flushing = false;
         seen_callbacks.clear();
+        set_current_component(saved_component);
     }
     function update($$) {
         if ($$.fragment !== null) {
@@ -274,6 +392,16 @@ var app = (function () {
             $$.fragment && $$.fragment.p($$.ctx, dirty);
             $$.after_update.forEach(add_render_callback);
         }
+    }
+    /**
+     * Useful for example to execute remaining `afterUpdate` callbacks before executing `destroy`.
+     */
+    function flush_render_callbacks(fns) {
+        const filtered = [];
+        const targets = [];
+        render_callbacks.forEach((c) => fns.indexOf(c) === -1 ? filtered.push(c) : targets.push(c));
+        targets.forEach((c) => c());
+        render_callbacks = filtered;
     }
     const outroing = new Set();
     let outros;
@@ -310,6 +438,9 @@ var app = (function () {
                 }
             });
             block.o(local);
+        }
+        else if (callback) {
+            callback();
         }
     }
 
@@ -383,6 +514,17 @@ var app = (function () {
             info.resolved = promise;
         }
     }
+    function update_await_block_branch(info, ctx, dirty) {
+        const child_ctx = ctx.slice();
+        const { resolved } = info;
+        if (info.current === info.then) {
+            child_ctx[info.value] = resolved;
+        }
+        if (info.current === info.catch) {
+            child_ctx[info.error] = resolved;
+        }
+        info.block.p(child_ctx, dirty);
+    }
     function outro_and_destroy_block(block, lookup) {
         transition_out(block, 1, 1, () => {
             lookup.delete(block.key);
@@ -398,6 +540,7 @@ var app = (function () {
         const new_blocks = [];
         const new_lookup = new Map();
         const deltas = new Map();
+        const updates = [];
         i = n;
         while (i--) {
             const child_ctx = get_context(ctx, list, i);
@@ -408,7 +551,8 @@ var app = (function () {
                 block.c();
             }
             else if (dynamic) {
-                block.p(child_ctx, dirty);
+                // defer updates until all the DOM shuffling is done
+                updates.push(() => block.p(child_ctx, dirty));
             }
             new_lookup.set(key, new_blocks[i] = block);
             if (key in old_indexes)
@@ -461,6 +605,7 @@ var app = (function () {
         }
         while (n)
             insert(new_blocks[n - 1]);
+        run_all(updates);
         return new_blocks;
     }
 
@@ -500,18 +645,29 @@ var app = (function () {
     function get_spread_object(spread_props) {
         return typeof spread_props === 'object' && spread_props !== null ? spread_props : {};
     }
+
+    function bind(component, name, callback) {
+        const index = component.$$.props[name];
+        if (index !== undefined) {
+            component.$$.bound[index] = callback;
+            callback(component.$$.ctx[index]);
+        }
+    }
     function create_component(block) {
         block && block.c();
     }
     function mount_component(component, target, anchor, customElement) {
-        const { fragment, on_mount, on_destroy, after_update } = component.$$;
+        const { fragment, after_update } = component.$$;
         fragment && fragment.m(target, anchor);
         if (!customElement) {
             // onMount happens before the initial afterUpdate
             add_render_callback(() => {
-                const new_on_destroy = on_mount.map(run).filter(is_function);
-                if (on_destroy) {
-                    on_destroy.push(...new_on_destroy);
+                const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+                // if the component was destroyed immediately
+                // it will update the `$$.on_destroy` reference to `null`.
+                // the destructured on_destroy may still reference to the old array
+                if (component.$$.on_destroy) {
+                    component.$$.on_destroy.push(...new_on_destroy);
                 }
                 else {
                     // Edge case - component was destroyed immediately,
@@ -526,6 +682,7 @@ var app = (function () {
     function destroy_component(component, detaching) {
         const $$ = component.$$;
         if ($$.fragment !== null) {
+            flush_render_callbacks($$.after_update);
             run_all($$.on_destroy);
             $$.fragment && $$.fragment.d(detaching);
             // TODO null out other refs, including component.$$ (but need to
@@ -542,12 +699,12 @@ var app = (function () {
         }
         component.$$.dirty[(i / 31) | 0] |= (1 << (i % 31));
     }
-    function init(component, options, instance, create_fragment, not_equal, props, dirty = [-1]) {
+    function init(component, options, instance, create_fragment, not_equal, props, append_styles, dirty = [-1]) {
         const parent_component = current_component;
         set_current_component(component);
         const $$ = component.$$ = {
             fragment: null,
-            ctx: null,
+            ctx: [],
             // state
             props,
             update: noop,
@@ -559,12 +716,14 @@ var app = (function () {
             on_disconnect: [],
             before_update: [],
             after_update: [],
-            context: new Map(parent_component ? parent_component.$$.context : []),
+            context: new Map(options.context || (parent_component ? parent_component.$$.context : [])),
             // everything else
             callbacks: blank_object(),
             dirty,
-            skip_bound: false
+            skip_bound: false,
+            root: options.target || parent_component.$$.root
         };
+        append_styles && append_styles($$.root);
         let ready = false;
         $$.ctx = instance
             ? instance(component, options.props || {}, (i, ret, ...rest) => {
@@ -610,6 +769,9 @@ var app = (function () {
             this.$destroy = noop;
         }
         $on(type, callback) {
+            if (!is_function(callback)) {
+                return noop;
+            }
             const callbacks = (this.$$.callbacks[type] || (this.$$.callbacks[type] = []));
             callbacks.push(callback);
             return () => {
@@ -631,7 +793,7 @@ var app = (function () {
     /**
      * Creates a `Readable` store that allows reading by subscription.
      * @param value initial value
-     * @param {StartStopNotifier}start start and stop notifications for subscriptions
+     * @param {StartStopNotifier} [start]
      */
     function readable(value, start) {
         return {
@@ -641,20 +803,19 @@ var app = (function () {
     /**
      * Create a `Writable` store that allows both updating and reading by subscription.
      * @param {*=}value initial value
-     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     * @param {StartStopNotifier=} start
      */
     function writable(value, start = noop) {
         let stop;
-        const subscribers = [];
+        const subscribers = new Set();
         function set(new_value) {
             if (safe_not_equal(value, new_value)) {
                 value = new_value;
                 if (stop) { // store is ready
                     const run_queue = !subscriber_queue.length;
-                    for (let i = 0; i < subscribers.length; i += 1) {
-                        const s = subscribers[i];
-                        s[1]();
-                        subscriber_queue.push(s, value);
+                    for (const subscriber of subscribers) {
+                        subscriber[1]();
+                        subscriber_queue.push(subscriber, value);
                     }
                     if (run_queue) {
                         for (let i = 0; i < subscriber_queue.length; i += 2) {
@@ -670,17 +831,14 @@ var app = (function () {
         }
         function subscribe(run, invalidate = noop) {
             const subscriber = [run, invalidate];
-            subscribers.push(subscriber);
-            if (subscribers.length === 1) {
+            subscribers.add(subscriber);
+            if (subscribers.size === 1) {
                 stop = start(set) || noop;
             }
             run(value);
             return () => {
-                const index = subscribers.indexOf(subscriber);
-                if (index !== -1) {
-                    subscribers.splice(index, 1);
-                }
-                if (subscribers.length === 0) {
+                subscribers.delete(subscriber);
+                if (subscribers.size === 0 && stop) {
                     stop();
                     stop = null;
                 }
@@ -695,7 +853,7 @@ var app = (function () {
             : stores;
         const auto = fn.length < 2;
         return readable(initial_value, (set) => {
-            let inited = false;
+            let started = false;
             const values = [];
             let pending = 0;
             let cleanup = noop;
@@ -715,17 +873,21 @@ var app = (function () {
             const unsubscribers = stores_array.map((store, i) => subscribe(store, (value) => {
                 values[i] = value;
                 pending &= ~(1 << i);
-                if (inited) {
+                if (started) {
                     sync();
                 }
             }, () => {
                 pending |= (1 << i);
             }));
-            inited = true;
+            started = true;
             sync();
             return function stop() {
                 run_all(unsubscribers);
                 cleanup();
+                // We need to set this to false because callbacks can still happen despite having unsubscribed:
+                // Callbacks might already be placed in the queue which doesn't know it should no longer
+                // invoke this derived store.
+                started = false;
             };
         });
     }
@@ -1086,7 +1248,7 @@ var app = (function () {
     const globalHistory = createHistory(canUseDOM ? window : createMemorySource());
     const { navigate } = globalHistory;
 
-    /* node_modules/svelte-routing/src/Router.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Router.svelte generated by Svelte v3.59.1 */
 
     const get_default_slot_changes$2 = dirty => ({
     	route: dirty & /*$activeRoute*/ 2,
@@ -1098,7 +1260,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1116,8 +1278,17 @@ var app = (function () {
     		},
     		p(ctx, [dirty]) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, $activeRoute, $location*/ 2051) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[11], dirty, get_default_slot_changes$2, get_default_slot_context$2);
+    				if (default_slot.p && (!current || dirty & /*$$scope, $activeRoute, $location*/ 2051)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[11],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[11])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[11], dirty, get_default_slot_changes$2),
+    						get_default_slot_context$2
+    					);
     				}
     			}
     		},
@@ -1136,10 +1307,10 @@ var app = (function () {
     	};
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
-    	let $base;
+    function instance$b($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
+    	let $base;
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { basepath = "/" } = $$props;
@@ -1149,7 +1320,7 @@ var app = (function () {
     	const locationContext = getContext(LOCATION);
     	const routerContext = getContext(ROUTER);
     	const routes = writable([]);
-    	component_subscribe($$self, routes, value => $$invalidate(10, $routes = value));
+    	component_subscribe($$self, routes, value => $$invalidate(9, $routes = value));
     	const activeRoute = writable(null);
     	component_subscribe($$self, activeRoute, value => $$invalidate(1, $activeRoute = value));
     	let hasActiveRoute = false; // Used in SSR to synchronously set that a Route is active.
@@ -1168,7 +1339,7 @@ var app = (function () {
     	? routerContext.routerBase
     	: writable({ path: basepath, uri: basepath });
 
-    	component_subscribe($$self, base, value => $$invalidate(9, $base = value));
+    	component_subscribe($$self, base, value => $$invalidate(10, $base = value));
 
     	const routerBase = derived([base, activeRoute], ([base, activeRoute]) => {
     		// If there is no activeRoute, the routerBase will be identical to the base.
@@ -1241,14 +1412,14 @@ var app = (function () {
     	});
 
     	$$self.$$set = $$props => {
-    		if ("basepath" in $$props) $$invalidate(6, basepath = $$props.basepath);
-    		if ("url" in $$props) $$invalidate(7, url = $$props.url);
-    		if ("history" in $$props) $$invalidate(8, history = $$props.history);
-    		if ("$$scope" in $$props) $$invalidate(11, $$scope = $$props.$$scope);
+    		if ('basepath' in $$props) $$invalidate(6, basepath = $$props.basepath);
+    		if ('url' in $$props) $$invalidate(7, url = $$props.url);
+    		if ('history' in $$props) $$invalidate(8, history = $$props.history);
+    		if ('$$scope' in $$props) $$invalidate(11, $$scope = $$props.$$scope);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$base*/ 512) {
+    		if ($$self.$$.dirty & /*$base*/ 1024) {
     			// This reactive statement will update all the Routes' path when
     			// the basepath changes.
     			{
@@ -1261,7 +1432,7 @@ var app = (function () {
     			}
     		}
 
-    		if ($$self.$$.dirty & /*$routes, $location*/ 1025) {
+    		if ($$self.$$.dirty & /*$routes, $location*/ 513) {
     			// This reactive statement will be run when the Router is created
     			// when there are no Routes and then again the following tick, so it
     			// will not find an active Route in SSR and in the browser it will only
@@ -1283,8 +1454,8 @@ var app = (function () {
     		basepath,
     		url,
     		history,
-    		$base,
     		$routes,
+    		$base,
     		$$scope,
     		slots
     	];
@@ -1293,21 +1464,21 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
-    /* node_modules/svelte-routing/src/Route.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Route.svelte generated by Svelte v3.59.1 */
     const get_default_slot_changes$1 = dirty => ({ params: dirty & /*routeParams*/ 4 });
     const get_default_slot_context$1 = ctx => ({ params: /*routeParams*/ ctx[2] });
 
     // (44:0) {#if $activeRoute && $activeRoute.route === route}
-    function create_if_block$4(ctx) {
+    function create_if_block$5(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_1$2, create_else_block];
+    	const if_block_creators = [create_if_block_1$3, create_else_block$1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -1372,7 +1543,7 @@ var app = (function () {
     }
 
     // (53:4) {:else}
-    function create_else_block(ctx) {
+    function create_else_block$1(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[8].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[7], get_default_slot_context$1);
@@ -1390,8 +1561,17 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, routeParams*/ 132) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[7], dirty, get_default_slot_changes$1, get_default_slot_context$1);
+    				if (default_slot.p && (!current || dirty & /*$$scope, routeParams*/ 132)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[7],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[7])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[7], dirty, get_default_slot_changes$1),
+    						get_default_slot_context$1
+    					);
     				}
     			}
     		},
@@ -1411,7 +1591,7 @@ var app = (function () {
     }
 
     // (45:4) {#if component}
-    function create_if_block_1$2(ctx) {
+    function create_if_block_1$3(ctx) {
     	let await_block_anchor;
     	let promise;
     	let current;
@@ -1447,9 +1627,7 @@ var app = (function () {
     			info.ctx = ctx;
 
     			if (dirty & /*component*/ 1 && promise !== (promise = /*component*/ ctx[0]) && handle_promise(promise, info)) ; else {
-    				const child_ctx = ctx.slice();
-    				child_ctx[12] = info.resolved;
-    				info.block.p(child_ctx, dirty);
+    				update_await_block_branch(info, ctx, dirty);
     			}
     		},
     		i(local) {
@@ -1505,7 +1683,7 @@ var app = (function () {
     	}
 
     	if (switch_value) {
-    		switch_instance = new switch_value(switch_props());
+    		switch_instance = construct_svelte_component(switch_value, switch_props());
     	}
 
     	return {
@@ -1514,10 +1692,7 @@ var app = (function () {
     			switch_instance_anchor = empty();
     		},
     		m(target, anchor) {
-    			if (switch_instance) {
-    				mount_component(switch_instance, target, anchor);
-    			}
-
+    			if (switch_instance) mount_component(switch_instance, target, anchor);
     			insert(target, switch_instance_anchor, anchor);
     			current = true;
     		},
@@ -1529,7 +1704,7 @@ var app = (function () {
     				])
     			: {};
 
-    			if (switch_value !== (switch_value = /*resolvedComponent*/ ctx[12]?.default || /*resolvedComponent*/ ctx[12])) {
+    			if (dirty & /*component*/ 1 && switch_value !== (switch_value = /*resolvedComponent*/ ctx[12]?.default || /*resolvedComponent*/ ctx[12])) {
     				if (switch_instance) {
     					group_outros();
     					const old_component = switch_instance;
@@ -1542,7 +1717,7 @@ var app = (function () {
     				}
 
     				if (switch_value) {
-    					switch_instance = new switch_value(switch_props());
+    					switch_instance = construct_svelte_component(switch_value, switch_props());
     					create_component(switch_instance.$$.fragment);
     					transition_in(switch_instance.$$.fragment, 1);
     					mount_component(switch_instance, switch_instance_anchor.parentNode, switch_instance_anchor);
@@ -1581,10 +1756,10 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let if_block_anchor;
     	let current;
-    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$4(ctx);
+    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$5(ctx);
 
     	return {
     		c() {
@@ -1605,7 +1780,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$4(ctx);
+    					if_block = create_if_block$5(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(if_block_anchor.parentNode, if_block_anchor);
@@ -1636,7 +1811,7 @@ var app = (function () {
     	};
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1661,9 +1836,9 @@ var app = (function () {
 
     	$$self.$$set = $$new_props => {
     		$$invalidate(11, $$props = assign(assign({}, $$props), exclude_internal_props($$new_props)));
-    		if ("path" in $$new_props) $$invalidate(6, path = $$new_props.path);
-    		if ("component" in $$new_props) $$invalidate(0, component = $$new_props.component);
-    		if ("$$scope" in $$new_props) $$invalidate(7, $$scope = $$new_props.$$scope);
+    		if ('path' in $$new_props) $$invalidate(6, path = $$new_props.path);
+    		if ('component' in $$new_props) $$invalidate(0, component = $$new_props.component);
+    		if ('$$scope' in $$new_props) $$invalidate(7, $$scope = $$new_props.$$scope);
     	};
 
     	$$self.$$.update = () => {
@@ -1700,15 +1875,15 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$a, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$a, create_fragment$b, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
-    /* node_modules/svelte-routing/src/Link.svelte generated by Svelte v3.35.0 */
+    /* node_modules/svelte-routing/src/Link.svelte generated by Svelte v3.59.1 */
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$9(ctx) {
+    function create_fragment$a(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1751,8 +1926,17 @@ var app = (function () {
     		},
     		p(ctx, [dirty]) {
     			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope, ariaCurrent*/ 32772) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[15], dirty, get_default_slot_changes, get_default_slot_context);
+    				if (default_slot.p && (!current || dirty & /*$$scope, ariaCurrent*/ 32772)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[15],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[15])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[15], dirty, get_default_slot_changes),
+    						get_default_slot_context
+    					);
     				}
     			}
 
@@ -1781,21 +1965,21 @@ var app = (function () {
     	};
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
-    	let $base;
     	let $location;
+    	let $base;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { to = "#" } = $$props;
     	let { replace = false } = $$props;
     	let { state = {} } = $$props;
     	let { getProps = () => ({}) } = $$props;
     	const location = getContext(LOCATION);
-    	component_subscribe($$self, location, value => $$invalidate(14, $location = value));
+    	component_subscribe($$self, location, value => $$invalidate(13, $location = value));
     	const { base } = getContext(ROUTER);
-    	component_subscribe($$self, base, value => $$invalidate(13, $base = value));
+    	component_subscribe($$self, base, value => $$invalidate(14, $base = value));
     	const { navigate } = getContext(HISTORY);
     	const dispatch = createEventDispatcher();
     	let href, isPartiallyCurrent, isCurrent, props;
@@ -1817,23 +2001,23 @@ var app = (function () {
     	$$self.$$set = $$new_props => {
     		$$props = assign(assign({}, $$props), exclude_internal_props($$new_props));
     		$$invalidate(6, $$restProps = compute_rest_props($$props, omit_props_names));
-    		if ("to" in $$new_props) $$invalidate(7, to = $$new_props.to);
-    		if ("replace" in $$new_props) $$invalidate(8, replace = $$new_props.replace);
-    		if ("state" in $$new_props) $$invalidate(9, state = $$new_props.state);
-    		if ("getProps" in $$new_props) $$invalidate(10, getProps = $$new_props.getProps);
-    		if ("$$scope" in $$new_props) $$invalidate(15, $$scope = $$new_props.$$scope);
+    		if ('to' in $$new_props) $$invalidate(7, to = $$new_props.to);
+    		if ('replace' in $$new_props) $$invalidate(8, replace = $$new_props.replace);
+    		if ('state' in $$new_props) $$invalidate(9, state = $$new_props.state);
+    		if ('getProps' in $$new_props) $$invalidate(10, getProps = $$new_props.getProps);
+    		if ('$$scope' in $$new_props) $$invalidate(15, $$scope = $$new_props.$$scope);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*to, $base*/ 8320) {
+    		if ($$self.$$.dirty & /*to, $base*/ 16512) {
     			$$invalidate(0, href = to === "/" ? $base.uri : resolve(to, $base.uri));
     		}
 
-    		if ($$self.$$.dirty & /*$location, href*/ 16385) {
+    		if ($$self.$$.dirty & /*$location, href*/ 8193) {
     			$$invalidate(11, isPartiallyCurrent = $location.pathname.startsWith(href));
     		}
 
-    		if ($$self.$$.dirty & /*href, $location*/ 16385) {
+    		if ($$self.$$.dirty & /*href, $location*/ 8193) {
     			$$invalidate(12, isCurrent = href === $location.pathname);
     		}
 
@@ -1864,8 +2048,8 @@ var app = (function () {
     		getProps,
     		isPartiallyCurrent,
     		isCurrent,
-    		$base,
     		$location,
+    		$base,
     		$$scope,
     		slots
     	];
@@ -1875,7 +2059,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$8, create_fragment$9, safe_not_equal, {
+    		init(this, options, instance$9, create_fragment$a, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -1884,7 +2068,7 @@ var app = (function () {
     	}
     }
 
-    /* src/components/Cards/IdeaCard.svelte generated by Svelte v3.35.0 */
+    /* src/components/Cards/IdeaCard.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot$5(ctx) {
     	let t;
@@ -1902,7 +2086,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$9(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -1948,7 +2132,7 @@ var app = (function () {
     			t5 = space();
     			div1 = element("div");
     			create_component(link.$$.fragment);
-    			if (img.src !== (img_src_value = /*card*/ ctx[0].bannerImage)) attr(img, "src", img_src_value);
+    			if (!src_url_equal(img.src, img_src_value = /*card*/ ctx[0].bannerImage)) attr(img, "src", img_src_value);
     			attr(img, "alt", "Idea banner");
     			attr(img, "class", "w-full h-48 object-cover rounded-t-lg");
     			attr(h3, "class", "text-2xl font-semibold text-blueGray-700 mb-2");
@@ -1977,7 +2161,7 @@ var app = (function () {
     			current = true;
     		},
     		p(ctx, [dirty]) {
-    			if (!current || dirty & /*card*/ 1 && img.src !== (img_src_value = /*card*/ ctx[0].bannerImage)) {
+    			if (!current || dirty & /*card*/ 1 && !src_url_equal(img.src, img_src_value = /*card*/ ctx[0].bannerImage)) {
     				attr(img, "src", img_src_value);
     			}
 
@@ -2016,11 +2200,11 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$7($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
-    		if ("card" in $$props) $$invalidate(0, card = $$props.card);
+    		if ('card' in $$props) $$invalidate(0, card = $$props.card);
     	};
 
     	return [card];
@@ -2029,15 +2213,11 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { card: 0 });
+    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { card: 0 });
     	}
     }
 
-    // helperStore.js
-
-    const helperStore = writable(null);
-
-    /* src/components/ProfileImg.svelte generated by Svelte v3.35.0 */
+    /* src/components/ProfileImg.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot$4(ctx) {
     	let img;
@@ -2047,8 +2227,8 @@ var app = (function () {
     	return {
     		c() {
     			img = element("img");
-    			attr(img, "class", img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? "" : "grayscale"));
-    			if (img.src !== (img_src_value = /*picture*/ ctx[1])) attr(img, "src", img_src_value);
+    			attr(img, "class", img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? '' : 'grayscale'));
+    			if (!src_url_equal(img.src, img_src_value = /*picture*/ ctx[1])) attr(img, "src", img_src_value);
     			attr(img, "alt", "Profile Img");
     			attr(img, "style", /*styleString*/ ctx[3]);
     		},
@@ -2056,11 +2236,11 @@ var app = (function () {
     			insert(target, img, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*githubVerified*/ 4 && img_class_value !== (img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? "" : "grayscale"))) {
+    			if (dirty & /*githubVerified*/ 4 && img_class_value !== (img_class_value = "profile-image " + (/*githubVerified*/ ctx[2] ? '' : 'grayscale'))) {
     				attr(img, "class", img_class_value);
     			}
 
-    			if (dirty & /*picture*/ 2 && img.src !== (img_src_value = /*picture*/ ctx[1])) {
+    			if (dirty & /*picture*/ 2 && !src_url_equal(img.src, img_src_value = /*picture*/ ctx[1])) {
     				attr(img, "src", img_src_value);
     			}
 
@@ -2074,7 +2254,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$7(ctx) {
+    function create_fragment$8(ctx) {
     	let link;
     	let current;
 
@@ -2119,18 +2299,18 @@ var app = (function () {
     	};
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
-    	let { style = {} } = $$props; // new prop - it's now an object
+    	let { style = {} } = $$props;
     	let pubkey, picture, githubVerified; // initial declaration
 
     	// Converts style object to CSS string
-    	const toStyleString = styleObj => Object.entries(styleObj).map(([prop, value]) => `${prop}: ${value}`).join("; ");
+    	const toStyleString = styleObj => Object.entries(styleObj).map(([prop, value]) => `${prop}: ${value}`).join('; ');
 
     	$$self.$$set = $$props => {
-    		if ("profile" in $$props) $$invalidate(4, profile = $$props.profile);
-    		if ("style" in $$props) $$invalidate(5, style = $$props.style);
+    		if ('profile' in $$props) $$invalidate(4, profile = $$props.profile);
+    		if ('style' in $$props) $$invalidate(5, style = $$props.style);
     	};
 
     	$$self.$$.update = () => {
@@ -2148,7 +2328,7 @@ var app = (function () {
     		}
 
     		if ($$self.$$.dirty & /*style*/ 32) {
-    			$$invalidate(3, styleString = toStyleString({ ...style, "border-radius": "50%" })); // added border-radius here
+    			$$invalidate(3, styleString = toStyleString({ ...style, 'border-radius': '50%' })); // added border-radius here
     		}
     	};
 
@@ -2158,1551 +2338,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$7, safe_not_equal, { profile: 4, style: 5 });
-    	}
-    }
-
-    /* src/views/Overview.svelte generated by Svelte v3.35.0 */
-
-    function get_each_context$1(ctx, list, i) {
-    	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
-    	return child_ctx;
-    }
-
-    function get_each_context_1(ctx, list, i) {
-    	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
-    	return child_ctx;
-    }
-
-    // (100:10) {#if profile}
-    function create_if_block$3(ctx) {
-    	let div;
-    	let profileimg;
-    	let current;
-
-    	profileimg = new ProfileImg({
-    			props: {
-    				profile: /*profile*/ ctx[2],
-    				style: { width: "40px", height: "40px" }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(profileimg.$$.fragment);
-    			set_style(div, "margin-right", "10px");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(profileimg, div, null);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const profileimg_changes = {};
-    			if (dirty & /*profile*/ 4) profileimg_changes.profile = /*profile*/ ctx[2];
-    			profileimg.$set(profileimg_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(profileimg.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(profileimg.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(profileimg);
-    		}
-    	};
-    }
-
-    // (106:10) <Link to="/postidea">
-    function create_default_slot$3(ctx) {
-    	let button;
-
-    	return {
-    		c() {
-    			button = element("button");
-    			button.textContent = "Create Idea";
-    			attr(button, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
-    		},
-    		m(target, anchor) {
-    			insert(target, button, anchor);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(button);
-    		}
-    	};
-    }
-
-    // (120:10) {#each verifiedCards as card}
-    function create_each_block_1(ctx) {
-    	let div;
-    	let ideacard;
-    	let t;
-    	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[5] } });
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(ideacard.$$.fragment);
-    			t = space();
-    			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
-    			set_style(div, "margin-bottom", "2rem");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(ideacard, div, null);
-    			append(div, t);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[5];
-    			ideacard.$set(ideacard_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(ideacard.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(ideacard.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(ideacard);
-    		}
-    	};
-    }
-
-    // (135:10) {#each unverifiedCards as card}
-    function create_each_block$1(ctx) {
-    	let div;
-    	let ideacard;
-    	let t;
-    	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[5] } });
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(ideacard.$$.fragment);
-    			t = space();
-    			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
-    			set_style(div, "margin-top", "2rem");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(ideacard, div, null);
-    			append(div, t);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[5];
-    			ideacard.$set(ideacard_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(ideacard.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(ideacard.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(ideacard);
-    		}
-    	};
-    }
-
-    function create_fragment$6(ctx) {
-    	let div8;
-    	let main;
-    	let section0;
-    	let div3;
-    	let span;
-    	let t0;
-    	let div0;
-    	let t4;
-    	let div1;
-    	let t5;
-    	let div2;
-    	let t6;
-    	let link;
-    	let t7;
-    	let section1;
-    	let div7;
-    	let div4;
-    	let t8;
-    	let div5;
-    	let t9;
-    	let div6;
-    	let current;
-    	let if_block = /*profile*/ ctx[2] && create_if_block$3(ctx);
-
-    	link = new Link({
-    			props: {
-    				to: "/postidea",
-    				$$slots: { default: [create_default_slot$3] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	let each_value_1 = /*verifiedCards*/ ctx[0];
-    	let each_blocks_1 = [];
-
-    	for (let i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-    	}
-
-    	const out = i => transition_out(each_blocks_1[i], 1, 1, () => {
-    		each_blocks_1[i] = null;
-    	});
-
-    	let each_value = /*unverifiedCards*/ ctx[1];
-    	let each_blocks = [];
-
-    	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
-    	}
-
-    	const out_1 = i => transition_out(each_blocks[i], 1, 1, () => {
-    		each_blocks[i] = null;
-    	});
-
-    	return {
-    		c() {
-    			div8 = element("div");
-    			main = element("main");
-    			section0 = element("section");
-    			div3 = element("div");
-    			span = element("span");
-    			t0 = space();
-    			div0 = element("div");
-
-    			div0.innerHTML = `<h1 class="text-4xl font-bold text-white">Bitspark</h1> 
-          <h2 class="text-2xl font-light text-white">Idea Engine</h2>`;
-
-    			t4 = space();
-    			div1 = element("div");
-    			div1.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
-    			t5 = space();
-    			div2 = element("div");
-    			if (if_block) if_block.c();
-    			t6 = space();
-    			create_component(link.$$.fragment);
-    			t7 = space();
-    			section1 = element("section");
-    			div7 = element("div");
-    			div4 = element("div");
-
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].c();
-    			}
-
-    			t8 = space();
-    			div5 = element("div");
-    			t9 = space();
-    			div6 = element("div");
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].c();
-    			}
-
-    			attr(span, "id", "blackOverlay");
-    			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
-    			attr(div0, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
-    			attr(div1, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
-    			set_style(div1, "transform", "translateZ(0)");
-    			attr(div2, "class", "absolute top-4 right-4 flex justify-end w-full");
-    			attr(div3, "class", "absolute top-0 w-full h-full bg-center bg-cover");
-    			set_style(div3, "background-image", "url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80)");
-    			attr(section0, "class", "relative block h-500-px");
-    			attr(div4, "class", "row");
-    			set_style(div5, "margin-top", "2rem");
-    			set_style(div5, "margin-bottom", "2rem");
-    			set_style(div5, "height", "2px");
-    			set_style(div5, "background-color", "gray");
-    			attr(div5, "class", "w-full");
-    			attr(div6, "class", "row");
-    			attr(div7, "class", "container mx-auto px-4");
-    			attr(section1, "class", "relative py-16 bg-blueGray-200");
-    			attr(main, "class", "profile-page");
-    		},
-    		m(target, anchor) {
-    			insert(target, div8, anchor);
-    			append(div8, main);
-    			append(main, section0);
-    			append(section0, div3);
-    			append(div3, span);
-    			append(div3, t0);
-    			append(div3, div0);
-    			append(div3, t4);
-    			append(div3, div1);
-    			append(div3, t5);
-    			append(div3, div2);
-    			if (if_block) if_block.m(div2, null);
-    			append(div2, t6);
-    			mount_component(link, div2, null);
-    			append(main, t7);
-    			append(main, section1);
-    			append(section1, div7);
-    			append(div7, div4);
-
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div4, null);
-    			}
-
-    			append(div7, t8);
-    			append(div7, div5);
-    			append(div7, t9);
-    			append(div7, div6);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div6, null);
-    			}
-
-    			current = true;
-    		},
-    		p(ctx, [dirty]) {
-    			if (/*profile*/ ctx[2]) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-
-    					if (dirty & /*profile*/ 4) {
-    						transition_in(if_block, 1);
-    					}
-    				} else {
-    					if_block = create_if_block$3(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(div2, t6);
-    				}
-    			} else if (if_block) {
-    				group_outros();
-
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
-    				});
-
-    				check_outros();
-    			}
-
-    			const link_changes = {};
-
-    			if (dirty & /*$$scope*/ 1024) {
-    				link_changes.$$scope = { dirty, ctx };
-    			}
-
-    			link.$set(link_changes);
-
-    			if (dirty & /*verifiedCards*/ 1) {
-    				each_value_1 = /*verifiedCards*/ ctx[0];
-    				let i;
-
-    				for (i = 0; i < each_value_1.length; i += 1) {
-    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
-
-    					if (each_blocks_1[i]) {
-    						each_blocks_1[i].p(child_ctx, dirty);
-    						transition_in(each_blocks_1[i], 1);
-    					} else {
-    						each_blocks_1[i] = create_each_block_1(child_ctx);
-    						each_blocks_1[i].c();
-    						transition_in(each_blocks_1[i], 1);
-    						each_blocks_1[i].m(div4, null);
-    					}
-    				}
-
-    				group_outros();
-
-    				for (i = each_value_1.length; i < each_blocks_1.length; i += 1) {
-    					out(i);
-    				}
-
-    				check_outros();
-    			}
-
-    			if (dirty & /*unverifiedCards*/ 2) {
-    				each_value = /*unverifiedCards*/ ctx[1];
-    				let i;
-
-    				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$1(ctx, each_value, i);
-
-    					if (each_blocks[i]) {
-    						each_blocks[i].p(child_ctx, dirty);
-    						transition_in(each_blocks[i], 1);
-    					} else {
-    						each_blocks[i] = create_each_block$1(child_ctx);
-    						each_blocks[i].c();
-    						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div6, null);
-    					}
-    				}
-
-    				group_outros();
-
-    				for (i = each_value.length; i < each_blocks.length; i += 1) {
-    					out_1(i);
-    				}
-
-    				check_outros();
-    			}
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(if_block);
-    			transition_in(link.$$.fragment, local);
-
-    			for (let i = 0; i < each_value_1.length; i += 1) {
-    				transition_in(each_blocks_1[i]);
-    			}
-
-    			for (let i = 0; i < each_value.length; i += 1) {
-    				transition_in(each_blocks[i]);
-    			}
-
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(if_block);
-    			transition_out(link.$$.fragment, local);
-    			each_blocks_1 = each_blocks_1.filter(Boolean);
-
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				transition_out(each_blocks_1[i]);
-    			}
-
-    			each_blocks = each_blocks.filter(Boolean);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				transition_out(each_blocks[i]);
-    			}
-
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div8);
-    			if (if_block) if_block.d();
-    			destroy_component(link);
-    			destroy_each(each_blocks_1, detaching);
-    			destroy_each(each_blocks, detaching);
-    		}
-    	};
-    }
-
-    function instance$5($$self, $$props, $$invalidate) {
-    	let verifiedCards = [];
-    	let unverifiedCards = [];
-    	let publicKey = "";
-    	let profilePicture = "";
-    	let profile = null;
-
-    	onMount(async () => {
-    		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			publicKey = bitstarterHelper.publicKey;
-    			$$invalidate(2, profile = await bitstarterHelper.getProfile(publicKey));
-    			profilePicture = profile.picture;
-    			const ideas = await bitstarterHelper.getIdeas();
-    			let verified = [];
-    			let unverified = [];
-
-    			ideas.forEach(idea => {
-    				const tags = idea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
-
-    				const card = {
-    					id: idea.id,
-    					name: tags.iName,
-    					subtitle: tags.iSub,
-    					bannerImage: tags.ibUrl,
-    					message: idea.content
-    				};
-
-    				if (idea.githubVerified) {
-    					verified.push(card);
-    				} else {
-    					unverified.push(card);
-    				}
-    			});
-
-    			// Assign outside of forEach loop
-    			$$invalidate(0, verifiedCards = verified);
-
-    			$$invalidate(1, unverifiedCards = unverified);
-    		} catch(error) {
-    			console.error("Error fetching cards:", error);
-    		}
-    	});
-
-    	return [verifiedCards, unverifiedCards, profile];
-    }
-
-    class Overview extends SvelteComponent {
-    	constructor(options) {
-    		super();
-    		init(this, options, instance$5, create_fragment$6, safe_not_equal, {});
-    	}
-    }
-
-    async function sendSatsLNurl(lnurl) {
-        if (typeof window.webln !== "undefined") {
-          await window.webln.enable();
-          await webln.lnurl(lnurl);
-        }
-      }
-
-    /* src/views/IdeaDetail.svelte generated by Svelte v3.35.0 */
-
-    function get_each_context(ctx, list, i) {
-    	const child_ctx = ctx.slice();
-    	child_ctx[11] = list[i];
-    	return child_ctx;
-    }
-
-    // (131:12) {#if creator_profile && creator_profile.picture}
-    function create_if_block_1$1(ctx) {
-    	let div;
-    	let profileimg;
-    	let current;
-
-    	profileimg = new ProfileImg({
-    			props: {
-    				profile: /*creator_profile*/ ctx[3],
-    				style: { width: "40px", height: "40px" }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(profileimg.$$.fragment);
-    			set_style(div, "margin-right", "10px");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(profileimg, div, null);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const profileimg_changes = {};
-    			if (dirty & /*creator_profile*/ 8) profileimg_changes.profile = /*creator_profile*/ ctx[3];
-    			profileimg.$set(profileimg_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(profileimg.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(profileimg.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(profileimg);
-    		}
-    	};
-    }
-
-    // (213:16) {#if comment.picture}
-    function create_if_block$2(ctx) {
-    	let div;
-    	let profileimg;
-    	let current;
-
-    	profileimg = new ProfileImg({
-    			props: {
-    				profile: /*comment*/ ctx[11],
-    				style: { width: "40px", height: "40px" }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(profileimg.$$.fragment);
-    			set_style(div, "margin-right", "10px");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(profileimg, div, null);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const profileimg_changes = {};
-    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[11];
-    			profileimg.$set(profileimg_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(profileimg.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(profileimg.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(profileimg);
-    		}
-    	};
-    }
-
-    // (211:12) {#each comments as comment (comment.id)}
-    function create_each_block(key_1, ctx) {
-    	let li;
-    	let t0;
-    	let div;
-    	let h3;
-    	let t1_value = /*comment*/ ctx[11].name + "";
-    	let t1;
-    	let t2;
-    	let p;
-    	let t3_value = /*comment*/ ctx[11].comment + "";
-    	let t3;
-    	let t4;
-    	let current;
-    	let if_block = /*comment*/ ctx[11].picture && create_if_block$2(ctx);
-
-    	return {
-    		key: key_1,
-    		first: null,
-    		c() {
-    			li = element("li");
-    			if (if_block) if_block.c();
-    			t0 = space();
-    			div = element("div");
-    			h3 = element("h3");
-    			t1 = text(t1_value);
-    			t2 = space();
-    			p = element("p");
-    			t3 = text(t3_value);
-    			t4 = space();
-    			attr(h3, "class", "font-bold text-sm");
-    			attr(p, "class", "text-m");
-    			attr(li, "class", "flex items-center gap-4 my-2");
-    			this.first = li;
-    		},
-    		m(target, anchor) {
-    			insert(target, li, anchor);
-    			if (if_block) if_block.m(li, null);
-    			append(li, t0);
-    			append(li, div);
-    			append(div, h3);
-    			append(h3, t1);
-    			append(div, t2);
-    			append(div, p);
-    			append(p, t3);
-    			append(li, t4);
-    			current = true;
-    		},
-    		p(new_ctx, dirty) {
-    			ctx = new_ctx;
-
-    			if (/*comment*/ ctx[11].picture) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-
-    					if (dirty & /*comments*/ 2) {
-    						transition_in(if_block, 1);
-    					}
-    				} else {
-    					if_block = create_if_block$2(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(li, t0);
-    				}
-    			} else if (if_block) {
-    				group_outros();
-
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
-    				});
-
-    				check_outros();
-    			}
-
-    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[11].name + "")) set_data(t1, t1_value);
-    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[11].comment + "")) set_data(t3, t3_value);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(if_block);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(if_block);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(li);
-    			if (if_block) if_block.d();
-    		}
-    	};
-    }
-
-    // (247:8) <Link to="/overview">
-    function create_default_slot$2(ctx) {
-    	let button;
-
-    	return {
-    		c() {
-    			button = element("button");
-    			button.textContent = "Back";
-    			attr(button, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mb-1 ease-linear transition-all duration-150");
-    			attr(button, "type", "button");
-    		},
-    		m(target, anchor) {
-    			insert(target, button, anchor);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(button);
-    		}
-    	};
-    }
-
-    function create_fragment$5(ctx) {
-    	let div11;
-    	let main;
-    	let section0;
-    	let div2;
-    	let span;
-    	let t0;
-    	let div1;
-    	let h1;
-    	let t1_value = /*idea*/ ctx[0].name + "";
-    	let t1;
-    	let t2;
-    	let h2;
-    	let t3_value = /*idea*/ ctx[0].subtitle + "";
-    	let t3;
-    	let t4;
-    	let div0;
-    	let button0;
-    	let t5;
-    	let t6;
-    	let a;
-    	let i;
-    	let a_href_value;
-    	let t7;
-    	let div3;
-    	let t8;
-    	let section1;
-    	let div10;
-    	let div7;
-    	let div6;
-    	let div5;
-    	let h3;
-    	let t9_value = /*idea*/ ctx[0].name + "";
-    	let t9;
-    	let t10;
-    	let p0;
-    	let raw_value = /*idea*/ ctx[0].message + "";
-    	let t11;
-    	let hr;
-    	let t12;
-    	let div4;
-    	let p1;
-    	let t14;
-    	let button1;
-    	let t15;
-    	let div9;
-    	let h4;
-    	let t17;
-    	let ul;
-    	let each_blocks = [];
-    	let each_1_lookup = new Map();
-    	let t18;
-    	let div8;
-    	let label;
-    	let t20;
-    	let textarea;
-    	let t21;
-    	let button2;
-    	let t23;
-    	let link;
-    	let current;
-    	let mounted;
-    	let dispose;
-    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$1(ctx);
-    	let each_value = /*comments*/ ctx[1];
-    	const get_key = ctx => /*comment*/ ctx[11].id;
-
-    	for (let i = 0; i < each_value.length; i += 1) {
-    		let child_ctx = get_each_context(ctx, each_value, i);
-    		let key = get_key(child_ctx);
-    		each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
-    	}
-
-    	link = new Link({
-    			props: {
-    				to: "/overview",
-    				$$slots: { default: [create_default_slot$2] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			div11 = element("div");
-    			main = element("main");
-    			section0 = element("section");
-    			div2 = element("div");
-    			span = element("span");
-    			t0 = space();
-    			div1 = element("div");
-    			h1 = element("h1");
-    			t1 = text(t1_value);
-    			t2 = space();
-    			h2 = element("h2");
-    			t3 = text(t3_value);
-    			t4 = space();
-    			div0 = element("div");
-    			button0 = element("button");
-    			button0.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
-    			t5 = space();
-    			if (if_block) if_block.c();
-    			t6 = space();
-    			a = element("a");
-    			i = element("i");
-    			t7 = space();
-    			div3 = element("div");
-    			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
-    			t8 = space();
-    			section1 = element("section");
-    			div10 = element("div");
-    			div7 = element("div");
-    			div6 = element("div");
-    			div5 = element("div");
-    			h3 = element("h3");
-    			t9 = text(t9_value);
-    			t10 = space();
-    			p0 = element("p");
-    			t11 = space();
-    			hr = element("hr");
-    			t12 = space();
-    			div4 = element("div");
-    			p1 = element("p");
-    			p1.textContent = "Support via";
-    			t14 = space();
-    			button1 = element("button");
-    			button1.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/2/25/Bitcoin_lightning_logo.svg" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
-    			t15 = space();
-    			div9 = element("div");
-    			h4 = element("h4");
-    			h4.textContent = "Kommentare";
-    			t17 = space();
-    			ul = element("ul");
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].c();
-    			}
-
-    			t18 = space();
-    			div8 = element("div");
-    			label = element("label");
-    			label.textContent = "Dein Kommentar:";
-    			t20 = space();
-    			textarea = element("textarea");
-    			t21 = space();
-    			button2 = element("button");
-    			button2.textContent = "Kommentar absenden";
-    			t23 = space();
-    			create_component(link.$$.fragment);
-    			attr(span, "id", "blackOverlay");
-    			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
-    			attr(h1, "class", "text-4xl font-bold text-white");
-    			attr(h2, "class", "text-2xl font-light text-white");
-    			set_style(button0, "padding", "0");
-    			attr(i, "class", "fab fa-github text-white");
-    			set_style(i, "font-size", "2.5rem");
-    			attr(a, "href", a_href_value = /*idea*/ ctx[0].githubRepo);
-    			attr(a, "target", "_blank");
-    			attr(div0, "class", "absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6");
-    			attr(div1, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
-    			attr(div2, "class", "absolute top-0 w-full h-full bg-center bg-cover");
-    			set_style(div2, "background-image", "url(" + /*idea*/ ctx[0].bannerImage + ")");
-    			attr(div3, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
-    			set_style(div3, "transform", "translateZ(0)");
-    			attr(section0, "class", "relative block h-500-px");
-    			attr(h3, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700");
-    			attr(p0, "class", "message-text");
-    			set_style(p0, "width", "70%");
-    			set_style(p0, "margin", "0 auto");
-    			set_style(p0, "text-align", "justify");
-    			attr(hr, "class", "my-4");
-    			attr(p1, "class", "mb-0");
-    			set_style(button1, "padding", "0");
-    			set_style(button1, "display", "flex");
-    			set_style(button1, "align-items", "center");
-    			attr(div4, "class", "flex items-center justify-center gap-4");
-    			attr(div5, "class", "text-center mt-6");
-    			attr(div6, "class", "px-6");
-    			attr(div7, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg");
-    			attr(h4, "class", "text-2xl font-semibold text-blueGray-700 mb-4");
-    			attr(label, "for", "newComment");
-    			attr(label, "class", "text-lg text-blueGray-600");
-    			attr(textarea, "id", "newComment");
-    			attr(textarea, "class", "w-full h-24 p-2 mt-2 rounded-md border-2 border-blueGray-200");
-    			attr(textarea, "placeholder", "Schreibe hier deinen Kommentar...");
-    			attr(button2, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150");
-    			attr(button2, "type", "button");
-    			attr(div8, "class", "mt-6");
-    			attr(div9, "class", "bg-white w-full mb-6 shadow-xl rounded-lg p-4");
-    			attr(div10, "class", "container mx-auto px-4");
-    			attr(section1, "class", "relative py-16 bg-blueGray-200");
-    			attr(main, "class", "profile-page");
-    		},
-    		m(target, anchor) {
-    			insert(target, div11, anchor);
-    			append(div11, main);
-    			append(main, section0);
-    			append(section0, div2);
-    			append(div2, span);
-    			append(div2, t0);
-    			append(div2, div1);
-    			append(div1, h1);
-    			append(h1, t1);
-    			append(div1, t2);
-    			append(div1, h2);
-    			append(h2, t3);
-    			append(div1, t4);
-    			append(div1, div0);
-    			append(div0, button0);
-    			append(div0, t5);
-    			if (if_block) if_block.m(div0, null);
-    			append(div0, t6);
-    			append(div0, a);
-    			append(a, i);
-    			append(section0, t7);
-    			append(section0, div3);
-    			append(main, t8);
-    			append(main, section1);
-    			append(section1, div10);
-    			append(div10, div7);
-    			append(div7, div6);
-    			append(div6, div5);
-    			append(div5, h3);
-    			append(h3, t9);
-    			append(div5, t10);
-    			append(div5, p0);
-    			p0.innerHTML = raw_value;
-    			append(div5, t11);
-    			append(div5, hr);
-    			append(div5, t12);
-    			append(div5, div4);
-    			append(div4, p1);
-    			append(div4, t14);
-    			append(div4, button1);
-    			append(div10, t15);
-    			append(div10, div9);
-    			append(div9, h4);
-    			append(div9, t17);
-    			append(div9, ul);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(ul, null);
-    			}
-
-    			append(div9, t18);
-    			append(div9, div8);
-    			append(div8, label);
-    			append(div8, t20);
-    			append(div8, textarea);
-    			set_input_value(textarea, /*newComment*/ ctx[2]);
-    			append(div8, t21);
-    			append(div8, button2);
-    			append(div10, t23);
-    			mount_component(link, div10, null);
-    			current = true;
-
-    			if (!mounted) {
-    				dispose = [
-    					listen(button0, "click", /*supportIdea*/ ctx[4]),
-    					listen(button1, "click", /*supportIdea*/ ctx[4]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[7]),
-    					listen(button2, "click", /*submitComment*/ ctx[5])
-    				];
-
-    				mounted = true;
-    			}
-    		},
-    		p(ctx, [dirty]) {
-    			if ((!current || dirty & /*idea*/ 1) && t1_value !== (t1_value = /*idea*/ ctx[0].name + "")) set_data(t1, t1_value);
-    			if ((!current || dirty & /*idea*/ 1) && t3_value !== (t3_value = /*idea*/ ctx[0].subtitle + "")) set_data(t3, t3_value);
-
-    			if (/*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-
-    					if (dirty & /*creator_profile*/ 8) {
-    						transition_in(if_block, 1);
-    					}
-    				} else {
-    					if_block = create_if_block_1$1(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(div0, t6);
-    				}
-    			} else if (if_block) {
-    				group_outros();
-
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
-    				});
-
-    				check_outros();
-    			}
-
-    			if (!current || dirty & /*idea*/ 1 && a_href_value !== (a_href_value = /*idea*/ ctx[0].githubRepo)) {
-    				attr(a, "href", a_href_value);
-    			}
-
-    			if (!current || dirty & /*idea*/ 1) {
-    				set_style(div2, "background-image", "url(" + /*idea*/ ctx[0].bannerImage + ")");
-    			}
-
-    			if ((!current || dirty & /*idea*/ 1) && t9_value !== (t9_value = /*idea*/ ctx[0].name + "")) set_data(t9, t9_value);
-    			if ((!current || dirty & /*idea*/ 1) && raw_value !== (raw_value = /*idea*/ ctx[0].message + "")) p0.innerHTML = raw_value;
-    			if (dirty & /*comments*/ 2) {
-    				each_value = /*comments*/ ctx[1];
-    				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block, null, get_each_context);
-    				check_outros();
-    			}
-
-    			if (dirty & /*newComment*/ 4) {
-    				set_input_value(textarea, /*newComment*/ ctx[2]);
-    			}
-
-    			const link_changes = {};
-
-    			if (dirty & /*$$scope*/ 16384) {
-    				link_changes.$$scope = { dirty, ctx };
-    			}
-
-    			link.$set(link_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(if_block);
-
-    			for (let i = 0; i < each_value.length; i += 1) {
-    				transition_in(each_blocks[i]);
-    			}
-
-    			transition_in(link.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(if_block);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				transition_out(each_blocks[i]);
-    			}
-
-    			transition_out(link.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div11);
-    			if (if_block) if_block.d();
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].d();
-    			}
-
-    			destroy_component(link);
-    			mounted = false;
-    			run_all(dispose);
-    		}
-    	};
-    }
-
-    function instance$4($$self, $$props, $$invalidate) {
-    	let { id } = $$props;
-
-    	let idea = {
-    		bannerImage: "https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80",
-    		id: 0,
-    		message: "Eine innovative App, die das Leben der Menschen verbessert.",
-    		name: "Innovative App",
-    		subtitle: "Idea Engine"
-    	};
-
-    	let comments = [];
-    	let newComment = "";
-    	let profiles = {};
-    	let creator_profile = null;
-
-    	onMount(async () => {
-    		await fetchData();
-    		await fetchComments();
-    	});
-
-    	async function fetchData() {
-    		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			const fetchedIdea = await bitstarterHelper.getEvent(id);
-
-    			// Konvertiere die Tags in ein einfacher zu handhabendes Objekt
-    			const tags = fetchedIdea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
-
-    			$$invalidate(0, idea = {
-    				id: fetchedIdea.id,
-    				name: tags.iName,
-    				subtitle: tags.iSub,
-    				bannerImage: tags.ibUrl,
-    				message: fetchedIdea.content,
-    				githubRepo: tags.gitrepo,
-    				lnAdress: tags.lnadress,
-    				pubkey: fetchedIdea.pubkey
-    			});
-
-    			// Laden Sie das Profil des Erstellers der Idee
-    			$$invalidate(3, creator_profile = await bitstarterHelper.getProfile(fetchedIdea.pubkey));
-
-    			console.log("creator_profile");
-    			console.log(creator_profile);
-    			profiles[creator_profile.pubkey] = creator_profile;
-    		} catch(error) {
-    			console.error("Error fetching idea data:", error);
-    		}
-    	}
-
-    	async function supportIdea() {
-    		await sendSatsLNurl(idea.lnAdress);
-    	}
-
-    	async function fetchComments() {
-    		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			const fetchedComments = await bitstarterHelper.getComments(id);
-
-    			$$invalidate(1, comments = await Promise.all(fetchedComments.map(async comment => {
-    				const profile = await bitstarterHelper.getProfile(comment.pubkey);
-    				profiles[comment.pubkey] = profile;
-
-    				return {
-    					id: comment.id,
-    					comment: comment.content,
-    					name: comment.name,
-    					picture: profile.picture, // Benutze das geladene Profilbild
-    					pubkey: comment.pubkey,
-    					githubVerified: profile.githubVerified
-    				};
-    			})));
-    		} catch(error) {
-    			console.error("Error fetching comments data:", error);
-    		}
-    	}
-
-    	async function submitComment() {
-    		if (newComment.trim() === "") return;
-
-    		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			const commentId = await bitstarterHelper.postComment(id, newComment);
-    			await fetchComments();
-    			$$invalidate(2, newComment = "");
-    		} catch(error) {
-    			console.error("Error submitting comment:", error);
-    		}
-    	}
-
-    	function textarea_input_handler() {
-    		newComment = this.value;
-    		$$invalidate(2, newComment);
-    	}
-
-    	$$self.$$set = $$props => {
-    		if ("id" in $$props) $$invalidate(6, id = $$props.id);
-    	};
-
-    	return [
-    		idea,
-    		comments,
-    		newComment,
-    		creator_profile,
-    		supportIdea,
-    		submitComment,
-    		id,
-    		textarea_input_handler
-    	];
-    }
-
-    class IdeaDetail extends SvelteComponent {
-    	constructor(options) {
-    		super();
-    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { id: 6 });
-    	}
-    }
-
-    /* src/views/PostIdea.svelte generated by Svelte v3.35.0 */
-
-    function create_default_slot$1(ctx) {
-    	let t;
-
-    	return {
-    		c() {
-    			t = text("Back to Home");
-    		},
-    		m(target, anchor) {
-    			insert(target, t, anchor);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(t);
-    		}
-    	};
-    }
-
-    function create_fragment$4(ctx) {
-    	let main;
-    	let section0;
-    	let t5;
-    	let section1;
-    	let div11;
-    	let div10;
-    	let h21;
-    	let t7;
-    	let div9;
-    	let div3;
-    	let input0;
-    	let t8;
-    	let div4;
-    	let input1;
-    	let t9;
-    	let div5;
-    	let textarea;
-    	let t10;
-    	let div6;
-    	let input2;
-    	let t11;
-    	let div7;
-    	let input3;
-    	let t12;
-    	let div8;
-    	let input4;
-    	let t13;
-    	let div12;
-    	let button;
-    	let t15;
-    	let link;
-    	let t16;
-    	let section2;
-    	let current;
-    	let mounted;
-    	let dispose;
-
-    	link = new Link({
-    			props: {
-    				to: "/overview",
-    				class: "bg-white text-red-500 font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:bg-red-500 hover:text-white",
-    				$$slots: { default: [create_default_slot$1] },
-    				$$scope: { ctx }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			main = element("main");
-    			section0 = element("section");
-
-    			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="
-          background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80);
-        "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
-
-            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><h1 class="text-4xl font-bold text-white">Bitstarter</h1> 
-                <h2 class="text-2xl font-light text-white">Post Idea</h2></div></div> 
-        
-        <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div>`;
-
-    			t5 = space();
-    			section1 = element("section");
-    			div11 = element("div");
-    			div10 = element("div");
-    			h21 = element("h2");
-    			h21.textContent = "Create Idea";
-    			t7 = space();
-    			div9 = element("div");
-    			div3 = element("div");
-    			input0 = element("input");
-    			t8 = space();
-    			div4 = element("div");
-    			input1 = element("input");
-    			t9 = space();
-    			div5 = element("div");
-    			textarea = element("textarea");
-    			t10 = space();
-    			div6 = element("div");
-    			input2 = element("input");
-    			t11 = space();
-    			div7 = element("div");
-    			input3 = element("input");
-    			t12 = space();
-    			div8 = element("div");
-    			input4 = element("input");
-    			t13 = space();
-    			div12 = element("div");
-    			button = element("button");
-    			button.textContent = "Post Idea";
-    			t15 = space();
-    			create_component(link.$$.fragment);
-    			t16 = space();
-    			section2 = element("section");
-    			attr(section0, "class", "relative block h-500-px");
-    			attr(h21, "class", "text-2xl font-semibold mb-4");
-    			attr(input0, "type", "text");
-    			attr(input0, "placeholder", "Idea Name");
-    			attr(input0, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
-    			set_style(input0, "width", "90%");
-    			attr(div3, "class", "flex justify-center mb-4");
-    			attr(input1, "type", "text");
-    			attr(input1, "placeholder", "Idea Subtitle");
-    			attr(input1, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
-    			set_style(input1, "width", "90%");
-    			attr(div4, "class", "flex justify-center mb-4");
-    			attr(textarea, "rows", "1");
-    			attr(textarea, "placeholder", "Idea Message");
-    			attr(textarea, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
-    			set_style(textarea, "width", "90%");
-    			attr(div5, "class", "flex justify-center mb-4");
-    			attr(input2, "type", "text");
-    			attr(input2, "placeholder", "Idea Banner URL");
-    			attr(input2, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
-    			set_style(input2, "width", "90%");
-    			attr(div6, "class", "flex justify-center mb-4");
-    			attr(input3, "type", "text");
-    			attr(input3, "placeholder", "Idea GitHub Repository");
-    			attr(input3, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
-    			set_style(input3, "width", "90%");
-    			attr(div7, "class", "flex justify-center mb-4");
-    			attr(input4, "type", "text");
-    			attr(input4, "placeholder", "Idea Lightning Address");
-    			attr(input4, "class", "block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
-    			set_style(input4, "width", "90%");
-    			attr(div8, "class", "flex justify-center");
-    			attr(div10, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
-    			set_style(div10, "width", "100%");
-    			attr(div11, "class", "container mx-auto px-4");
-    			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mt-2");
-    			attr(div12, "class", "container mx-auto px-4 flex justify-end");
-    			attr(section1, "class", "relative py-16 bg-blueGray-200");
-    			attr(section2, "class", "relative pb-16");
-    			attr(main, "class", "profile-page");
-    		},
-    		m(target, anchor) {
-    			insert(target, main, anchor);
-    			append(main, section0);
-    			append(main, t5);
-    			append(main, section1);
-    			append(section1, div11);
-    			append(div11, div10);
-    			append(div10, h21);
-    			append(div10, t7);
-    			append(div10, div9);
-    			append(div9, div3);
-    			append(div3, input0);
-    			set_input_value(input0, /*ideaName*/ ctx[0]);
-    			append(div9, t8);
-    			append(div9, div4);
-    			append(div4, input1);
-    			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
-    			append(div9, t9);
-    			append(div9, div5);
-    			append(div5, textarea);
-    			set_input_value(textarea, /*ideaMessage*/ ctx[2]);
-    			append(div9, t10);
-    			append(div9, div6);
-    			append(div6, input2);
-    			set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
-    			append(div9, t11);
-    			append(div9, div7);
-    			append(div7, input3);
-    			set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
-    			append(div9, t12);
-    			append(div9, div8);
-    			append(div8, input4);
-    			set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
-    			append(section1, t13);
-    			append(section1, div12);
-    			append(div12, button);
-    			append(div12, t15);
-    			mount_component(link, div12, null);
-    			append(main, t16);
-    			append(main, section2);
-    			current = true;
-
-    			if (!mounted) {
-    				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[8]),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[9]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[10]),
-    					listen(textarea, "input", autoResizeTextarea$1),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[11]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[12]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[13]),
-    					listen(button, "click", /*postIdea*/ ctx[6])
-    				];
-
-    				mounted = true;
-    			}
-    		},
-    		p(ctx, [dirty]) {
-    			if (dirty & /*ideaName*/ 1 && input0.value !== /*ideaName*/ ctx[0]) {
-    				set_input_value(input0, /*ideaName*/ ctx[0]);
-    			}
-
-    			if (dirty & /*ideaSubtitle*/ 2 && input1.value !== /*ideaSubtitle*/ ctx[1]) {
-    				set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
-    			}
-
-    			if (dirty & /*ideaMessage*/ 4) {
-    				set_input_value(textarea, /*ideaMessage*/ ctx[2]);
-    			}
-
-    			if (dirty & /*ideaBannerUrl*/ 8 && input2.value !== /*ideaBannerUrl*/ ctx[3]) {
-    				set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
-    			}
-
-    			if (dirty & /*ideaGithubRepo*/ 16 && input3.value !== /*ideaGithubRepo*/ ctx[4]) {
-    				set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
-    			}
-
-    			if (dirty & /*ideaLightningAddress*/ 32 && input4.value !== /*ideaLightningAddress*/ ctx[5]) {
-    				set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
-    			}
-
-    			const link_changes = {};
-
-    			if (dirty & /*$$scope*/ 32768) {
-    				link_changes.$$scope = { dirty, ctx };
-    			}
-
-    			link.$set(link_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(link.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(link.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(main);
-    			destroy_component(link);
-    			mounted = false;
-    			run_all(dispose);
-    		}
-    	};
-    }
-
-    function autoResizeTextarea$1(e) {
-    	e.target.style.height = "";
-    	e.target.style.height = e.target.scrollHeight + "px";
-    }
-
-    function instance$3($$self, $$props, $$invalidate) {
-    	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(7, $helperStore = $$value));
-
-    	onMount(async () => {
-    		
-    	});
-
-    	let ideaName = "";
-    	let ideaSubtitle = "";
-    	let ideaMessage = "";
-    	let ideaBannerUrl = "";
-    	let ideaGithubRepo = "";
-    	let ideaLightningAddress = "";
-    	let helper;
-
-    	async function postIdea() {
-    		//const helper = get(helperStore); // Verwenden Sie die get-Funktion aus svelte/store, um den aktuellen Wert zu holen
-    		if (helper) {
-    			await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress);
-    		} else {
-    			console.error("BitstarterHelper is not initialized");
-    		}
-    	}
-
-    	function input0_input_handler() {
-    		ideaName = this.value;
-    		$$invalidate(0, ideaName);
-    	}
-
-    	function input1_input_handler() {
-    		ideaSubtitle = this.value;
-    		$$invalidate(1, ideaSubtitle);
-    	}
-
-    	function textarea_input_handler() {
-    		ideaMessage = this.value;
-    		$$invalidate(2, ideaMessage);
-    	}
-
-    	function input2_input_handler() {
-    		ideaBannerUrl = this.value;
-    		$$invalidate(3, ideaBannerUrl);
-    	}
-
-    	function input3_input_handler() {
-    		ideaGithubRepo = this.value;
-    		$$invalidate(4, ideaGithubRepo);
-    	}
-
-    	function input4_input_handler() {
-    		ideaLightningAddress = this.value;
-    		$$invalidate(5, ideaLightningAddress);
-    	}
-
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$helperStore*/ 128) {
-    			{
-    				helper = $helperStore;
-    			}
-    		}
-    	};
-
-    	return [
-    		ideaName,
-    		ideaSubtitle,
-    		ideaMessage,
-    		ideaBannerUrl,
-    		ideaGithubRepo,
-    		ideaLightningAddress,
-    		postIdea,
-    		$helperStore,
-    		input0_input_handler,
-    		input1_input_handler,
-    		textarea_input_handler,
-    		input2_input_handler,
-    		input3_input_handler,
-    		input4_input_handler
-    	];
-    }
-
-    class PostIdea extends SvelteComponent {
-    	constructor(options) {
-    		super();
-    		init(this, options, instance$3, create_fragment$4, safe_not_equal, {});
+    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -7771,51 +6407,203 @@ var app = (function () {
     if (node.is_node())
         commonjsGlobal.WebSocket = WebSocket_1.WebSocket;
 
+    class ProfileBuffer {
+        constructor() {
+            this.profiles = new Map();
+        }
+
+        // Hinzufügen eines Profils zur Map
+        addProfile(profile) {
+            if (!profile) {
+                return;
+            }
+            const timestamp = Date.now();
+            this.profiles.set(profile.pubkey, { profile, timestamp });
+        }
+
+        // Abrufen eines Profils aus der Map, sofern es nicht älter als eine Stunde ist
+        getProfile(pubkey) {
+            const profileData = this.profiles.get(pubkey);
+            if (profileData) {
+                const oneHour = 60 * 60 * 1000; // Zeit in Millisekunden
+                if (Date.now() - profileData.timestamp < oneHour) {
+                    return profileData.profile;
+                }
+            }
+            return undefined;
+        }
+    }
+
+    // helperStore.js
+
+    const helperStore = writable(null);
+
     //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
     const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
 
-    class BitstarterHelper {
-      constructor(privateKey) {
+    class NostrHelper {
+      constructor(write_mode) {
         this.pool = new SimplePool();
-        this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
-        //this.relays = ['wss://relay.damus.io', 'wss://nostr-pub.wellorder.net'];
+        this.relays = [];//get set by initialize()
         this.idea_kind = 1338;
-        this.privateKey = privateKey;
+        this.write_mode = write_mode;
+        this.publicKey = null;
+        this.publicRelays = [];
+        this.clientRelays = [];
+        this.profileBuffer = new ProfileBuffer();
+      }
 
+      async getPublicRelaysString() {
+        return ["wss://relay.damus.io",
+                "wss://nostr-pub.wellorder.net",
+                "wss://nostr.bitcoiner.social",
+                "wss://nostr-01.bolt.observer"];
+      }
+
+      async getRelaysString(pubkey) {
+        // Get relays from getRelays function
+        let relaysFromGetRelays = await this.getRelays(pubkey);
+        // Transform it to include only relay URLs
+        relaysFromGetRelays = relaysFromGetRelays.map(relay => relay[1]);
+        this.clientRelays = relaysFromGetRelays;
+        return relaysFromGetRelays
+      }
+
+      async getAllRelays(pubkey) {
+        // Get relays from getRelays function
+        let relaysFromGetRelays = await this.getRelaysString(pubkey);
+
+        // Get relays from getPublicRelays function
+        let relaysFromGetPublicRelays = await this.getPublicRelaysString();
+
+        // Combine both relay lists
+        let allRelays = relaysFromGetRelays.concat(relaysFromGetPublicRelays);
+
+        // Remove duplicates
+        allRelays = [...new Set(allRelays)];
+
+        return allRelays;
+      }
+
+      async getPublicRelays() {
+        if (!this.extensionAvailable()) return; // Do nothing in read-only mode
+        let relayObject = await window.nostr.getRelays();
+        let relayList = [];
+
+        for (let key in relayObject) {
+          let relay = [key, relayObject[key].read, relayObject[key].write];
+          relayList.push(relay);
+        }
+
+        return relayList;
+      }
+
+      async getRelays(pubkey) {
+        // Get all events of kind 10002 (Relay List Metadata) authored by the given pubkey
+        const events = await this.pool.list(this.relays, [
+          {
+            kinds: [10002],
+            'authors': [pubkey]
+          }
+        ]);
+
+        // If no events were found, return an empty array
+        if (events.length === 0) {
+          return [];
+        }
+
+        // Otherwise, take the first (most recent) event
+        const event = events[0];
+        console.log("event:", event);
+        // The relay URLs are stored in 'r' tags of the event
+        const relayTags = event.tags.filter(tag => tag[0] === 'r');
+
+        return relayTags;
+      }
+
+      async addRelay(relay_url) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        // Get the original Relay List Metadata event
+        let originalRelays = await this.getRelays(this.publicKey);
+        originalRelays = originalRelays || [];
+
+        // Check if the relay_url already exists in the original relays
+        const exists = originalRelays.find(relay => relay[1] === relay_url);
+        // If the relay_url already exists, return
+        if (exists) return;
+
+        // Add the new relay to the list
+        originalRelays.push(["r", relay_url]);
+
+        // Create the relay list metadata event
+        const relayListEvent = this.createEvent(10002, "", originalRelays);
+
+        // Send the relay list metadata event
+        try {
+          await this.sendEvent(relayListEvent);
+          // If the addition was successful, add it to clientRelays
+          this.clientRelays.push(relay_url);
+        } catch (error) {
+          console.error("Error adding relay:", error);
+        }
+      }
+
+      async deleteRelay(relay_url) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+
+        // Get the original Relay List Metadata event
+        let originalRelays = await this.getRelays(this.publicKey);
+
+        originalRelays = originalRelays || [];
+
+        // Filter out the relay_url from the original relays
+        const updatedRelays = originalRelays.filter(relay => relay[1] !== relay_url);
+
+        // Create the relay list metadata event
+        const relayListEvent = this.createEvent(10002, "", updatedRelays);
+
+        try {
+          // Send the relay list metadata event
+          await this.sendEvent(relayListEvent);
+
+          // Update the clientRelays array if the deletion was successful
+          this.clientRelays = this.clientRelays.filter(relay => relay !== relay_url);
+        } catch (error) {
+          console.error("Error deleting relay:", error);
+        }
+      }
+
+      async extensionAvailable() {
+        if ("nostr" in window) {
+          return true;
+        }
+        return false;
       }
 
       async initialize() {
-        this.useExtension = "nostr" in window;
-        if (this.privateKey == "" && this.useExtension) {
+        let useExtension = await this.extensionAvailable();
+        if (this.write_mode && useExtension) {
           this.publicKey = await window.nostr.getPublicKey();
+          this.relays = await this.getPublicRelaysString(); //fetch from the public first
+          this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
+          console.log("used relays:", this.relays);
         }
-
-        if (!this.useExtension || this.privateKey != "") {
-          this.publicKey = this.privateKey ? getPublicKey(this.privateKey) : "";
+        else {
+          this.write_mode = false;
+          this.relays = await this.getPublicRelaysString(); //fetch from the public first
         }
-
-        this.readOnlyMode = !this.useExtension && privateKey === "";
-        console.log(this.publicKey);
       }
 
       async sendEvent(event) {
-        console.log("sign event");
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        if (!this.extensionAvailable()) return;
 
-        event.tags.push(["s", "bitstarter"]);
-        if (this.useExtension) {
-          console.log("use extension");
-          event = await window.nostr.signEvent(event);
-        }
-        else {
-          console.log("dont use extension");
-          event.id = getEventHash(event);
-          event.sig = signEvent(event, this.privateKey);
-        }
+        event.tags.push(["s", "bitspark"]);
+        event = await window.nostr.signEvent(event);
+
         event.tags = uniqueTags(event.tags);
         this.pool.publish(this.relays, event);
-        console.log("send event:");
-        console.log(event);
+        console.log("send event:", event);
         return event.id;
       }
 
@@ -7836,10 +6624,9 @@ var app = (function () {
         return event;
       }
 
-      async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
-
-        const tags = [
+      async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        let tags = [
           ["iName", ideaName],
           ["iSub", ideaSubtitle],
           ["ibUrl", bannerUrl],
@@ -7847,15 +6634,20 @@ var app = (function () {
           ["lnadress", lnAdress]
         ];
 
+        // Add each category to the tags
+        categories.forEach(category => {
+          tags.push(["c", category]);
+        });
+
         const ideaEvent = this.createEvent(this.idea_kind, content, tags);
         console.log("Idea Posted");
         return await this.sendEvent(ideaEvent);
       }
 
       async getIdeas() {
-        const filters = [{ kinds: [this.idea_kind], '#s': ['bitstarter'] }];
+        const filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
         let ideas = await this.pool.list(this.relays, filters);
-        
+
         // Get the profiles for each idea and store them in the ideas
         const profilePromises = ideas.map(async idea => {
           const profile = await this.getProfile(idea.pubkey);
@@ -7863,20 +6655,19 @@ var app = (function () {
           idea.githubVerified = profile.githubVerified || false;
           return idea;
         });
-        
+
         ideas = await Promise.all(profilePromises);
-      
-        console.log("getIdeas()");
+
+        console.log("getIdeas:", ideas);
         return ideas;
       }
-      
 
       async getComments(event_id) {
         const filters = [
           {
             kinds: [1],
             '#e': [event_id],
-            '#s': ['bitstarter']
+            '#s': ['bitspark']
           }
         ];
         let comments = await this.pool.list(this.relays, filters);
@@ -7896,7 +6687,7 @@ var app = (function () {
 
 
       async postComment(event_id, comment) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         const tags = [
           ["e", event_id]
@@ -7908,7 +6699,7 @@ var app = (function () {
       }
 
       async likeEvent(event_id) {
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         const tags = [
           ["e", event_id]
@@ -7924,7 +6715,7 @@ var app = (function () {
           {
             kinds: [7],
             '#e': [event_id],
-            '#s': ['bitstarter']
+            '#s': ['bitspark']
           }
         ]);
         console.log("getLikes");
@@ -7954,20 +6745,21 @@ var app = (function () {
         }
       }
 
-      async validateGithubIdent(username, proof) {
+      async validateGithubIdent(username, pubkey, proof) {
         try {
           const gistUrl = `https://api.github.com/gists/${proof}`;
 
           const response = await fetch(gistUrl, { mode: 'cors' });
           const data = await response.json();
 
-          const nPubKey = nip19.npubEncode(this.publicKey);
+          const nPubKey = nip19.npubEncode(pubkey);
 
           const expectedText = `${nPubKey}`;
 
           for (const file in data.files) {
-            if (data.files[file].content.includes(expectedText)) {
-              console.log(data.files[file].content);
+            if (data.files[file].content.includes(expectedText) &&
+                data.files[file].raw_url.includes(username)) {
+                  console.log(username, "verified!");
               return true;
             }
           }
@@ -7980,7 +6772,15 @@ var app = (function () {
       }
 
       async getProfile(pubkey) {
-        console.log("getProfile");
+        console.log("getProfile:", pubkey);
+
+        // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
+        let profile = await this.profileBuffer.getProfile(pubkey);
+
+        if (profile) {
+          console.log("getProfile speed up:", profile);
+          return profile;
+        }
 
         const events = await this.pool.list(this.relays, [
           {
@@ -7991,7 +6791,7 @@ var app = (function () {
 
         // Wenn keine Events gefunden wurden, geben Sie ein leeres Objekt zurück
         if (events.length === 0) {
-          return {};
+          return { 'pubkey': pubkey };
         }
 
         // Ansonsten nehmen Sie das erste Event
@@ -8010,15 +6810,14 @@ var app = (function () {
           event.githubProof = githubIdent.proof;
 
           // Überprüfen der Github-Verifikation und speichern des Ergebnisses in profile.githubVerified
-          event.githubVerified = await this.validateGithubIdent(githubIdent.username, githubIdent.proof);
+          event.githubVerified = await this.validateGithubIdent(githubIdent.username, pubkey, githubIdent.proof);
         }
 
         // Den ursprünglichen content entfernen
         delete event.content;
 
-        console.log(event);
-        console.log("getProfile done");
-
+        this.profileBuffer.addProfile(event);
+        console.log("getProfile done:", event);
         return event;
       }
 
@@ -8037,7 +6836,7 @@ var app = (function () {
 
       async updateProfile(name, picture, banner, dev_about, lnurl, identities = []) {
         console.log("updateProfile");
-        if (this.readOnlyMode) return; // Do nothing in read-only mode
+        if (!this.write_mode) return; // Do nothing in read-only mode
 
         // Get the original profile event
         const originalEvent = await this.getOriginalProfile();
@@ -8059,16 +6858,12 @@ var app = (function () {
         // Create the tags list by transforming the identity proofs into the required format
         const tags = identities.map(identity => ['i', `${identity.platform}:${identity.identity}`, identity.proof]);
 
-        console.log(originalEvent.tags);
-        console.log(tags);
         const combinedTags = [...tags];
-        console.log(combinedTags);
 
         // Update the original event's content and tags
         const profileEvent = this.createEvent(0, contentStr, combinedTags);
-        console.log(profileEvent);
         let ret = await this.sendEvent(profileEvent);
-        console.log("Profile Update done");
+        console.log("Profile Update done:", profileEvent);
         return ret;
       }
     }
@@ -8083,11 +6878,33 @@ var app = (function () {
       return uniqueTags;
     }
 
-    BitstarterHelper.create = async function (privateKey) {
-      const instance = new BitstarterHelper(privateKey);
-      await instance.initialize();
-      return instance;
+    NostrHelper.create = async function (write_mode) {
+      // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
+      if (write_mode !== undefined) {
+        const instance = new NostrHelper(write_mode);
+        await instance.initialize();
+        helperStore.set(instance);
+        return instance;
+      }
+
+      // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
+      let storedInstance = null;
+      const unsubscribe = helperStore.subscribe(value => {
+        storedInstance = value;
+      });
+
+      // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
+      if (storedInstance === null) {
+        const instance = new NostrHelper(false);
+        await instance.initialize();
+        helperStore.set(instance);
+        storedInstance = instance;
+      }
+
+      unsubscribe();
+      return storedInstance;
     };
+
 
     /*
     (async function() {
@@ -8125,139 +6942,2330 @@ var app = (function () {
     })();
     */
 
-    /* src/views/Login.svelte generated by Svelte v3.35.0 */
+    function styleInject(css, ref) {
+      if ( ref === void 0 ) ref = {};
+      var insertAt = ref.insertAt;
 
-    function create_fragment$3(ctx) {
-    	let div4;
-    	let div3;
-    	let h2;
-    	let t1;
-    	let div2;
-    	let div0;
-    	let input;
-    	let t2;
-    	let div1;
+      if (!css || typeof document === 'undefined') { return; }
+
+      var head = document.head || document.getElementsByTagName('head')[0];
+      var style = document.createElement('style');
+      style.type = 'text/css';
+
+      if (insertAt === 'top') {
+        if (head.firstChild) {
+          head.insertBefore(style, head.firstChild);
+        } else {
+          head.appendChild(style);
+        }
+      } else {
+        head.appendChild(style);
+      }
+
+      if (style.styleSheet) {
+        style.styleSheet.cssText = css;
+      } else {
+        style.appendChild(document.createTextNode(css));
+      }
+    }
+
+    var css_248z$1 = "a.menu-item.svelte-1dsy1pg{color:#000;text-decoration:none}a.menu-item.svelte-1dsy1pg:hover{color:#007bff}.menu-card.svelte-1dsy1pg{width:200px;border-radius:20px;padding:20px;color:#000;background:#fff;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);transition:box-shadow 0.5s;position:relative}.menu-card.svelte-1dsy1pg:hover{box-shadow:0px 30px 100px -10px rgba(0, 0, 0, 0.4)}.menu-item.svelte-1dsy1pg{font-size:1rem;padding:15px;cursor:pointer;transition:color 0.3s}.menu-item.svelte-1dsy1pg:hover{color:#007bff}.categories.svelte-1dsy1pg{position:absolute;top:0;left:100%;background:#fff;width:150px;padding:10px 0;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);border-radius:20px;transition:opacity 0.3s, visibility 0.3s;opacity:1;visibility:visible}.categories.hidden.svelte-1dsy1pg{opacity:0;visibility:hidden}.category-item.svelte-1dsy1pg{color:#000;padding:10px 15px;cursor:pointer;transition:color 0.3s}.category-item.svelte-1dsy1pg:hover{color:#007bff}";
+    styleInject(css_248z$1);
+
+    /* src/components/Menu.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$4(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[12] = list[i];
+    	return child_ctx;
+    }
+
+    // (79:20) <Link to={`/overview/${category}`}                         >
+    function create_default_slot_1(ctx) {
+    	let div;
+    	let t_value = /*category*/ ctx[12] + "";
+    	let t;
+
+    	return {
+    		c() {
+    			div = element("div");
+    			t = text(t_value);
+    			attr(div, "class", "category-item svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, t);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(div);
+    		}
+    	};
+    }
+
+    // (78:16) {#each categories as category}
+    function create_each_block$4(ctx) {
+    	let link_1;
+    	let current;
+
+    	link_1 = new Link({
+    			props: {
+    				to: `/overview/${/*category*/ ctx[12]}`,
+    				$$slots: { default: [create_default_slot_1] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			create_component(link_1.$$.fragment);
+    		},
+    		m(target, anchor) {
+    			mount_component(link_1, target, anchor);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const link_1_changes = {};
+
+    			if (dirty & /*$$scope*/ 32768) {
+    				link_1_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link_1.$set(link_1_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(link_1.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(link_1.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			destroy_component(link_1, detaching);
+    		}
+    	};
+    }
+
+    // (86:12) <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">
+    function create_default_slot$3(ctx) {
+    	let t;
+
+    	return {
+    		c() {
+    			t = text("Spark Idea");
+    		},
+    		m(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(t);
+    		}
+    	};
+    }
+
+    // (96:12) {:else}
+    function create_else_block(ctx) {
     	let button;
     	let mounted;
     	let dispose;
 
     	return {
     		c() {
-    			div4 = element("div");
-    			div3 = element("div");
-    			h2 = element("h2");
-    			h2.textContent = "Login";
-    			t1 = space();
-    			div2 = element("div");
-    			div0 = element("div");
-    			input = element("input");
-    			t2 = space();
-    			div1 = element("div");
     			button = element("button");
-    			button.textContent = "Sign In";
-    			attr(h2, "class", "text-2xl font-bold mb-6 text-center text-green-800");
-    			attr(input, "id", "privateKey");
-    			attr(input, "type", "password");
-    			attr(input, "class", "border border-gray-200 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500");
-    			attr(input, "placeholder", "Private Key");
-    			attr(div0, "class", "flex flex-col");
-    			attr(button, "class", "w-full bg-gradient-to-r from-green-500 to-green-700 text-white py-3 rounded-lg font-bold text-lg hover:bg-gradient-to-r hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 transition duration-150 shadow-md");
-    			attr(div1, "class", "flex items-center justify-center mt-6");
-    			attr(div2, "class", "space-y-3");
-    			attr(div3, "class", "w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-4 py-6 backdrop-blur-md rounded-lg shadow-lg");
-    			set_style(div3, "background-color", "rgba(0, 255, 0, 0.1)");
-    			attr(div4, "class", "flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-400 to-indigo-500");
-    			set_style(div4, "background-image", "url('https://images.wallpaperscraft.com/image/single/leaves_plant_dark_129098_3840x2400.jpg')");
-    			set_style(div4, "background-repeat", "no-repeat");
-    			set_style(div4, "background-size", "cover");
+    			button.textContent = "Login";
+    			attr(button, "class", "menu-item svelte-1dsy1pg");
     		},
     		m(target, anchor) {
-    			insert(target, div4, anchor);
-    			append(div4, div3);
-    			append(div3, h2);
-    			append(div3, t1);
-    			append(div3, div2);
-    			append(div2, div0);
-    			append(div0, input);
-    			set_input_value(input, /*$privateKey*/ ctx[0]);
-    			append(div2, t2);
-    			append(div2, div1);
-    			append(div1, button);
+    			insert(target, button, anchor);
 
     			if (!mounted) {
     				dispose = [
-    					listen(input, "input", /*input_input_handler*/ ctx[3]),
-    					listen(button, "click", /*handleLogin*/ ctx[2])
+    					listen(button, "click", /*login*/ ctx[8]),
+    					listen(button, "keydown", /*login*/ ctx[8])
     				];
 
     				mounted = true;
     			}
     		},
-    		p(ctx, [dirty]) {
-    			if (dirty & /*$privateKey*/ 1 && input.value !== /*$privateKey*/ ctx[0]) {
-    				set_input_value(input, /*$privateKey*/ ctx[0]);
-    			}
-    		},
-    		i: noop,
-    		o: noop,
+    		p: noop,
     		d(detaching) {
-    			if (detaching) detach(div4);
+    			if (detaching) detach(button);
     			mounted = false;
     			run_all(dispose);
     		}
     	};
     }
 
-    function instance$2($$self, $$props, $$invalidate) {
-    	let $helperStore;
-    	let $privateKey;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(4, $helperStore = $$value));
-    	const privateKey = writable("");
-    	component_subscribe($$self, privateKey, value => $$invalidate(0, $privateKey = value));
+    // (92:43) 
+    function create_if_block_1$2(ctx) {
+    	let button;
+    	let mounted;
+    	let dispose;
 
-    	async function handleLogin() {
-    		if ($helperStore) {
-    			navigate("/overview");
+    	return {
+    		c() {
+    			button = element("button");
+    			button.textContent = "Logout";
+    			attr(button, "class", "menu-item svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(button, "click", /*logout*/ ctx[9]),
+    					listen(button, "keydown", /*logout*/ ctx[9])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    			mounted = false;
+    			run_all(dispose);
     		}
-
-    		// Warten Sie darauf, dass BitstarterHelper.create aufgelöst ist, bevor Sie fortfahren
-    		const helper = await BitstarterHelper.create($privateKey);
-
-    		// Erstelle einen neuen BitstarterHelper und speichere ihn in helperStore
-    		await helperStore.set(helper);
-
-    		// Überprüfe, ob der BitstarterHelper korrekt im Store gespeichert wurde
-    		if ($helperStore) {
-    			console.log("BitstarterHelper successfully saved in store");
-
-    			// Danach leiten wir den Benutzer zur Übersichtsseite
-    			navigate("/overview");
-    		} else {
-    			console.error("Failed to save BitstarterHelper in store");
-    		}
-    	}
-
-    	onMount(() => {
-    		document.body.style.overflow = "auto";
-    	});
-
-    	function input_input_handler() {
-    		$privateKey = this.value;
-    		privateKey.set($privateKey);
-    	}
-
-    	return [$privateKey, privateKey, handleLogin, input_input_handler];
+    	};
     }
 
-    class Login extends SvelteComponent {
+    // (89:12) {#if !$menuState.use_extension}
+    function create_if_block$4(ctx) {
+    	let a;
+    	let t;
+
+    	return {
+    		c() {
+    			a = element("a");
+    			t = text(optionText);
+    			attr(a, "href", link);
+    			attr(a, "class", "menu-item svelte-1dsy1pg");
+    			attr(a, "target", "_blank");
+    		},
+    		m(target, anchor) {
+    			insert(target, a, anchor);
+    			append(a, t);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(a);
+    		}
+    	};
+    }
+
+    function create_fragment$7(ctx) {
+    	let div2;
+    	let ul;
+    	let li0;
+    	let div0;
+    	let t1;
+    	let div1;
+    	let div1_class_value;
+    	let t2;
+    	let li1;
+    	let link_1;
+    	let t3;
+    	let li2;
+    	let current;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*categories*/ ctx[3];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$4(get_each_context$4(ctx, each_value, i));
+    	}
+
+    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
+
+    	link_1 = new Link({
+    			props: {
+    				to: "/postidea",
+    				class: "menu-item text-black hover:text-blue-500 px-3",
+    				$$slots: { default: [create_default_slot$3] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	function select_block_type(ctx, dirty) {
+    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$4;
+    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$2;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
+    	return {
+    		c() {
+    			div2 = element("div");
+    			ul = element("ul");
+    			li0 = element("li");
+    			div0 = element("div");
+    			div0.innerHTML = `<span class="menu-item svelte-1dsy1pg">Overview</span>`;
+    			t1 = space();
+    			div1 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t2 = space();
+    			li1 = element("li");
+    			create_component(link_1.$$.fragment);
+    			t3 = space();
+    			li2 = element("li");
+    			if_block.c();
+
+    			attr(div1, "class", div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[0]
+    			? "categories"
+    			: "categories hidden") + " svelte-1dsy1pg"));
+
+    			attr(ul, "class", "flex flex-col items-start");
+    			attr(div2, "class", "menu-card svelte-1dsy1pg");
+    		},
+    		m(target, anchor) {
+    			insert(target, div2, anchor);
+    			append(div2, ul);
+    			append(ul, li0);
+    			append(li0, div0);
+    			append(li0, t1);
+    			append(li0, div1);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div1, null);
+    				}
+    			}
+
+    			append(ul, t2);
+    			append(ul, li1);
+    			mount_component(link_1, li1, null);
+    			append(ul, t3);
+    			append(ul, li2);
+    			if_block.m(li2, null);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(div0, "mouseover", /*handleMouseOver*/ ctx[4]),
+    					listen(div0, "mouseout", /*handleMouseOut*/ ctx[5]),
+    					listen(div0, "focus", /*handleFocus*/ ctx[6]),
+    					listen(div0, "blur", /*handleBlur*/ ctx[7]),
+    					listen(div1, "mouseover", /*handleMouseOver*/ ctx[4]),
+    					listen(div1, "mouseout", /*handleMouseOut*/ ctx[5]),
+    					listen(div1, "focus", /*handleFocus*/ ctx[6]),
+    					listen(div1, "blur", /*handleBlur*/ ctx[7])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if (dirty & /*categories*/ 8) {
+    				each_value = /*categories*/ ctx[3];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$4(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$4(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(div1, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+
+    			if (!current || dirty & /*showCategories*/ 1 && div1_class_value !== (div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[0]
+    			? "categories"
+    			: "categories hidden") + " svelte-1dsy1pg"))) {
+    				attr(div1, "class", div1_class_value);
+    			}
+
+    			const link_1_changes = {};
+
+    			if (dirty & /*$$scope*/ 32768) {
+    				link_1_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link_1.$set(link_1_changes);
+
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(li2, null);
+    				}
+    			}
+    		},
+    		i(local) {
+    			if (current) return;
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			transition_in(link_1.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			transition_out(link_1.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div2);
+    			destroy_each(each_blocks, detaching);
+    			destroy_component(link_1);
+    			if_block.d();
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    let optionText = "getAlby";
+    let link = "https://www.getalby.com";
+
+    function instance$6($$self, $$props, $$invalidate) {
+    	let $menuState;
+    	const menuState = writable({ logged_in: false, use_extension: false });
+    	component_subscribe($$self, menuState, value => $$invalidate(1, $menuState = value));
+    	let nostrHelper = null;
+    	const categories = ["Category 1", "Category 2", "Category 3"];
+    	let showCategories = false;
+    	let timeoutId;
+
+    	function handleMouseOver() {
+    		clearTimeout(timeoutId);
+    		$$invalidate(0, showCategories = true);
+    	}
+
+    	function handleMouseOut() {
+    		timeoutId = setTimeout(
+    			() => {
+    				$$invalidate(0, showCategories = false);
+    			},
+    			200
+    		); // 200ms delay before hiding categories
+    	}
+
+    	function handleFocus() {
+    		$$invalidate(0, showCategories = true);
+    	}
+
+    	function handleBlur() {
+    		$$invalidate(0, showCategories = false);
+    	}
+
+    	async function login() {
+    		// Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
+    		console.log("Logging in...");
+
+    		await NostrHelper.create(true);
+    		menuState.update(state => ({ ...state, logged_in: true }));
+    	}
+
+    	async function logout() {
+    		console.log("Logging out...");
+    		await NostrHelper.create(false);
+    		menuState.update(state => ({ ...state, logged_in: false }));
+    	}
+
+    	onMount(async () => {
+    		nostrHelper = await NostrHelper.create();
+    		console.log("nostrHelper:", nostrHelper);
+    		const loggedIn = await nostrHelper.publicKey != null;
+    		const usingExtension = await nostrHelper.extensionAvailable();
+
+    		menuState.set({
+    			logged_in: loggedIn,
+    			use_extension: usingExtension
+    		});
+    	});
+
+    	return [
+    		showCategories,
+    		$menuState,
+    		menuState,
+    		categories,
+    		handleMouseOver,
+    		handleMouseOut,
+    		handleFocus,
+    		handleBlur,
+    		login,
+    		logout
+    	];
+    }
+
+    class Menu extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$6, create_fragment$7, safe_not_equal, {});
+    	}
+    }
+
+    var css_248z = ".menu-container.svelte-8hf5w1{width:300px;padding-left:40px}.content-container.svelte-8hf5w1{flex-grow:1}";
+    styleInject(css_248z);
+
+    /* src/views/Overview.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$3(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[8] = list[i];
+    	return child_ctx;
+    }
+
+    function get_each_context_1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[8] = list[i];
+    	return child_ctx;
+    }
+
+    // (116:10) {#if profile}
+    function create_if_block$3(ctx) {
+    	let div;
+    	let profileimg;
+    	let current;
+
+    	profileimg = new ProfileImg({
+    			props: {
+    				profile: /*profile*/ ctx[2],
+    				style: { width: "40px", height: "40px" }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(profileimg.$$.fragment);
+    			set_style(div, "margin-right", "10px");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(profileimg, div, null);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const profileimg_changes = {};
+    			if (dirty & /*profile*/ 4) profileimg_changes.profile = /*profile*/ ctx[2];
+    			profileimg.$set(profileimg_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(profileimg.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(profileimg.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(profileimg);
+    		}
+    	};
+    }
+
+    // (134:12) {#each verifiedCards as card}
+    function create_each_block_1(ctx) {
+    	let div;
+    	let ideacard;
+    	let t;
+    	let current;
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(ideacard.$$.fragment);
+    			t = space();
+    			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
+    			set_style(div, "margin-bottom", "2rem");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(ideacard, div, null);
+    			append(div, t);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const ideacard_changes = {};
+    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[8];
+    			ideacard.$set(ideacard_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(ideacard.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(ideacard.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(ideacard);
+    		}
+    	};
+    }
+
+    // (149:12) {#each unverifiedCards as card}
+    function create_each_block$3(ctx) {
+    	let div;
+    	let ideacard;
+    	let t;
+    	let current;
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(ideacard.$$.fragment);
+    			t = space();
+    			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
+    			set_style(div, "margin-top", "2rem");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(ideacard, div, null);
+    			append(div, t);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const ideacard_changes = {};
+    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[8];
+    			ideacard.$set(ideacard_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(ideacard.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(ideacard.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(ideacard);
+    		}
+    	};
+    }
+
+    function create_fragment$6(ctx) {
+    	let div10;
+    	let main;
+    	let section0;
+    	let div3;
+    	let span;
+    	let t0;
+    	let div0;
+    	let t4;
+    	let div1;
+    	let t5;
+    	let div2;
+    	let t6;
+    	let section1;
+    	let div4;
+    	let menu;
+    	let t7;
+    	let div9;
+    	let div8;
+    	let div5;
+    	let t8;
+    	let div6;
+    	let t9;
+    	let div7;
+    	let current;
+    	let if_block = /*profile*/ ctx[2] && create_if_block$3(ctx);
+
+    	menu = new Menu({
+    			props: { menuState: /*menuState*/ ctx[3] }
+    		});
+
+    	let each_value_1 = /*verifiedCards*/ ctx[0];
+    	let each_blocks_1 = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	const out = i => transition_out(each_blocks_1[i], 1, 1, () => {
+    		each_blocks_1[i] = null;
+    	});
+
+    	let each_value = /*unverifiedCards*/ ctx[1];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$3(get_each_context$3(ctx, each_value, i));
+    	}
+
+    	const out_1 = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
+
+    	return {
+    		c() {
+    			div10 = element("div");
+    			main = element("main");
+    			section0 = element("section");
+    			div3 = element("div");
+    			span = element("span");
+    			t0 = space();
+    			div0 = element("div");
+
+    			div0.innerHTML = `<h1 class="text-4xl font-bold text-white">BitSpark</h1> 
+          <h2 class="text-2xl font-light text-white">Idea Engine</h2>`;
+
+    			t4 = space();
+    			div1 = element("div");
+    			div1.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			t5 = space();
+    			div2 = element("div");
+    			if (if_block) if_block.c();
+    			t6 = space();
+    			section1 = element("section");
+    			div4 = element("div");
+    			create_component(menu.$$.fragment);
+    			t7 = space();
+    			div9 = element("div");
+    			div8 = element("div");
+    			div5 = element("div");
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
+    			t8 = space();
+    			div6 = element("div");
+    			t9 = space();
+    			div7 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr(span, "id", "blackOverlay");
+    			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
+    			attr(div0, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
+    			attr(div1, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
+    			set_style(div1, "transform", "translateZ(0)");
+    			attr(div2, "class", "absolute top-4 right-4 flex justify-end w-full");
+    			attr(div3, "class", "absolute top-0 w-full h-full bg-center bg-cover");
+    			set_style(div3, "background-image", "url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80)");
+    			attr(section0, "class", "relative block h-500-px");
+    			attr(div4, "class", "menu-container svelte-8hf5w1");
+    			attr(div5, "class", "row");
+    			set_style(div6, "margin-top", "2rem");
+    			set_style(div6, "margin-bottom", "2rem");
+    			set_style(div6, "height", "2px");
+    			set_style(div6, "background-color", "gray");
+    			attr(div6, "class", "w-full");
+    			attr(div7, "class", "row");
+    			attr(div8, "class", "container mx-auto px-4");
+    			attr(div9, "class", "content-container svelte-8hf5w1");
+    			attr(section1, "class", "relative py-16 bg-blueGray-200");
+    			set_style(section1, "display", "flex");
+    			attr(main, "class", "overview-page");
+    			set_style(div10, "position", "relative");
+    		},
+    		m(target, anchor) {
+    			insert(target, div10, anchor);
+    			append(div10, main);
+    			append(main, section0);
+    			append(section0, div3);
+    			append(div3, span);
+    			append(div3, t0);
+    			append(div3, div0);
+    			append(div3, t4);
+    			append(div3, div1);
+    			append(div3, t5);
+    			append(div3, div2);
+    			if (if_block) if_block.m(div2, null);
+    			append(main, t6);
+    			append(main, section1);
+    			append(section1, div4);
+    			mount_component(menu, div4, null);
+    			append(section1, t7);
+    			append(section1, div9);
+    			append(div9, div8);
+    			append(div8, div5);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				if (each_blocks_1[i]) {
+    					each_blocks_1[i].m(div5, null);
+    				}
+    			}
+
+    			append(div8, t8);
+    			append(div8, div6);
+    			append(div8, t9);
+    			append(div8, div7);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div7, null);
+    				}
+    			}
+
+    			current = true;
+    		},
+    		p(ctx, [dirty]) {
+    			if (/*profile*/ ctx[2]) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty & /*profile*/ 4) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block$3(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(div2, null);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (dirty & /*verifiedCards*/ 1) {
+    				each_value_1 = /*verifiedCards*/ ctx[0];
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(child_ctx, dirty);
+    						transition_in(each_blocks_1[i], 1);
+    					} else {
+    						each_blocks_1[i] = create_each_block_1(child_ctx);
+    						each_blocks_1[i].c();
+    						transition_in(each_blocks_1[i], 1);
+    						each_blocks_1[i].m(div5, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value_1.length; i < each_blocks_1.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+
+    			if (dirty & /*unverifiedCards*/ 2) {
+    				each_value = /*unverifiedCards*/ ctx[1];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$3(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$3(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(div7, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out_1(i);
+    				}
+
+    				check_outros();
+    			}
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+    			transition_in(menu.$$.fragment, local);
+
+    			for (let i = 0; i < each_value_1.length; i += 1) {
+    				transition_in(each_blocks_1[i]);
+    			}
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+    			transition_out(menu.$$.fragment, local);
+    			each_blocks_1 = each_blocks_1.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				transition_out(each_blocks_1[i]);
+    			}
+
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div10);
+    			if (if_block) if_block.d();
+    			destroy_component(menu);
+    			destroy_each(each_blocks_1, detaching);
+    			destroy_each(each_blocks, detaching);
+    		}
+    	};
+    }
+
+    function instance$5($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(4, $helperStore = $$value));
+    	let verifiedCards = [];
+    	let unverifiedCards = [];
+    	let publicKey = "";
+    	let profilePicture = "";
+    	let profile = null;
+    	let menuState = { logged_in: false, use_extension: true };
+
+    	async function update() {
+    		const nostrHelper = await NostrHelper.create();
+    		publicKey = nostrHelper.publicKey;
+    		$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
+    		profilePicture = profile.picture;
+    	}
+
+    	onMount(async () => {
+    		try {
+    			const nostrHelper = await NostrHelper.create();
+    			publicKey = nostrHelper.publicKey;
+    			$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
+    			profilePicture = profile.picture;
+    			const ideas = await nostrHelper.getIdeas();
+    			let verified = [];
+    			let unverified = [];
+
+    			ideas.forEach(idea => {
+    				const tags = idea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
+
+    				const card = {
+    					id: idea.id,
+    					name: tags.iName,
+    					subtitle: tags.iSub,
+    					bannerImage: tags.ibUrl,
+    					message: idea.content
+    				};
+
+    				if (idea.githubVerified) {
+    					verified.push(card);
+    				} else {
+    					unverified.push(card);
+    				}
+    			});
+
+    			// Assign outside of forEach loop
+    			$$invalidate(0, verifiedCards = verified);
+
+    			$$invalidate(1, unverifiedCards = unverified);
+    		} catch(error) {
+    			console.error("Error fetching cards:", error);
+    		}
+    	});
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$helperStore*/ 16) {
+    			if ($helperStore) {
+    				update();
+    			} else {
+    				update();
+    			}
+    		}
+    	};
+
+    	return [verifiedCards, unverifiedCards, profile, menuState, $helperStore];
+    }
+
+    class Overview extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$5, create_fragment$6, safe_not_equal, {});
+    	}
+    }
+
+    async function sendSatsLNurl(lnurl) {
+        if (typeof window.webln !== "undefined") {
+          await window.webln.enable();
+          await webln.lnurl(lnurl);
+        }
+      }
+
+    /* src/views/IdeaDetail.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$2(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[11] = list[i];
+    	return child_ctx;
+    }
+
+    // (129:12) {#if creator_profile && creator_profile.picture}
+    function create_if_block_1$1(ctx) {
+    	let div;
+    	let profileimg;
+    	let current;
+
+    	profileimg = new ProfileImg({
+    			props: {
+    				profile: /*creator_profile*/ ctx[3],
+    				style: { width: "40px", height: "40px" }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(profileimg.$$.fragment);
+    			set_style(div, "margin-right", "10px");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(profileimg, div, null);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const profileimg_changes = {};
+    			if (dirty & /*creator_profile*/ 8) profileimg_changes.profile = /*creator_profile*/ ctx[3];
+    			profileimg.$set(profileimg_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(profileimg.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(profileimg.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(profileimg);
+    		}
+    	};
+    }
+
+    // (211:16) {#if comment.picture}
+    function create_if_block$2(ctx) {
+    	let div;
+    	let profileimg;
+    	let current;
+
+    	profileimg = new ProfileImg({
+    			props: {
+    				profile: /*comment*/ ctx[11],
+    				style: { width: "40px", height: "40px" }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(profileimg.$$.fragment);
+    			set_style(div, "margin-right", "10px");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(profileimg, div, null);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const profileimg_changes = {};
+    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[11];
+    			profileimg.$set(profileimg_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(profileimg.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(profileimg.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(profileimg);
+    		}
+    	};
+    }
+
+    // (209:12) {#each comments as comment (comment.id)}
+    function create_each_block$2(key_1, ctx) {
+    	let li;
+    	let t0;
+    	let div;
+    	let h3;
+    	let t1_value = /*comment*/ ctx[11].name + "";
+    	let t1;
+    	let t2;
+    	let p;
+    	let t3_value = /*comment*/ ctx[11].comment + "";
+    	let t3;
+    	let t4;
+    	let current;
+    	let if_block = /*comment*/ ctx[11].picture && create_if_block$2(ctx);
+
+    	return {
+    		key: key_1,
+    		first: null,
+    		c() {
+    			li = element("li");
+    			if (if_block) if_block.c();
+    			t0 = space();
+    			div = element("div");
+    			h3 = element("h3");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			p = element("p");
+    			t3 = text(t3_value);
+    			t4 = space();
+    			attr(h3, "class", "font-bold text-sm");
+    			attr(p, "class", "text-m");
+    			attr(li, "class", "flex items-center gap-4 my-2");
+    			this.first = li;
+    		},
+    		m(target, anchor) {
+    			insert(target, li, anchor);
+    			if (if_block) if_block.m(li, null);
+    			append(li, t0);
+    			append(li, div);
+    			append(div, h3);
+    			append(h3, t1);
+    			append(div, t2);
+    			append(div, p);
+    			append(p, t3);
+    			append(li, t4);
+    			current = true;
+    		},
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (/*comment*/ ctx[11].picture) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty & /*comments*/ 2) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block$2(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(li, t0);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[11].name + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[11].comment + "")) set_data(t3, t3_value);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(li);
+    			if (if_block) if_block.d();
+    		}
+    	};
+    }
+
+    // (245:8) <Link to="/overview">
+    function create_default_slot$2(ctx) {
+    	let button;
+
+    	return {
+    		c() {
+    			button = element("button");
+    			button.textContent = "Back";
+    			attr(button, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mb-1 ease-linear transition-all duration-150");
+    			attr(button, "type", "button");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    		}
+    	};
+    }
+
+    function create_fragment$5(ctx) {
+    	let div11;
+    	let main;
+    	let section0;
+    	let div2;
+    	let span;
+    	let t0;
+    	let div1;
+    	let h1;
+    	let t1_value = /*idea*/ ctx[0].name + "";
+    	let t1;
+    	let t2;
+    	let h2;
+    	let t3_value = /*idea*/ ctx[0].subtitle + "";
+    	let t3;
+    	let t4;
+    	let div0;
+    	let button0;
+    	let t5;
+    	let t6;
+    	let a;
+    	let i;
+    	let a_href_value;
+    	let t7;
+    	let div3;
+    	let t8;
+    	let section1;
+    	let div10;
+    	let div7;
+    	let div6;
+    	let div5;
+    	let h3;
+    	let t9_value = /*idea*/ ctx[0].name + "";
+    	let t9;
+    	let t10;
+    	let p0;
+    	let raw_value = /*idea*/ ctx[0].message + "";
+    	let t11;
+    	let hr;
+    	let t12;
+    	let div4;
+    	let p1;
+    	let t14;
+    	let button1;
+    	let t15;
+    	let div9;
+    	let h4;
+    	let t17;
+    	let ul;
+    	let each_blocks = [];
+    	let each_1_lookup = new Map();
+    	let t18;
+    	let div8;
+    	let label;
+    	let t20;
+    	let textarea;
+    	let t21;
+    	let button2;
+    	let t23;
+    	let link;
+    	let current;
+    	let mounted;
+    	let dispose;
+    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$1(ctx);
+    	let each_value = /*comments*/ ctx[1];
+    	const get_key = ctx => /*comment*/ ctx[11].id;
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		let child_ctx = get_each_context$2(ctx, each_value, i);
+    		let key = get_key(child_ctx);
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block$2(key, child_ctx));
+    	}
+
+    	link = new Link({
+    			props: {
+    				to: "/overview",
+    				$$slots: { default: [create_default_slot$2] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div11 = element("div");
+    			main = element("main");
+    			section0 = element("section");
+    			div2 = element("div");
+    			span = element("span");
+    			t0 = space();
+    			div1 = element("div");
+    			h1 = element("h1");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			h2 = element("h2");
+    			t3 = text(t3_value);
+    			t4 = space();
+    			div0 = element("div");
+    			button0 = element("button");
+    			button0.innerHTML = `<img src="../../img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			t5 = space();
+    			if (if_block) if_block.c();
+    			t6 = space();
+    			a = element("a");
+    			i = element("i");
+    			t7 = space();
+    			div3 = element("div");
+    			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			t8 = space();
+    			section1 = element("section");
+    			div10 = element("div");
+    			div7 = element("div");
+    			div6 = element("div");
+    			div5 = element("div");
+    			h3 = element("h3");
+    			t9 = text(t9_value);
+    			t10 = space();
+    			p0 = element("p");
+    			t11 = space();
+    			hr = element("hr");
+    			t12 = space();
+    			div4 = element("div");
+    			p1 = element("p");
+    			p1.textContent = "Support via";
+    			t14 = space();
+    			button1 = element("button");
+    			button1.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			t15 = space();
+    			div9 = element("div");
+    			h4 = element("h4");
+    			h4.textContent = "Kommentare";
+    			t17 = space();
+    			ul = element("ul");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t18 = space();
+    			div8 = element("div");
+    			label = element("label");
+    			label.textContent = "Dein Kommentar:";
+    			t20 = space();
+    			textarea = element("textarea");
+    			t21 = space();
+    			button2 = element("button");
+    			button2.textContent = "Kommentar absenden";
+    			t23 = space();
+    			create_component(link.$$.fragment);
+    			attr(span, "id", "blackOverlay");
+    			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
+    			attr(h1, "class", "text-4xl font-bold text-white");
+    			attr(h2, "class", "text-2xl font-light text-white");
+    			set_style(button0, "padding", "0");
+    			attr(i, "class", "fab fa-github text-white");
+    			set_style(i, "font-size", "2.5rem");
+    			attr(a, "href", a_href_value = /*idea*/ ctx[0].githubRepo);
+    			attr(a, "target", "_blank");
+    			attr(div0, "class", "absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6");
+    			attr(div1, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
+    			attr(div2, "class", "absolute top-0 w-full h-full bg-center bg-cover");
+    			set_style(div2, "background-image", "url(" + /*idea*/ ctx[0].bannerImage + ")");
+    			attr(div3, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
+    			set_style(div3, "transform", "translateZ(0)");
+    			attr(section0, "class", "relative block h-500-px");
+    			attr(h3, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700");
+    			attr(p0, "class", "message-text");
+    			set_style(p0, "width", "70%");
+    			set_style(p0, "margin", "0 auto");
+    			set_style(p0, "text-align", "justify");
+    			attr(hr, "class", "my-4");
+    			attr(p1, "class", "mb-0");
+    			set_style(button1, "padding", "0");
+    			set_style(button1, "display", "flex");
+    			set_style(button1, "align-items", "center");
+    			attr(div4, "class", "flex items-center justify-center gap-4");
+    			attr(div5, "class", "text-center mt-6");
+    			attr(div6, "class", "px-6");
+    			attr(div7, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg");
+    			attr(h4, "class", "text-2xl font-semibold text-blueGray-700 mb-4");
+    			attr(label, "for", "newComment");
+    			attr(label, "class", "text-lg text-blueGray-600");
+    			attr(textarea, "id", "newComment");
+    			attr(textarea, "class", "w-full h-24 p-2 mt-2 rounded-md border-2 border-blueGray-200");
+    			attr(textarea, "placeholder", "Schreibe hier deinen Kommentar...");
+    			attr(button2, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150");
+    			attr(button2, "type", "button");
+    			attr(div8, "class", "mt-6");
+    			attr(div9, "class", "bg-white w-full mb-6 shadow-xl rounded-lg p-4");
+    			attr(div10, "class", "container mx-auto px-4");
+    			attr(section1, "class", "relative py-16 bg-blueGray-200");
+    			attr(main, "class", "profile-page");
+    		},
+    		m(target, anchor) {
+    			insert(target, div11, anchor);
+    			append(div11, main);
+    			append(main, section0);
+    			append(section0, div2);
+    			append(div2, span);
+    			append(div2, t0);
+    			append(div2, div1);
+    			append(div1, h1);
+    			append(h1, t1);
+    			append(div1, t2);
+    			append(div1, h2);
+    			append(h2, t3);
+    			append(div1, t4);
+    			append(div1, div0);
+    			append(div0, button0);
+    			append(div0, t5);
+    			if (if_block) if_block.m(div0, null);
+    			append(div0, t6);
+    			append(div0, a);
+    			append(a, i);
+    			append(section0, t7);
+    			append(section0, div3);
+    			append(main, t8);
+    			append(main, section1);
+    			append(section1, div10);
+    			append(div10, div7);
+    			append(div7, div6);
+    			append(div6, div5);
+    			append(div5, h3);
+    			append(h3, t9);
+    			append(div5, t10);
+    			append(div5, p0);
+    			p0.innerHTML = raw_value;
+    			append(div5, t11);
+    			append(div5, hr);
+    			append(div5, t12);
+    			append(div5, div4);
+    			append(div4, p1);
+    			append(div4, t14);
+    			append(div4, button1);
+    			append(div10, t15);
+    			append(div10, div9);
+    			append(div9, h4);
+    			append(div9, t17);
+    			append(div9, ul);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(ul, null);
+    				}
+    			}
+
+    			append(div9, t18);
+    			append(div9, div8);
+    			append(div8, label);
+    			append(div8, t20);
+    			append(div8, textarea);
+    			set_input_value(textarea, /*newComment*/ ctx[2]);
+    			append(div8, t21);
+    			append(div8, button2);
+    			append(div10, t23);
+    			mount_component(link, div10, null);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(button0, "click", /*supportIdea*/ ctx[4]),
+    					listen(button1, "click", /*supportIdea*/ ctx[4]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[7]),
+    					listen(button2, "click", /*submitComment*/ ctx[5])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if ((!current || dirty & /*idea*/ 1) && t1_value !== (t1_value = /*idea*/ ctx[0].name + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*idea*/ 1) && t3_value !== (t3_value = /*idea*/ ctx[0].subtitle + "")) set_data(t3, t3_value);
+
+    			if (/*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty & /*creator_profile*/ 8) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block_1$1(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(div0, t6);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (!current || dirty & /*idea*/ 1 && a_href_value !== (a_href_value = /*idea*/ ctx[0].githubRepo)) {
+    				attr(a, "href", a_href_value);
+    			}
+
+    			if (!current || dirty & /*idea*/ 1) {
+    				set_style(div2, "background-image", "url(" + /*idea*/ ctx[0].bannerImage + ")");
+    			}
+
+    			if ((!current || dirty & /*idea*/ 1) && t9_value !== (t9_value = /*idea*/ ctx[0].name + "")) set_data(t9, t9_value);
+    			if ((!current || dirty & /*idea*/ 1) && raw_value !== (raw_value = /*idea*/ ctx[0].message + "")) p0.innerHTML = raw_value;
+    			if (dirty & /*comments*/ 2) {
+    				each_value = /*comments*/ ctx[1];
+    				group_outros();
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block$2, null, get_each_context$2);
+    				check_outros();
+    			}
+
+    			if (dirty & /*newComment*/ 4) {
+    				set_input_value(textarea, /*newComment*/ ctx[2]);
+    			}
+
+    			const link_changes = {};
+
+    			if (dirty & /*$$scope*/ 16384) {
+    				link_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link.$set(link_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			transition_in(link.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			transition_out(link.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div11);
+    			if (if_block) if_block.d();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d();
+    			}
+
+    			destroy_component(link);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    function instance$4($$self, $$props, $$invalidate) {
+    	let { id } = $$props;
+
+    	let idea = {
+    		bannerImage: "https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80",
+    		id: 0,
+    		message: "Eine innovative App, die das Leben der Menschen verbessert.",
+    		name: "Innovative App",
+    		subtitle: "Idea Engine"
+    	};
+
+    	let comments = [];
+    	let newComment = "";
+    	let profiles = {};
+    	let creator_profile = null;
+
+    	onMount(async () => {
+    		await fetchData();
+    		await fetchComments();
+    	});
+
+    	async function fetchData() {
+    		try {
+    			const nostrHelper = await NostrHelper.create();
+    			const fetchedIdea = await nostrHelper.getEvent(id);
+
+    			// Konvertiere die Tags in ein einfacher zu handhabendes Objekt
+    			const tags = fetchedIdea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
+
+    			$$invalidate(0, idea = {
+    				id: fetchedIdea.id,
+    				name: tags.iName,
+    				subtitle: tags.iSub,
+    				bannerImage: tags.ibUrl,
+    				message: fetchedIdea.content,
+    				githubRepo: tags.gitrepo,
+    				lnAdress: tags.lnadress,
+    				pubkey: fetchedIdea.pubkey
+    			});
+
+    			// Laden Sie das Profil des Erstellers der Idee
+    			$$invalidate(3, creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey));
+
+    			console.log("creator_profile");
+    			console.log(creator_profile);
+    			profiles[creator_profile.pubkey] = creator_profile;
+    		} catch(error) {
+    			console.error("Error fetching idea data:", error);
+    		}
+    	}
+
+    	async function supportIdea() {
+    		await sendSatsLNurl(idea.lnAdress);
+    	}
+
+    	async function fetchComments() {
+    		try {
+    			const bitstarterHelper = await NostrHelper.create();
+    			const fetchedComments = await bitstarterHelper.getComments(id);
+
+    			$$invalidate(1, comments = await Promise.all(fetchedComments.map(async comment => {
+    				const profile = await bitstarterHelper.getProfile(comment.pubkey);
+    				profiles[comment.pubkey] = profile;
+
+    				return {
+    					id: comment.id,
+    					comment: comment.content,
+    					name: comment.name,
+    					picture: profile.picture, // Benutze das geladene Profilbild
+    					pubkey: comment.pubkey,
+    					githubVerified: profile.githubVerified
+    				};
+    			})));
+    		} catch(error) {
+    			console.error("Error fetching comments data:", error);
+    		}
+    	}
+
+    	async function submitComment() {
+    		if (newComment.trim() === "") return;
+
+    		try {
+    			const bitstarterHelper = await NostrHelper.create();
+    			const commentId = await bitstarterHelper.postComment(id, newComment);
+    			await fetchComments();
+    			$$invalidate(2, newComment = "");
+    		} catch(error) {
+    			console.error("Error submitting comment:", error);
+    		}
+    	}
+
+    	function textarea_input_handler() {
+    		newComment = this.value;
+    		$$invalidate(2, newComment);
+    	}
+
+    	$$self.$$set = $$props => {
+    		if ('id' in $$props) $$invalidate(6, id = $$props.id);
+    	};
+
+    	return [
+    		idea,
+    		comments,
+    		newComment,
+    		creator_profile,
+    		supportIdea,
+    		submitComment,
+    		id,
+    		textarea_input_handler
+    	];
+    }
+
+    class IdeaDetail extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { id: 6 });
+    	}
+    }
+
+    /* src/components/Dropdowns/MultiSelectDropdown.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[8] = list[i];
+    	child_ctx[9] = list;
+    	child_ctx[10] = i;
+    	return child_ctx;
+    }
+
+    // (30:4) {#each categories as category}
+    function create_each_block$1(ctx) {
+    	let label;
+    	let input;
+    	let t0;
+    	let t1_value = /*category*/ ctx[8] + "";
+    	let t1;
+    	let t2;
+    	let mounted;
+    	let dispose;
+
+    	function input_change_handler() {
+    		/*input_change_handler*/ ctx[6].call(input, /*category*/ ctx[8]);
+    	}
+
+    	function change_handler() {
+    		return /*change_handler*/ ctx[7](/*category*/ ctx[8]);
+    	}
+
+    	return {
+    		c() {
+    			label = element("label");
+    			input = element("input");
+    			t0 = space();
+    			t1 = text(t1_value);
+    			t2 = space();
+    			attr(input, "type", "checkbox");
+    			attr(input, "class", "mr-2");
+    			attr(label, "class", "block px-4 py-2 hover:bg-blue-50 rounded-md");
+    		},
+    		m(target, anchor) {
+    			insert(target, label, anchor);
+    			append(label, input);
+    			input.checked = /*checkboxStates*/ ctx[2][/*category*/ ctx[8]];
+    			append(label, t0);
+    			append(label, t1);
+    			append(label, t2);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(input, "change", input_change_handler),
+    					listen(input, "change", change_handler)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*checkboxStates, categories*/ 5) {
+    				input.checked = /*checkboxStates*/ ctx[2][/*category*/ ctx[8]];
+    			}
+
+    			if (dirty & /*categories*/ 1 && t1_value !== (t1_value = /*category*/ ctx[8] + "")) set_data(t1, t1_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(label);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    function create_fragment$4(ctx) {
+    	let div1;
+    	let button;
+    	let t1;
+    	let div0;
+    	let div0_class_value;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*categories*/ ctx[0];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	return {
+    		c() {
+    			div1 = element("div");
+    			button = element("button");
+    			button.textContent = "Select Categories";
+    			t1 = space();
+    			div0 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr(button, "class", "w-full bg-white px-4 py-2 text-left border-2 border-gray-200 rounded-md");
+    			attr(div0, "class", div0_class_value = "" + ((/*dropdownOpen*/ ctx[1] ? 'block' : 'hidden') + " absolute w-full bg-white border-t-0 rounded-b-md border-2 border-gray-200 z-10"));
+    			attr(div1, "class", "block rounded-md border-1 border-gray-200 relative w-full");
+    		},
+    		m(target, anchor) {
+    			insert(target, div1, anchor);
+    			append(div1, button);
+    			append(div1, t1);
+    			append(div1, div0);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div0, null);
+    				}
+    			}
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", /*click_handler*/ ctx[5]);
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if (dirty & /*categories, checkboxStates, toggleCategory*/ 13) {
+    				each_value = /*categories*/ ctx[0];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div0, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*dropdownOpen*/ 2 && div0_class_value !== (div0_class_value = "" + ((/*dropdownOpen*/ ctx[1] ? 'block' : 'hidden') + " absolute w-full bg-white border-t-0 rounded-b-md border-2 border-gray-200 z-10"))) {
+    				attr(div0, "class", div0_class_value);
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d(detaching) {
+    			if (detaching) detach(div1);
+    			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let { categories = [] } = $$props;
+    	let { selected = [] } = $$props;
+    	let dropdownOpen = false;
+    	let checkboxStates = {};
+
+    	function toggleCategory(category) {
+    		const isSelected = selected.includes(category);
+
+    		if (isSelected) {
+    			$$invalidate(4, selected = selected.filter(item => item !== category));
+    		} else if (selected.length < 3) {
+    			$$invalidate(4, selected = [...selected, category]);
+    		}
+    	}
+
+    	const click_handler = () => $$invalidate(1, dropdownOpen = !dropdownOpen);
+
+    	function input_change_handler(category) {
+    		checkboxStates[category] = this.checked;
+    		(($$invalidate(2, checkboxStates), $$invalidate(0, categories)), $$invalidate(4, selected));
+    	}
+
+    	const change_handler = category => toggleCategory(category);
+
+    	$$self.$$set = $$props => {
+    		if ('categories' in $$props) $$invalidate(0, categories = $$props.categories);
+    		if ('selected' in $$props) $$invalidate(4, selected = $$props.selected);
+    	};
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*categories, selected*/ 17) {
+    			categories.forEach(category => {
+    				$$invalidate(2, checkboxStates[category] = selected.includes(category), checkboxStates);
+    			});
+    		}
+    	};
+
+    	return [
+    		categories,
+    		dropdownOpen,
+    		checkboxStates,
+    		toggleCategory,
+    		selected,
+    		click_handler,
+    		input_change_handler,
+    		change_handler
+    	];
+    }
+
+    class MultiSelectDropdown extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance$3, create_fragment$4, safe_not_equal, { categories: 0, selected: 4 });
+    	}
+    }
+
+    /* src/views/PostIdea.svelte generated by Svelte v3.59.1 */
+
+    function create_default_slot$1(ctx) {
+    	let t;
+
+    	return {
+    		c() {
+    			t = text("Back to Home");
+    		},
+    		m(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(t);
+    		}
+    	};
+    }
+
+    function create_fragment$3(ctx) {
+    	let main;
+    	let section0;
+    	let t5;
+    	let section1;
+    	let div12;
+    	let div11;
+    	let h21;
+    	let t7;
+    	let div10;
+    	let div3;
+    	let input0;
+    	let t8;
+    	let div4;
+    	let input1;
+    	let t9;
+    	let div5;
+    	let textarea;
+    	let t10;
+    	let div6;
+    	let input2;
+    	let t11;
+    	let div7;
+    	let input3;
+    	let t12;
+    	let div8;
+    	let input4;
+    	let t13;
+    	let div9;
+    	let multiselectdropdown;
+    	let updating_selected;
+    	let t14;
+    	let div13;
+    	let button;
+    	let t16;
+    	let link;
+    	let t17;
+    	let section2;
+    	let current;
+    	let mounted;
+    	let dispose;
+
+    	function multiselectdropdown_selected_binding(value) {
+    		/*multiselectdropdown_selected_binding*/ ctx[15](value);
+    	}
+
+    	let multiselectdropdown_props = { categories: /*categories*/ ctx[7] };
+
+    	if (/*selectedCategories*/ ctx[6] !== void 0) {
+    		multiselectdropdown_props.selected = /*selectedCategories*/ ctx[6];
+    	}
+
+    	multiselectdropdown = new MultiSelectDropdown({ props: multiselectdropdown_props });
+    	binding_callbacks.push(() => bind(multiselectdropdown, 'selected', multiselectdropdown_selected_binding));
+
+    	link = new Link({
+    			props: {
+    				to: "/overview",
+    				class: "bg-white text-red-500 font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:bg-red-500 hover:text-white",
+    				$$slots: { default: [create_default_slot$1] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			main = element("main");
+    			section0 = element("section");
+
+    			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
+
+            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><h1 class="text-4xl font-bold text-white">BitSpark</h1> 
+                <h2 class="text-2xl font-light text-white">Spark Idea</h2></div></div> 
+        
+        <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div>`;
+
+    			t5 = space();
+    			section1 = element("section");
+    			div12 = element("div");
+    			div11 = element("div");
+    			h21 = element("h2");
+    			h21.textContent = "Spark Idea";
+    			t7 = space();
+    			div10 = element("div");
+    			div3 = element("div");
+    			input0 = element("input");
+    			t8 = space();
+    			div4 = element("div");
+    			input1 = element("input");
+    			t9 = space();
+    			div5 = element("div");
+    			textarea = element("textarea");
+    			t10 = space();
+    			div6 = element("div");
+    			input2 = element("input");
+    			t11 = space();
+    			div7 = element("div");
+    			input3 = element("input");
+    			t12 = space();
+    			div8 = element("div");
+    			input4 = element("input");
+    			t13 = space();
+    			div9 = element("div");
+    			create_component(multiselectdropdown.$$.fragment);
+    			t14 = space();
+    			div13 = element("div");
+    			button = element("button");
+    			button.textContent = "Spark Idea";
+    			t16 = space();
+    			create_component(link.$$.fragment);
+    			t17 = space();
+    			section2 = element("section");
+    			attr(section0, "class", "relative block h-500-px");
+    			attr(h21, "class", "text-2xl font-semibold mb-4");
+    			attr(input0, "type", "text");
+    			attr(input0, "placeholder", "Idea Name");
+    			attr(input0, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			set_style(input0, "width", "90%");
+    			attr(div3, "class", "mb-4");
+    			attr(input1, "type", "text");
+    			attr(input1, "placeholder", "Idea Subtitle");
+    			attr(input1, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			set_style(input1, "width", "90%");
+    			attr(div4, "class", "mb-4");
+    			attr(textarea, "rows", "1");
+    			attr(textarea, "placeholder", "Description");
+    			attr(textarea, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
+    			set_style(textarea, "width", "90%");
+    			attr(div5, "class", "mb-4");
+    			attr(input2, "type", "text");
+    			attr(input2, "placeholder", "Banner URL");
+    			attr(input2, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			set_style(input2, "width", "90%");
+    			attr(div6, "class", "mb-4");
+    			attr(input3, "type", "text");
+    			attr(input3, "placeholder", "GitHub Repository");
+    			attr(input3, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			set_style(input3, "width", "90%");
+    			attr(div7, "class", "mb-4");
+    			attr(input4, "type", "text");
+    			attr(input4, "placeholder", "Lightning Address");
+    			attr(input4, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
+    			set_style(input4, "width", "90%");
+    			attr(div9, "class", "mb-4 mt-4");
+    			set_style(div9, "width", "90%");
+    			attr(div11, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
+    			set_style(div11, "width", "100%");
+    			attr(div12, "class", "container mx-auto px-4");
+    			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mt-2");
+    			attr(div13, "class", "container mx-auto px-4 flex justify-end");
+    			attr(section1, "class", "relative py-16 bg-blueGray-200");
+    			attr(section2, "class", "relative pb-16");
+    			attr(main, "class", "profile-page");
+    		},
+    		m(target, anchor) {
+    			insert(target, main, anchor);
+    			append(main, section0);
+    			append(main, t5);
+    			append(main, section1);
+    			append(section1, div12);
+    			append(div12, div11);
+    			append(div11, h21);
+    			append(div11, t7);
+    			append(div11, div10);
+    			append(div10, div3);
+    			append(div3, input0);
+    			set_input_value(input0, /*ideaName*/ ctx[0]);
+    			append(div10, t8);
+    			append(div10, div4);
+    			append(div4, input1);
+    			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			append(div10, t9);
+    			append(div10, div5);
+    			append(div5, textarea);
+    			set_input_value(textarea, /*ideaMessage*/ ctx[2]);
+    			append(div10, t10);
+    			append(div10, div6);
+    			append(div6, input2);
+    			set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
+    			append(div10, t11);
+    			append(div10, div7);
+    			append(div7, input3);
+    			set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
+    			append(div10, t12);
+    			append(div10, div8);
+    			append(div8, input4);
+    			set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
+    			append(div10, t13);
+    			append(div10, div9);
+    			mount_component(multiselectdropdown, div9, null);
+    			append(section1, t14);
+    			append(section1, div13);
+    			append(div13, button);
+    			append(div13, t16);
+    			mount_component(link, div13, null);
+    			append(main, t17);
+    			append(main, section2);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
+    					listen(input1, "input", /*input1_input_handler*/ ctx[10]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[11]),
+    					listen(textarea, "input", autoResizeTextarea$1),
+    					listen(input2, "input", /*input2_input_handler*/ ctx[12]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[13]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[14]),
+    					listen(button, "click", /*postIdea*/ ctx[8])
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if (dirty & /*ideaName*/ 1 && input0.value !== /*ideaName*/ ctx[0]) {
+    				set_input_value(input0, /*ideaName*/ ctx[0]);
+    			}
+
+    			if (dirty & /*ideaSubtitle*/ 2 && input1.value !== /*ideaSubtitle*/ ctx[1]) {
+    				set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			}
+
+    			if (dirty & /*ideaMessage*/ 4) {
+    				set_input_value(textarea, /*ideaMessage*/ ctx[2]);
+    			}
+
+    			if (dirty & /*ideaBannerUrl*/ 8 && input2.value !== /*ideaBannerUrl*/ ctx[3]) {
+    				set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
+    			}
+
+    			if (dirty & /*ideaGithubRepo*/ 16 && input3.value !== /*ideaGithubRepo*/ ctx[4]) {
+    				set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
+    			}
+
+    			if (dirty & /*ideaLightningAddress*/ 32 && input4.value !== /*ideaLightningAddress*/ ctx[5]) {
+    				set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
+    			}
+
+    			const multiselectdropdown_changes = {};
+
+    			if (!updating_selected && dirty & /*selectedCategories*/ 64) {
+    				updating_selected = true;
+    				multiselectdropdown_changes.selected = /*selectedCategories*/ ctx[6];
+    				add_flush_callback(() => updating_selected = false);
+    			}
+
+    			multiselectdropdown.$set(multiselectdropdown_changes);
+    			const link_changes = {};
+
+    			if (dirty & /*$$scope*/ 65536) {
+    				link_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link.$set(link_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(multiselectdropdown.$$.fragment, local);
+    			transition_in(link.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(multiselectdropdown.$$.fragment, local);
+    			transition_out(link.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(main);
+    			destroy_component(multiselectdropdown);
+    			destroy_component(link);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    function autoResizeTextarea$1(e) {
+    	e.target.style.height = "";
+    	e.target.style.height = e.target.scrollHeight + "px";
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	onMount(async () => {
+    		
+    	});
+
+    	let ideaName = "";
+    	let ideaSubtitle = "";
+    	let ideaMessage = "";
+    	let ideaBannerUrl = "";
+    	let ideaGithubRepo = "";
+    	let ideaLightningAddress = "";
+
+    	let categories = [
+    		"Art & Design",
+    		"Bitcoin & P2P",
+    		"Comics & Graphic Novels",
+    		"Crafts & DIY",
+    		"Fashion & Beauty",
+    		"Film, Video & Animation",
+    		"Food & Beverages",
+    		"Games & Gaming",
+    		"Health & Fitness",
+    		"Journalism & News",
+    		"Music & Audio",
+    		"Photography & Visual Arts",
+    		"Publishing & Writing",
+    		"Technology & Software",
+    		"Education & Learning",
+    		"Environment & Sustainability",
+    		"Sports & Outdoors",
+    		"Travel & Tourism",
+    		"Non-Profit & Social Causes",
+    		"Business & Entrepreneurship",
+    		"Science & Research",
+    		"Home & Lifestyle",
+    		"Automotive & Transportation",
+    		"Pets & Animals",
+    		"Parenting & Family"
+    	];
+
+    	let selectedCategories = [];
+
+    	async function postIdea() {
+    		const helper = await NostrHelper.create();
+    		await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
+    	}
+
+    	function input0_input_handler() {
+    		ideaName = this.value;
+    		$$invalidate(0, ideaName);
+    	}
+
+    	function input1_input_handler() {
+    		ideaSubtitle = this.value;
+    		$$invalidate(1, ideaSubtitle);
+    	}
+
+    	function textarea_input_handler() {
+    		ideaMessage = this.value;
+    		$$invalidate(2, ideaMessage);
+    	}
+
+    	function input2_input_handler() {
+    		ideaBannerUrl = this.value;
+    		$$invalidate(3, ideaBannerUrl);
+    	}
+
+    	function input3_input_handler() {
+    		ideaGithubRepo = this.value;
+    		$$invalidate(4, ideaGithubRepo);
+    	}
+
+    	function input4_input_handler() {
+    		ideaLightningAddress = this.value;
+    		$$invalidate(5, ideaLightningAddress);
+    	}
+
+    	function multiselectdropdown_selected_binding(value) {
+    		selectedCategories = value;
+    		$$invalidate(6, selectedCategories);
+    	}
+
+    	return [
+    		ideaName,
+    		ideaSubtitle,
+    		ideaMessage,
+    		ideaBannerUrl,
+    		ideaGithubRepo,
+    		ideaLightningAddress,
+    		selectedCategories,
+    		categories,
+    		postIdea,
+    		input0_input_handler,
+    		input1_input_handler,
+    		textarea_input_handler,
+    		input2_input_handler,
+    		input3_input_handler,
+    		input4_input_handler,
+    		multiselectdropdown_selected_binding
+    	];
+    }
+
+    class PostIdea extends SvelteComponent {
     	constructor(options) {
     		super();
     		init(this, options, instance$2, create_fragment$3, safe_not_equal, {});
     	}
     }
 
-    /* src/views/EditProfileView.svelte generated by Svelte v3.35.0 */
+    /* src/views/EditProfileView.svelte generated by Svelte v3.59.1 */
 
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[23] = list[i];
+    	return child_ctx;
+    }
+
+    // (160:36) {#if profile && profile.picture}
     function create_if_block$1(ctx) {
     	let profileimg;
     	let current;
@@ -8265,7 +9273,14 @@ var app = (function () {
     	profileimg = new ProfileImg({
     			props: {
     				profile: /*profile*/ ctx[0],
-    				style: "position: absolute; width: 100%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+    				style: {
+    					position: "absolute",
+    					width: "100%",
+    					height: "100%",
+    					objectFit: "cover",
+    					top: "0",
+    					left: "0"
+    				}
     			}
     		});
 
@@ -8297,8 +9312,58 @@ var app = (function () {
     	};
     }
 
+    // (276:56) {#each relays as relay}
+    function create_each_block(ctx) {
+    	let div1;
+    	let div0;
+    	let t0_value = /*relay*/ ctx[23] + "";
+    	let t0;
+    	let t1;
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	function click_handler() {
+    		return /*click_handler*/ ctx[19](/*relay*/ ctx[23]);
+    	}
+
+    	return {
+    		c() {
+    			div1 = element("div");
+    			div0 = element("div");
+    			t0 = text(t0_value);
+    			t1 = space();
+    			button = element("button");
+    			button.textContent = "X";
+    			attr(button, "class", "bg-red-500 w-5 h-5 rounded-full flex justify-center items-center");
+    			attr(div1, "class", "flex justify-between px-3 py-1 rounded-full bg-white-800 text-sm text-black shadow-md");
+    		},
+    		m(target, anchor) {
+    			insert(target, div1, anchor);
+    			append(div1, div0);
+    			append(div0, t0);
+    			append(div1, t1);
+    			append(div1, button);
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", click_handler);
+    				mounted = true;
+    			}
+    		},
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			if (dirty & /*relays*/ 128 && t0_value !== (t0_value = /*relay*/ ctx[23] + "")) set_data(t0, t0_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div1);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+    }
+
     function create_fragment$2(ctx) {
-    	let div22;
+    	let div28;
     	let main;
     	let section0;
     	let div1;
@@ -8312,14 +9377,14 @@ var app = (function () {
     	let div2;
     	let t3;
     	let section1;
-    	let div21;
-    	let div19;
-    	let div18;
+    	let div27;
+    	let div25;
+    	let div24;
     	let div5;
     	let div4;
     	let div3;
     	let t4;
-    	let div17;
+    	let div23;
     	let div10;
     	let div9;
     	let label0;
@@ -8341,8 +9406,8 @@ var app = (function () {
     	let t15;
     	let input2;
     	let t16;
-    	let div16;
-    	let div15;
+    	let div22;
+    	let div21;
     	let div14;
     	let div13;
     	let div11;
@@ -8356,17 +9421,36 @@ var app = (function () {
     	let input4;
     	let t22;
     	let div20;
-    	let button0;
+    	let div19;
+    	let div18;
+    	let div17;
+    	let h2;
     	let t24;
+    	let div16;
+    	let t25;
+    	let div15;
+    	let input5;
+    	let t26;
+    	let button0;
+    	let t28;
+    	let div26;
     	let button1;
+    	let t30;
+    	let button2;
     	let current;
     	let mounted;
     	let dispose;
     	let if_block = /*profile*/ ctx[0] && /*profile*/ ctx[0].picture && create_if_block$1(ctx);
+    	let each_value = /*relays*/ ctx[7];
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
 
     	return {
     		c() {
-    			div22 = element("div");
+    			div28 = element("div");
     			main = element("main");
     			section0 = element("section");
     			div1 = element("div");
@@ -8380,15 +9464,15 @@ var app = (function () {
     			div2.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
     			t3 = space();
     			section1 = element("section");
-    			div21 = element("div");
-    			div19 = element("div");
-    			div18 = element("div");
+    			div27 = element("div");
+    			div25 = element("div");
+    			div24 = element("div");
     			div5 = element("div");
     			div4 = element("div");
     			div3 = element("div");
     			if (if_block) if_block.c();
     			t4 = space();
-    			div17 = element("div");
+    			div23 = element("div");
     			div10 = element("div");
     			div9 = element("div");
     			label0 = element("label");
@@ -8414,8 +9498,8 @@ var app = (function () {
     			t15 = space();
     			input2 = element("input");
     			t16 = space();
-    			div16 = element("div");
-    			div15 = element("div");
+    			div22 = element("div");
+    			div21 = element("div");
     			div14 = element("div");
     			div13 = element("div");
     			div11 = element("div");
@@ -8431,11 +9515,31 @@ var app = (function () {
     			input4 = element("input");
     			t22 = space();
     			div20 = element("div");
-    			button0 = element("button");
-    			button0.textContent = "Back";
+    			div19 = element("div");
+    			div18 = element("div");
+    			div17 = element("div");
+    			h2 = element("h2");
+    			h2.textContent = "Relays";
     			t24 = space();
+    			div16 = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t25 = space();
+    			div15 = element("div");
+    			input5 = element("input");
+    			t26 = space();
+    			button0 = element("button");
+    			button0.textContent = "Add";
+    			t28 = space();
+    			div26 = element("div");
     			button1 = element("button");
-    			button1.textContent = "Update Profile";
+    			button1.textContent = "Back";
+    			t30 = space();
+    			button2 = element("button");
+    			button2.textContent = "Update Profile";
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
@@ -8445,12 +9549,12 @@ var app = (function () {
     			attr(div2, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
     			set_style(div2, "transform", "translateZ(0)");
     			attr(section0, "class", "relative block h-500-px");
-    			set_style(div3, "width", "200px");
-    			set_style(div3, "height", "200px");
+    			set_style(div3, "width", "150px");
+    			set_style(div3, "height", "150px");
     			set_style(div3, "border-radius", "50%");
     			set_style(div3, "overflow", "hidden");
     			set_style(div3, "position", "relative");
-    			set_style(div3, "top", "-100px");
+    			set_style(div3, "top", "-75px");
     			attr(div4, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
     			attr(div5, "class", "flex flex-wrap justify-center");
     			attr(label0, "for", "name");
@@ -8483,21 +9587,31 @@ var app = (function () {
     			attr(input4, "class", "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4");
     			attr(div13, "class", "mt-6");
     			attr(div14, "class", "w-full lg:w-9/12 px-4");
-    			attr(div15, "class", "flex flex-wrap justify-center");
-    			attr(div16, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
-    			attr(div17, "class", "mt-10 px-10");
-    			attr(div18, "class", "px-6");
-    			attr(div19, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(button0, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
-    			attr(button1, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
-    			attr(div20, "class", "flex justify-end mt-4 px-10");
-    			attr(div21, "class", "container mx-auto px-4");
+    			attr(h2, "class", "text-lg text-blueGray-400 mb-4");
+    			attr(input5, "class", "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline");
+    			attr(input5, "placeholder", "Enter relay URL...");
+    			attr(button0, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded ml-2");
+    			attr(div15, "class", "flex justify-between items-center mt-4");
+    			attr(div16, "class", "flex flex-col gap-2");
+    			attr(div17, "class", "mt-6");
+    			attr(div18, "class", "w-full lg:w-9/12 px-4");
+    			attr(div19, "class", "flex flex-wrap justify-center");
+    			attr(div20, "class", "mt-10 py-10 border-t border-blueGray-200 text-center w-full");
+    			attr(div21, "class", "flex flex-wrap justify-center");
+    			attr(div22, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
+    			attr(div23, "class", "mt-10 px-10");
+    			attr(div24, "class", "px-6");
+    			attr(div25, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
+    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
+    			attr(button2, "class", "bg-green-500 text-white font-bold py-2 px-4 rounded");
+    			attr(div26, "class", "flex justify-end mt-4 px-10");
+    			attr(div27, "class", "container mx-auto px-4");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(main, "class", "profile-page");
     		},
     		m(target, anchor) {
-    			insert(target, div22, anchor);
-    			append(div22, main);
+    			insert(target, div28, anchor);
+    			append(div28, main);
     			append(main, section0);
     			append(section0, div1);
     			append(div1, span);
@@ -8509,16 +9623,16 @@ var app = (function () {
     			append(section0, div2);
     			append(main, t3);
     			append(main, section1);
-    			append(section1, div21);
-    			append(div21, div19);
-    			append(div19, div18);
-    			append(div18, div5);
+    			append(section1, div27);
+    			append(div27, div25);
+    			append(div25, div24);
+    			append(div24, div5);
     			append(div5, div4);
     			append(div4, div3);
     			if (if_block) if_block.m(div3, null);
-    			append(div18, t4);
-    			append(div18, div17);
-    			append(div17, div10);
+    			append(div24, t4);
+    			append(div24, div23);
+    			append(div23, div10);
     			append(div10, div9);
     			append(div9, label0);
     			append(div9, t6);
@@ -8542,10 +9656,10 @@ var app = (function () {
     			append(div7, t15);
     			append(div7, input2);
     			set_input_value(input2, /*git_proof*/ ctx[6]);
-    			append(div17, t16);
-    			append(div17, div16);
-    			append(div16, div15);
-    			append(div15, div14);
+    			append(div23, t16);
+    			append(div23, div22);
+    			append(div22, div21);
+    			append(div21, div14);
     			append(div14, div13);
     			append(div13, div11);
     			append(div11, label4);
@@ -8560,22 +9674,45 @@ var app = (function () {
     			set_input_value(input4, /*banner*/ ctx[4]);
     			append(div21, t22);
     			append(div21, div20);
-    			append(div20, button0);
-    			append(div20, t24);
-    			append(div20, button1);
+    			append(div20, div19);
+    			append(div19, div18);
+    			append(div18, div17);
+    			append(div17, h2);
+    			append(div17, t24);
+    			append(div17, div16);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(div16, null);
+    				}
+    			}
+
+    			append(div16, t25);
+    			append(div16, div15);
+    			append(div15, input5);
+    			set_input_value(input5, /*newRelay*/ ctx[8]);
+    			append(div15, t26);
+    			append(div15, button0);
+    			append(div27, t28);
+    			append(div27, div26);
+    			append(div26, button1);
+    			append(div26, t30);
+    			append(div26, button2);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[10]),
+    					listen(input0, "input", /*input0_input_handler*/ ctx[13]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[14]),
     					listen(textarea, "input", autoResizeTextarea),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[11]),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[12]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[13]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[14]),
-    					listen(button0, "click", /*click_handler*/ ctx[15]),
-    					listen(button1, "click", /*updateProfile*/ ctx[7])
+    					listen(input1, "input", /*input1_input_handler*/ ctx[15]),
+    					listen(input2, "input", /*input2_input_handler*/ ctx[16]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[17]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[18]),
+    					listen(input5, "input", /*input5_input_handler*/ ctx[20]),
+    					listen(button0, "click", /*addRelay*/ ctx[11]),
+    					listen(button1, "click", /*click_handler_1*/ ctx[21]),
+    					listen(button2, "click", /*updateProfile*/ ctx[9])
     				];
 
     				mounted = true;
@@ -8634,6 +9771,33 @@ var app = (function () {
     			if (dirty & /*banner*/ 16 && input4.value !== /*banner*/ ctx[4]) {
     				set_input_value(input4, /*banner*/ ctx[4]);
     			}
+
+    			if (dirty & /*deleteRelay, relays*/ 1152) {
+    				each_value = /*relays*/ ctx[7];
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div16, t25);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*newRelay*/ 256 && input5.value !== /*newRelay*/ ctx[8]) {
+    				set_input_value(input5, /*newRelay*/ ctx[8]);
+    			}
     		},
     		i(local) {
     			if (current) return;
@@ -8645,13 +9809,16 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div22);
+    			if (detaching) detach(div28);
     			if (if_block) if_block.d();
+    			destroy_each(each_blocks, detaching);
     			mounted = false;
     			run_all(dispose);
     		}
     	};
     }
+
+    let bitstarterHelper = null;
 
     function autoResizeTextarea(e) {
     	e.target.style.height = "";
@@ -8667,11 +9834,14 @@ var app = (function () {
     	let banner = "";
     	let git_username = "";
     	let git_proof = "";
+    	let relays = [];
+    	let newRelay = "";
+    	let nostrHelper = null;
 
     	onMount(async () => {
     		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			$$invalidate(0, profile = await bitstarterHelper.getProfile(profile_id));
+    			nostrHelper = await NostrHelper.create();
+    			$$invalidate(0, profile = await nostrHelper.getProfile(profile_id));
 
     			if (profile) {
     				$$invalidate(1, name = profile.name);
@@ -8683,6 +9853,7 @@ var app = (function () {
     				$$invalidate(5, git_username = profile.githubUsername || "");
 
     				$$invalidate(6, git_proof = profile.githubProof || "");
+    				$$invalidate(7, relays = await nostrHelper.clientRelays);
     			}
     		} catch(error) {
     			console.error("Error fetching profile:", error);
@@ -8691,8 +9862,6 @@ var app = (function () {
 
     	const updateProfile = async () => {
     		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-
     			const updatedIdentities = profile && profile.identities
     			? [
     					...profile.identities.filter(identity => identity.platform !== "github"),
@@ -8711,10 +9880,34 @@ var app = (function () {
     				];
 
     			console.log(updatedIdentities);
-    			await bitstarterHelper.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
+    			await nostrHelper.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
     			await navigate("/overview"); // navigate back to home page after saving
     		} catch(error) {
     			console.error("Error updating profile:", error);
+    		}
+    	};
+
+    	const deleteRelay = async relay => {
+    		try {
+    			await bitstarterHelper.deleteRelay(relay);
+    			$$invalidate(7, relays = relays.filter(r => r !== relay));
+    		} catch(error) {
+    			console.error("Error deleting relay:", error); // Remove relay from relays array
+    		}
+    	};
+
+    	const addRelay = async () => {
+    		try {
+    			if (newRelay.trim()) {
+    				await bitstarterHelper.addRelay(newRelay);
+
+    				// Add the new relay to the local list
+    				$$invalidate(7, relays = [...bitstarterHelper.clientRelays]);
+
+    				$$invalidate(8, newRelay = "");
+    			}
+    		} catch(error) {
+    			console.error("Error adding relay:", error);
     		}
     	};
 
@@ -8748,10 +9941,17 @@ var app = (function () {
     		$$invalidate(4, banner);
     	}
 
-    	const click_handler = () => navigate(`/overview`);
+    	const click_handler = relay => deleteRelay(relay);
+
+    	function input5_input_handler() {
+    		newRelay = this.value;
+    		$$invalidate(8, newRelay);
+    	}
+
+    	const click_handler_1 = () => navigate(`/overview`);
 
     	$$self.$$set = $$props => {
-    		if ("profile_id" in $$props) $$invalidate(8, profile_id = $$props.profile_id);
+    		if ('profile_id' in $$props) $$invalidate(12, profile_id = $$props.profile_id);
     	};
 
     	return [
@@ -8762,7 +9962,11 @@ var app = (function () {
     		banner,
     		git_username,
     		git_proof,
+    		relays,
+    		newRelay,
     		updateProfile,
+    		deleteRelay,
+    		addRelay,
     		profile_id,
     		input0_input_handler,
     		textarea_input_handler,
@@ -8770,18 +9974,20 @@ var app = (function () {
     		input2_input_handler,
     		input3_input_handler,
     		input4_input_handler,
-    		click_handler
+    		click_handler,
+    		input5_input_handler,
+    		click_handler_1
     	];
     }
 
     class EditProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$1, create_fragment$2, safe_not_equal, { profile_id: 8 });
+    		init(this, options, instance$1, create_fragment$2, safe_not_equal, { profile_id: 12 });
     	}
     }
 
-    /* src/views/ProfileView.svelte generated by Svelte v3.35.0 */
+    /* src/views/ProfileView.svelte generated by Svelte v3.59.1 */
 
     function create_if_block_1(ctx) {
     	let button;
@@ -8801,7 +10007,7 @@ var app = (function () {
     			insert(target, button, anchor);
 
     			if (!mounted) {
-    				dispose = listen(button, "click", /*click_handler*/ ctx[6]);
+    				dispose = listen(button, "click", /*click_handler*/ ctx[8]);
     				mounted = true;
     			}
     		},
@@ -8814,7 +10020,7 @@ var app = (function () {
     	};
     }
 
-    // (98:36) {#if profile && profile.picture}
+    // (118:36) {#if profile && profile.picture}
     function create_if_block(ctx) {
     	let profileimg;
     	let current;
@@ -8822,7 +10028,14 @@ var app = (function () {
     	profileimg = new ProfileImg({
     			props: {
     				profile: /*profile*/ ctx[1],
-    				style: "position: absolute; width: 100%; height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+    				style: {
+    					position: "absolute",
+    					width: "100%",
+    					height: "100%",
+    					objectFit: "cover",
+    					top: "0",
+    					left: "0"
+    				}
     			}
     		});
 
@@ -8855,153 +10068,187 @@ var app = (function () {
     }
 
     function create_fragment$1(ctx) {
-    	let div14;
+    	let div15;
     	let main;
     	let section0;
-    	let div1;
+    	let div2;
     	let span;
     	let t0;
     	let div0;
     	let t1;
-    	let div1_style_value;
     	let t2;
-    	let div2;
+    	let div1;
+    	let button0;
     	let t3;
-    	let section1;
-    	let div13;
-    	let div11;
+    	let a;
+    	let i;
+    	let a_href_value;
+    	let div2_style_value;
     	let t4;
-    	let div10;
-    	let div5;
-    	let div4;
     	let div3;
     	let t5;
+    	let section1;
+    	let div14;
+    	let div12;
+    	let t6;
+    	let div11;
+    	let div6;
+    	let div5;
+    	let div4;
+    	let t7;
+    	let div10;
     	let div9;
     	let div8;
     	let div7;
-    	let div6;
-    	let t6;
-    	let div12;
-    	let button;
+    	let t8;
+    	let div13;
+    	let button1;
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[5] && create_if_block_1(ctx);
+    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[6] && create_if_block_1(ctx);
     	let if_block1 = /*profile*/ ctx[1] && /*profile*/ ctx[1].picture && create_if_block(ctx);
 
     	return {
     		c() {
-    			div14 = element("div");
+    			div15 = element("div");
     			main = element("main");
     			section0 = element("section");
-    			div1 = element("div");
+    			div2 = element("div");
     			span = element("span");
     			t0 = space();
     			div0 = element("div");
     			t1 = text(/*name*/ ctx[2]);
     			t2 = space();
-    			div2 = element("div");
-    			div2.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			div1 = element("div");
+    			button0 = element("button");
+    			button0.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
     			t3 = space();
-    			section1 = element("section");
-    			div13 = element("div");
-    			div11 = element("div");
-    			if (if_block0) if_block0.c();
+    			a = element("a");
+    			i = element("i");
     			t4 = space();
-    			div10 = element("div");
+    			div3 = element("div");
+    			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			t5 = space();
+    			section1 = element("section");
+    			div14 = element("div");
+    			div12 = element("div");
+    			if (if_block0) if_block0.c();
+    			t6 = space();
+    			div11 = element("div");
+    			div6 = element("div");
     			div5 = element("div");
     			div4 = element("div");
-    			div3 = element("div");
     			if (if_block1) if_block1.c();
-    			t5 = space();
+    			t7 = space();
+    			div10 = element("div");
     			div9 = element("div");
     			div8 = element("div");
     			div7 = element("div");
-    			div6 = element("div");
-    			t6 = space();
-    			div12 = element("div");
-    			button = element("button");
-    			button.textContent = "Back";
+    			t8 = space();
+    			div13 = element("div");
+    			button1 = element("button");
+    			button1.textContent = "Back";
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(div0, "class", "absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5");
-    			attr(div1, "class", "absolute top-0 w-full h-full bg-center bg-cover");
-    			attr(div1, "style", div1_style_value = `background-image: url(${/*banner*/ ctx[4]});`);
-    			attr(div2, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
-    			set_style(div2, "transform", "translateZ(0)");
+    			set_style(button0, "padding", "0");
+    			attr(i, "class", "fab fa-github text-white");
+    			set_style(i, "font-size", "2.5rem");
+    			attr(a, "href", a_href_value = "https://www.github.com/" + /*ghUser*/ ctx[5]);
+    			attr(a, "target", "_blank");
+    			attr(div1, "class", "absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6");
+    			attr(div2, "class", "absolute top-0 w-full h-full bg-center bg-cover");
+    			attr(div2, "style", div2_style_value = `background-image: url(${/*banner*/ ctx[4]});`);
+    			attr(div3, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
+    			set_style(div3, "transform", "translateZ(0)");
     			attr(section0, "class", "relative block h-500-px");
-    			set_style(div3, "width", "150px");
-    			set_style(div3, "height", "150px");
-    			set_style(div3, "border-radius", "50%");
-    			set_style(div3, "overflow", "hidden");
-    			set_style(div3, "position", "relative");
-    			set_style(div3, "top", "-75px");
-    			attr(div4, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
-    			attr(div5, "class", "flex flex-wrap justify-center");
-    			attr(div6, "class", "text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line");
-    			attr(div7, "class", "w-full lg:w-9/12 px-4");
-    			attr(div8, "class", "flex flex-wrap justify-center");
-    			attr(div9, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
-    			attr(div10, "class", "px-6");
-    			attr(div11, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
-    			attr(div12, "class", "flex justify-end mt-0");
-    			attr(div13, "class", "container mx-auto px-4");
+    			set_style(div4, "width", "150px");
+    			set_style(div4, "height", "150px");
+    			set_style(div4, "border-radius", "50%");
+    			set_style(div4, "overflow", "hidden");
+    			set_style(div4, "position", "relative");
+    			set_style(div4, "top", "-75px");
+    			attr(div5, "class", "w-full lg:w-3/12 px-4 lg:order-2 flex justify-center");
+    			attr(div6, "class", "flex flex-wrap justify-center");
+    			attr(div7, "class", "text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line");
+    			attr(div8, "class", "w-full lg:w-9/12 px-4");
+    			attr(div9, "class", "flex flex-wrap justify-center");
+    			attr(div10, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
+    			attr(div11, "class", "px-6");
+    			attr(div12, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
+    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
+    			attr(div13, "class", "flex justify-end mt-0");
+    			attr(div14, "class", "container mx-auto px-4");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(main, "class", "profile-page");
     		},
     		m(target, anchor) {
-    			insert(target, div14, anchor);
-    			append(div14, main);
+    			insert(target, div15, anchor);
+    			append(div15, main);
     			append(main, section0);
-    			append(section0, div1);
-    			append(div1, span);
-    			append(div1, t0);
-    			append(div1, div0);
-    			append(div0, t1);
-    			append(section0, t2);
     			append(section0, div2);
-    			append(main, t3);
+    			append(div2, span);
+    			append(div2, t0);
+    			append(div2, div0);
+    			append(div0, t1);
+    			append(div2, t2);
+    			append(div2, div1);
+    			append(div1, button0);
+    			append(div1, t3);
+    			append(div1, a);
+    			append(a, i);
+    			append(section0, t4);
+    			append(section0, div3);
+    			append(main, t5);
     			append(main, section1);
-    			append(section1, div13);
-    			append(div13, div11);
-    			if (if_block0) if_block0.m(div11, null);
-    			append(div11, t4);
-    			append(div11, div10);
-    			append(div10, div5);
+    			append(section1, div14);
+    			append(div14, div12);
+    			if (if_block0) if_block0.m(div12, null);
+    			append(div12, t6);
+    			append(div12, div11);
+    			append(div11, div6);
+    			append(div6, div5);
     			append(div5, div4);
-    			append(div4, div3);
-    			if (if_block1) if_block1.m(div3, null);
-    			append(div10, t5);
+    			if (if_block1) if_block1.m(div4, null);
+    			append(div11, t7);
+    			append(div11, div10);
     			append(div10, div9);
     			append(div9, div8);
     			append(div8, div7);
-    			append(div7, div6);
-    			div6.innerHTML = /*about*/ ctx[3];
-    			append(div13, t6);
-    			append(div13, div12);
-    			append(div12, button);
+    			div7.innerHTML = /*about*/ ctx[3];
+    			append(div14, t8);
+    			append(div14, div13);
+    			append(div13, button1);
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen(button, "click", /*click_handler_1*/ ctx[7]);
+    				dispose = [
+    					listen(button0, "click", /*supportIdea*/ ctx[7]),
+    					listen(button1, "click", /*click_handler_1*/ ctx[9])
+    				];
+
     				mounted = true;
     			}
     		},
     		p(ctx, [dirty]) {
     			if (!current || dirty & /*name*/ 4) set_data(t1, /*name*/ ctx[2]);
 
-    			if (!current || dirty & /*banner*/ 16 && div1_style_value !== (div1_style_value = `background-image: url(${/*banner*/ ctx[4]});`)) {
-    				attr(div1, "style", div1_style_value);
+    			if (!current || dirty & /*ghUser*/ 32 && a_href_value !== (a_href_value = "https://www.github.com/" + /*ghUser*/ ctx[5])) {
+    				attr(a, "href", a_href_value);
     			}
 
-    			if (/*profile_id*/ ctx[0] === /*publicKey*/ ctx[5]) {
+    			if (!current || dirty & /*banner*/ 16 && div2_style_value !== (div2_style_value = `background-image: url(${/*banner*/ ctx[4]});`)) {
+    				attr(div2, "style", div2_style_value);
+    			}
+
+    			if (/*profile_id*/ ctx[0] === /*publicKey*/ ctx[6]) {
     				if (if_block0) {
     					if_block0.p(ctx, dirty);
     				} else {
     					if_block0 = create_if_block_1(ctx);
     					if_block0.c();
-    					if_block0.m(div11, t4);
+    					if_block0.m(div12, t6);
     				}
     			} else if (if_block0) {
     				if_block0.d(1);
@@ -9019,7 +10266,7 @@ var app = (function () {
     					if_block1 = create_if_block(ctx);
     					if_block1.c();
     					transition_in(if_block1, 1);
-    					if_block1.m(div3, null);
+    					if_block1.m(div4, null);
     				}
     			} else if (if_block1) {
     				group_outros();
@@ -9031,7 +10278,7 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if (!current || dirty & /*about*/ 8) div6.innerHTML = /*about*/ ctx[3];		},
+    			if (!current || dirty & /*about*/ 8) div7.innerHTML = /*about*/ ctx[3];		},
     		i(local) {
     			if (current) return;
     			transition_in(if_block1);
@@ -9042,11 +10289,11 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div14);
+    			if (detaching) detach(div15);
     			if (if_block0) if_block0.d();
     			if (if_block1) if_block1.d();
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
     }
@@ -9058,32 +10305,40 @@ var app = (function () {
     	let about = "";
     	let picture = "";
     	let banner = "";
+    	let ghUser = "";
+    	let lnAdress = "";
     	let publicKey = "";
 
     	onMount(async () => {
     		try {
-    			const bitstarterHelper = get_store_value(helperStore);
-    			$$invalidate(5, publicKey = bitstarterHelper.publicKey);
+    			const nostrHelper = await NostrHelper.create();
+    			$$invalidate(6, publicKey = nostrHelper.publicKey);
     			console.log(profile_id);
     			console.log(publicKey);
-    			$$invalidate(1, profile = await bitstarterHelper.getProfile(profile_id));
+    			$$invalidate(1, profile = await nostrHelper.getProfile(profile_id));
 
     			if (profile) {
     				$$invalidate(2, name = profile.name);
     				$$invalidate(3, about = profile.dev_about);
     				picture = profile.picture;
     				$$invalidate(4, banner = profile.banner);
+    				$$invalidate(5, ghUser = profile.githubUsername);
+    				lnAdress = profile.lud16;
     			}
     		} catch(error) {
     			console.error("Error fetching profile:", error);
     		}
     	});
 
+    	async function supportIdea() {
+    		await sendSatsLNurl(lnAdress);
+    	}
+
     	const click_handler = () => navigate(`/edit_profile/${publicKey}`);
     	const click_handler_1 = () => window.history.back();
 
     	$$self.$$set = $$props => {
-    		if ("profile_id" in $$props) $$invalidate(0, profile_id = $$props.profile_id);
+    		if ('profile_id' in $$props) $$invalidate(0, profile_id = $$props.profile_id);
     	};
 
     	return [
@@ -9092,7 +10347,9 @@ var app = (function () {
     		name,
     		about,
     		banner,
+    		ghUser,
     		publicKey,
+    		supportIdea,
     		click_handler,
     		click_handler_1
     	];
@@ -9105,7 +10362,7 @@ var app = (function () {
     	}
     }
 
-    /* src/App.svelte generated by Svelte v3.35.0 */
+    /* src/App.svelte generated by Svelte v3.59.1 */
 
     function create_default_slot(ctx) {
     	let div;
@@ -9124,7 +10381,10 @@ var app = (function () {
     	let t5;
     	let route5;
     	let current;
-    	route0 = new Route({ props: { path: "/", component: Login } });
+
+    	route0 = new Route({
+    			props: { path: "/", component: Overview }
+    		});
 
     	route1 = new Route({
     			props: { path: "/overview", component: Overview }

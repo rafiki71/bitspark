@@ -1,9 +1,8 @@
 <script>
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
-    import { get } from "svelte/store";
     import ProfileImg from "../components/ProfileImg.svelte";
+    import NostrHelper from "../NostrHelper.js";
 
     export let profile_id;
 
@@ -14,11 +13,15 @@
     let banner = "";
     let git_username = "";
     let git_proof = "";
+    let relays = [];
+    let bitstarterHelper = null;
+    let newRelay = "";
+    let nostrHelper = null
 
     onMount(async () => {
         try {
-            const bitstarterHelper = get(helperStore);
-            profile = await bitstarterHelper.getProfile(profile_id);
+            nostrHelper = await NostrHelper.create();
+            profile = await nostrHelper.getProfile(profile_id);
 
             if (profile) {
                 name = profile.name;
@@ -29,6 +32,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
+                relays = await nostrHelper.clientRelays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -37,7 +41,6 @@
 
     const updateProfile = async () => {
         try {
-            const bitstarterHelper = get(helperStore);
             const updatedIdentities =
                 profile && profile.identities
                     ? [
@@ -58,7 +61,7 @@
                           },
                       ];
             console.log(updatedIdentities);
-            await bitstarterHelper.updateProfile(
+            await nostrHelper.updateProfile(
                 name,
                 picture,
                 banner,
@@ -76,6 +79,31 @@
         e.target.style.height = "";
         e.target.style.height = e.target.scrollHeight + "px";
     }
+
+    const deleteRelay = async (relay) => {
+        try {
+            await bitstarterHelper.deleteRelay(relay);
+            relays = relays.filter(r => r !== relay);
+            // Remove relay from relays array
+        } catch (error) {
+            console.error("Error deleting relay:", error);
+        }
+    };
+
+    const addRelay = async () => {
+    try {
+        if (newRelay.trim()) {
+            await bitstarterHelper.addRelay(newRelay);
+            // Add the new relay to the local list
+            relays = [...bitstarterHelper.clientRelays];
+            newRelay = "";
+        }
+    } catch (error) {
+        console.error("Error adding relay:", error);
+    }
+};
+
+
 </script>
 
 <div>
@@ -236,6 +264,44 @@
                                                     bind:value={banner}
                                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
                                                 />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-10 py-10 border-t border-blueGray-200 text-center w-full">
+                                        <div class="flex flex-wrap justify-center">
+                                            <div class="w-full lg:w-9/12 px-4">
+                                                <div class="mt-6">
+                                                    <h2 class="text-lg text-blueGray-400 mb-4">Relays</h2>
+                                                    <div class="flex flex-col gap-2">
+                                                        {#each relays as relay}
+                                                        <div class="flex justify-between px-3 py-1 rounded-full bg-white-800 text-sm text-black shadow-md">
+                                                            <div>
+                                                                {relay}
+                                                            </div>
+                                                            <button 
+                                                                class="bg-red-500 w-5 h-5 rounded-full flex justify-center items-center"
+                                                                on:click={() => deleteRelay(relay)}
+                                                            >
+                                                                X <!-- Sie können hier ein Kreuzsymbol verwenden, wenn Sie eines haben -->
+                                                            </button>  
+                                                        </div>
+                                                        {/each}
+                                    
+                                                        <div class="flex justify-between items-center mt-4">
+                                                            <input
+                                                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                                bind:value={newRelay}
+                                                                placeholder="Enter relay URL..."
+                                                            />
+                                                            <button 
+                                                                class="bg-green-500 text-white font-bold py-2 px-4 rounded ml-2"
+                                                                on:click={addRelay}
+                                                            >
+                                                                Add
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
