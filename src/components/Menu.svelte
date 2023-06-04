@@ -83,6 +83,9 @@
             </div>
         </li>
         <li>
+            <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">Spark Idea</Link>
+        </li>             
+        <li>
             {#if !$menuState.use_extension}
                 <a href={link} class="menu-item" target="_blank">{optionText}</a
                 >
@@ -96,9 +99,6 @@
                 >
             {/if}
         </li>
-        <li>
-            <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">Spark Idea</Link>
-        </li>             
     </ul>
 </div>
 

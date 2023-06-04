@@ -7048,7 +7048,24 @@ var app = (function () {
     	};
     }
 
-    // (93:12) {:else}
+    // (86:12) <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">
+    function create_default_slot$3(ctx) {
+    	let t;
+
+    	return {
+    		c() {
+    			t = text("Spark Idea");
+    		},
+    		m(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(t);
+    		}
+    	};
+    }
+
+    // (96:12) {:else}
     function create_else_block(ctx) {
     	let button;
     	let mounted;
@@ -7081,7 +7098,7 @@ var app = (function () {
     	};
     }
 
-    // (89:43) 
+    // (92:43) 
     function create_if_block_1$2(ctx) {
     	let button;
     	let mounted;
@@ -7114,7 +7131,7 @@ var app = (function () {
     	};
     }
 
-    // (86:12) {#if !$menuState.use_extension}
+    // (89:12) {#if !$menuState.use_extension}
     function create_if_block$4(ctx) {
     	let a;
     	let t;
@@ -7138,23 +7155,6 @@ var app = (function () {
     	};
     }
 
-    // (100:12) <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">
-    function create_default_slot$3(ctx) {
-    	let t;
-
-    	return {
-    		c() {
-    			t = text("Spark Idea");
-    		},
-    		m(target, anchor) {
-    			insert(target, t, anchor);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(t);
-    		}
-    	};
-    }
-
     function create_fragment$7(ctx) {
     	let div2;
     	let ul;
@@ -7165,9 +7165,9 @@ var app = (function () {
     	let div1_class_value;
     	let t2;
     	let li1;
+    	let link_1;
     	let t3;
     	let li2;
-    	let link_1;
     	let current;
     	let mounted;
     	let dispose;
@@ -7182,15 +7182,6 @@ var app = (function () {
     		each_blocks[i] = null;
     	});
 
-    	function select_block_type(ctx, dirty) {
-    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$4;
-    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$2;
-    		return create_else_block;
-    	}
-
-    	let current_block_type = select_block_type(ctx);
-    	let if_block = current_block_type(ctx);
-
     	link_1 = new Link({
     			props: {
     				to: "/postidea",
@@ -7199,6 +7190,15 @@ var app = (function () {
     				$$scope: { ctx }
     			}
     		});
+
+    	function select_block_type(ctx, dirty) {
+    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$4;
+    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$2;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
 
     	return {
     		c() {
@@ -7216,10 +7216,10 @@ var app = (function () {
 
     			t2 = space();
     			li1 = element("li");
-    			if_block.c();
+    			create_component(link_1.$$.fragment);
     			t3 = space();
     			li2 = element("li");
-    			create_component(link_1.$$.fragment);
+    			if_block.c();
 
     			attr(div1, "class", div1_class_value = "" + (null_to_empty(/*showCategories*/ ctx[0]
     			? "categories"
@@ -7244,10 +7244,10 @@ var app = (function () {
 
     			append(ul, t2);
     			append(ul, li1);
-    			if_block.m(li1, null);
+    			mount_component(link_1, li1, null);
     			append(ul, t3);
     			append(ul, li2);
-    			mount_component(link_1, li2, null);
+    			if_block.m(li2, null);
     			current = true;
 
     			if (!mounted) {
@@ -7299,6 +7299,14 @@ var app = (function () {
     				attr(div1, "class", div1_class_value);
     			}
 
+    			const link_1_changes = {};
+
+    			if (dirty & /*$$scope*/ 32768) {
+    				link_1_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link_1.$set(link_1_changes);
+
     			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
     				if_block.p(ctx, dirty);
     			} else {
@@ -7307,17 +7315,9 @@ var app = (function () {
 
     				if (if_block) {
     					if_block.c();
-    					if_block.m(li1, null);
+    					if_block.m(li2, null);
     				}
     			}
-
-    			const link_1_changes = {};
-
-    			if (dirty & /*$$scope*/ 32768) {
-    				link_1_changes.$$scope = { dirty, ctx };
-    			}
-
-    			link_1.$set(link_1_changes);
     		},
     		i(local) {
     			if (current) return;
@@ -7342,8 +7342,8 @@ var app = (function () {
     		d(detaching) {
     			if (detaching) detach(div2);
     			destroy_each(each_blocks, detaching);
-    			if_block.d();
     			destroy_component(link_1);
+    			if_block.d();
     			mounted = false;
     			run_all(dispose);
     		}
