@@ -7,6 +7,7 @@
     onMount(async () => {});
     let ideaName = "";
     let ideaSubtitle = "";
+    let ideaAbstract = "";
     let ideaMessage = "";
     let ideaBannerUrl = "";
     let ideaGithubRepo = "";
@@ -50,6 +51,7 @@
         await helper.postIdea(
             ideaName,
             ideaSubtitle,
+            ideaAbstract,
             ideaMessage,
             ideaBannerUrl,
             ideaGithubRepo,
@@ -125,6 +127,17 @@
                             placeholder="Idea Subtitle"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             bind:value={ideaSubtitle}
+                            style="width: 90%;"
+                        />
+                    </div>
+                    
+                    <div class="mb-4">
+                        <textarea
+                            rows="1"
+                            placeholder="Abstract"
+                            class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
+                            bind:value={ideaAbstract}
+                            on:input={autoResizeTextarea}
                             style="width: 90%;"
                         />
                     </div>

@@ -45,6 +45,7 @@
           subtitle: tags.iSub,
           bannerImage: tags.ibUrl,
           message: idea.content,
+          abstract: tags.abstract
         };
 
         if (idea.githubVerified) {

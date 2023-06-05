@@ -8,7 +8,7 @@ export default class NostrHelper {
   constructor(write_mode) {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
-    this.idea_kind = 1338;
+    this.idea_kind = 1339;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -201,14 +201,16 @@ export default class NostrHelper {
     return event;
   }
 
-  async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
+  async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
     let tags = [
       ["iName", ideaName],
       ["iSub", ideaSubtitle],
       ["ibUrl", bannerUrl],
       ["gitrepo", githubRepo],
-      ["lnadress", lnAdress]
+      ["lnadress", lnAdress],
+      ["abstract", abstract]
+
     ];
 
     // Add each category to the tags

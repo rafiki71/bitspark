@@ -2101,8 +2101,9 @@ var app = (function () {
     	let t3;
     	let t4;
     	let p;
-    	let raw_value = truncateMessage(/*card*/ ctx[0].message, 700) + "";
+    	let t5_value = truncateMessage(/*card*/ ctx[0].abstract, 1000) + "";
     	let t5;
+    	let t6;
     	let div1;
     	let link;
     	let current;
@@ -2129,7 +2130,8 @@ var app = (function () {
     			t3 = text(t3_value);
     			t4 = space();
     			p = element("p");
-    			t5 = space();
+    			t5 = text(t5_value);
+    			t6 = space();
     			div1 = element("div");
     			create_component(link.$$.fragment);
     			if (!src_url_equal(img.src, img_src_value = /*card*/ ctx[0].bannerImage)) attr(img, "src", img_src_value);
@@ -2154,8 +2156,8 @@ var app = (function () {
     			append(h4, t3);
     			append(div0, t4);
     			append(div0, p);
-    			p.innerHTML = raw_value;
-    			append(div2, t5);
+    			append(p, t5);
+    			append(div2, t6);
     			append(div2, div1);
     			mount_component(link, div1, null);
     			current = true;
@@ -2167,7 +2169,8 @@ var app = (function () {
 
     			if ((!current || dirty & /*card*/ 1) && t1_value !== (t1_value = /*card*/ ctx[0].name + "")) set_data(t1, t1_value);
     			if ((!current || dirty & /*card*/ 1) && t3_value !== (t3_value = /*card*/ ctx[0].subtitle + "")) set_data(t3, t3_value);
-    			if ((!current || dirty & /*card*/ 1) && raw_value !== (raw_value = truncateMessage(/*card*/ ctx[0].message, 700) + "")) p.innerHTML = raw_value;			const link_changes = {};
+    			if ((!current || dirty & /*card*/ 1) && t5_value !== (t5_value = truncateMessage(/*card*/ ctx[0].abstract, 1000) + "")) set_data(t5, t5_value);
+    			const link_changes = {};
     			if (dirty & /*card*/ 1) link_changes.to = `/idea/${/*card*/ ctx[0].id}`;
 
     			if (dirty & /*$$scope*/ 2) {
@@ -6445,7 +6448,7 @@ var app = (function () {
       constructor(write_mode) {
         this.pool = new SimplePool();
         this.relays = [];//get set by initialize()
-        this.idea_kind = 1338;
+        this.idea_kind = 1339;
         this.write_mode = write_mode;
         this.publicKey = null;
         this.publicRelays = [];
@@ -6624,14 +6627,16 @@ var app = (function () {
         return event;
       }
 
-      async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
+      async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
         if (!this.write_mode) return; // Do nothing in read-only mode
         let tags = [
           ["iName", ideaName],
           ["iSub", ideaSubtitle],
           ["ibUrl", bannerUrl],
           ["gitrepo", githubRepo],
-          ["lnadress", lnAdress]
+          ["lnadress", lnAdress],
+          ["abstract", abstract]
+
         ];
 
         // Add each category to the tags
@@ -7448,7 +7453,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (116:10) {#if profile}
+    // (117:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7493,7 +7498,7 @@ var app = (function () {
     	};
     }
 
-    // (134:12) {#each verifiedCards as card}
+    // (135:12) {#each verifiedCards as card}
     function create_each_block_1(ctx) {
     	let div;
     	let ideacard;
@@ -7536,7 +7541,7 @@ var app = (function () {
     	};
     }
 
-    // (149:12) {#each unverifiedCards as card}
+    // (150:12) {#each unverifiedCards as card}
     function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
@@ -7893,7 +7898,8 @@ var app = (function () {
     					name: tags.iName,
     					subtitle: tags.iSub,
     					bannerImage: tags.ibUrl,
-    					message: idea.content
+    					message: idea.content,
+    					abstract: tags.abstract
     				};
 
     				if (idea.githubVerified) {
@@ -8871,11 +8877,11 @@ var app = (function () {
     	let section0;
     	let t5;
     	let section1;
+    	let div13;
     	let div12;
-    	let div11;
     	let h21;
     	let t7;
-    	let div10;
+    	let div11;
     	let div3;
     	let input0;
     	let t8;
@@ -8883,39 +8889,42 @@ var app = (function () {
     	let input1;
     	let t9;
     	let div5;
-    	let textarea;
+    	let textarea0;
     	let t10;
     	let div6;
-    	let input2;
+    	let textarea1;
     	let t11;
     	let div7;
-    	let input3;
+    	let input2;
     	let t12;
     	let div8;
-    	let input4;
+    	let input3;
     	let t13;
     	let div9;
+    	let input4;
+    	let t14;
+    	let div10;
     	let multiselectdropdown;
     	let updating_selected;
-    	let t14;
-    	let div13;
+    	let t15;
+    	let div14;
     	let button;
-    	let t16;
-    	let link;
     	let t17;
+    	let link;
+    	let t18;
     	let section2;
     	let current;
     	let mounted;
     	let dispose;
 
     	function multiselectdropdown_selected_binding(value) {
-    		/*multiselectdropdown_selected_binding*/ ctx[15](value);
+    		/*multiselectdropdown_selected_binding*/ ctx[17](value);
     	}
 
-    	let multiselectdropdown_props = { categories: /*categories*/ ctx[7] };
+    	let multiselectdropdown_props = { categories: /*categories*/ ctx[8] };
 
-    	if (/*selectedCategories*/ ctx[6] !== void 0) {
-    		multiselectdropdown_props.selected = /*selectedCategories*/ ctx[6];
+    	if (/*selectedCategories*/ ctx[7] !== void 0) {
+    		multiselectdropdown_props.selected = /*selectedCategories*/ ctx[7];
     	}
 
     	multiselectdropdown = new MultiSelectDropdown({ props: multiselectdropdown_props });
@@ -8944,12 +8953,12 @@ var app = (function () {
 
     			t5 = space();
     			section1 = element("section");
+    			div13 = element("div");
     			div12 = element("div");
-    			div11 = element("div");
     			h21 = element("h2");
     			h21.textContent = "Spark Idea";
     			t7 = space();
-    			div10 = element("div");
+    			div11 = element("div");
     			div3 = element("div");
     			input0 = element("input");
     			t8 = space();
@@ -8957,26 +8966,29 @@ var app = (function () {
     			input1 = element("input");
     			t9 = space();
     			div5 = element("div");
-    			textarea = element("textarea");
+    			textarea0 = element("textarea");
     			t10 = space();
     			div6 = element("div");
-    			input2 = element("input");
+    			textarea1 = element("textarea");
     			t11 = space();
     			div7 = element("div");
-    			input3 = element("input");
+    			input2 = element("input");
     			t12 = space();
     			div8 = element("div");
-    			input4 = element("input");
+    			input3 = element("input");
     			t13 = space();
     			div9 = element("div");
-    			create_component(multiselectdropdown.$$.fragment);
+    			input4 = element("input");
     			t14 = space();
-    			div13 = element("div");
+    			div10 = element("div");
+    			create_component(multiselectdropdown.$$.fragment);
+    			t15 = space();
+    			div14 = element("div");
     			button = element("button");
     			button.textContent = "Spark Idea";
-    			t16 = space();
-    			create_component(link.$$.fragment);
     			t17 = space();
+    			create_component(link.$$.fragment);
+    			t18 = space();
     			section2 = element("section");
     			attr(section0, "class", "relative block h-500-px");
     			attr(h21, "class", "text-2xl font-semibold mb-4");
@@ -8990,32 +9002,37 @@ var app = (function () {
     			attr(input1, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input1, "width", "90%");
     			attr(div4, "class", "mb-4");
-    			attr(textarea, "rows", "1");
-    			attr(textarea, "placeholder", "Description");
-    			attr(textarea, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
-    			set_style(textarea, "width", "90%");
+    			attr(textarea0, "rows", "1");
+    			attr(textarea0, "placeholder", "Abstract");
+    			attr(textarea0, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
+    			set_style(textarea0, "width", "90%");
     			attr(div5, "class", "mb-4");
+    			attr(textarea1, "rows", "1");
+    			attr(textarea1, "placeholder", "Description");
+    			attr(textarea1, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden");
+    			set_style(textarea1, "width", "90%");
+    			attr(div6, "class", "mb-4");
     			attr(input2, "type", "text");
     			attr(input2, "placeholder", "Banner URL");
     			attr(input2, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input2, "width", "90%");
-    			attr(div6, "class", "mb-4");
+    			attr(div7, "class", "mb-4");
     			attr(input3, "type", "text");
     			attr(input3, "placeholder", "GitHub Repository");
     			attr(input3, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input3, "width", "90%");
-    			attr(div7, "class", "mb-4");
+    			attr(div8, "class", "mb-4");
     			attr(input4, "type", "text");
     			attr(input4, "placeholder", "Lightning Address");
     			attr(input4, "class", "flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50");
     			set_style(input4, "width", "90%");
-    			attr(div9, "class", "mb-4 mt-4");
-    			set_style(div9, "width", "90%");
-    			attr(div11, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
-    			set_style(div11, "width", "100%");
-    			attr(div12, "class", "container mx-auto px-4");
+    			attr(div10, "class", "mb-4 mt-4");
+    			set_style(div10, "width", "90%");
+    			attr(div12, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
+    			set_style(div12, "width", "100%");
+    			attr(div13, "class", "container mx-auto px-4");
     			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mt-2");
-    			attr(div13, "class", "container mx-auto px-4 flex justify-end");
+    			attr(div14, "class", "container mx-auto px-4 flex justify-end");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(section2, "class", "relative pb-16");
     			attr(main, "class", "profile-page");
@@ -9025,56 +9042,62 @@ var app = (function () {
     			append(main, section0);
     			append(main, t5);
     			append(main, section1);
-    			append(section1, div12);
+    			append(section1, div13);
+    			append(div13, div12);
+    			append(div12, h21);
+    			append(div12, t7);
     			append(div12, div11);
-    			append(div11, h21);
-    			append(div11, t7);
-    			append(div11, div10);
-    			append(div10, div3);
+    			append(div11, div3);
     			append(div3, input0);
     			set_input_value(input0, /*ideaName*/ ctx[0]);
-    			append(div10, t8);
-    			append(div10, div4);
+    			append(div11, t8);
+    			append(div11, div4);
     			append(div4, input1);
     			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
-    			append(div10, t9);
-    			append(div10, div5);
-    			append(div5, textarea);
-    			set_input_value(textarea, /*ideaMessage*/ ctx[2]);
-    			append(div10, t10);
-    			append(div10, div6);
-    			append(div6, input2);
-    			set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
-    			append(div10, t11);
-    			append(div10, div7);
-    			append(div7, input3);
-    			set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
-    			append(div10, t12);
-    			append(div10, div8);
-    			append(div8, input4);
-    			set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
-    			append(div10, t13);
-    			append(div10, div9);
-    			mount_component(multiselectdropdown, div9, null);
-    			append(section1, t14);
-    			append(section1, div13);
-    			append(div13, button);
-    			append(div13, t16);
-    			mount_component(link, div13, null);
-    			append(main, t17);
+    			append(div11, t9);
+    			append(div11, div5);
+    			append(div5, textarea0);
+    			set_input_value(textarea0, /*ideaAbstract*/ ctx[2]);
+    			append(div11, t10);
+    			append(div11, div6);
+    			append(div6, textarea1);
+    			set_input_value(textarea1, /*ideaMessage*/ ctx[3]);
+    			append(div11, t11);
+    			append(div11, div7);
+    			append(div7, input2);
+    			set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
+    			append(div11, t12);
+    			append(div11, div8);
+    			append(div8, input3);
+    			set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
+    			append(div11, t13);
+    			append(div11, div9);
+    			append(div9, input4);
+    			set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
+    			append(div11, t14);
+    			append(div11, div10);
+    			mount_component(multiselectdropdown, div10, null);
+    			append(section1, t15);
+    			append(section1, div14);
+    			append(div14, button);
+    			append(div14, t17);
+    			mount_component(link, div14, null);
+    			append(main, t18);
     			append(main, section2);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[10]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[11]),
-    					listen(textarea, "input", autoResizeTextarea$1),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[12]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[13]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[14]),
-    					listen(button, "click", /*postIdea*/ ctx[8])
+    					listen(input0, "input", /*input0_input_handler*/ ctx[10]),
+    					listen(input1, "input", /*input1_input_handler*/ ctx[11]),
+    					listen(textarea0, "input", /*textarea0_input_handler*/ ctx[12]),
+    					listen(textarea0, "input", autoResizeTextarea$1),
+    					listen(textarea1, "input", /*textarea1_input_handler*/ ctx[13]),
+    					listen(textarea1, "input", autoResizeTextarea$1),
+    					listen(input2, "input", /*input2_input_handler*/ ctx[14]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[15]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[16]),
+    					listen(button, "click", /*postIdea*/ ctx[9])
     				];
 
     				mounted = true;
@@ -9089,34 +9112,38 @@ var app = (function () {
     				set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
     			}
 
-    			if (dirty & /*ideaMessage*/ 4) {
-    				set_input_value(textarea, /*ideaMessage*/ ctx[2]);
+    			if (dirty & /*ideaAbstract*/ 4) {
+    				set_input_value(textarea0, /*ideaAbstract*/ ctx[2]);
     			}
 
-    			if (dirty & /*ideaBannerUrl*/ 8 && input2.value !== /*ideaBannerUrl*/ ctx[3]) {
-    				set_input_value(input2, /*ideaBannerUrl*/ ctx[3]);
+    			if (dirty & /*ideaMessage*/ 8) {
+    				set_input_value(textarea1, /*ideaMessage*/ ctx[3]);
     			}
 
-    			if (dirty & /*ideaGithubRepo*/ 16 && input3.value !== /*ideaGithubRepo*/ ctx[4]) {
-    				set_input_value(input3, /*ideaGithubRepo*/ ctx[4]);
+    			if (dirty & /*ideaBannerUrl*/ 16 && input2.value !== /*ideaBannerUrl*/ ctx[4]) {
+    				set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
     			}
 
-    			if (dirty & /*ideaLightningAddress*/ 32 && input4.value !== /*ideaLightningAddress*/ ctx[5]) {
-    				set_input_value(input4, /*ideaLightningAddress*/ ctx[5]);
+    			if (dirty & /*ideaGithubRepo*/ 32 && input3.value !== /*ideaGithubRepo*/ ctx[5]) {
+    				set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
+    			}
+
+    			if (dirty & /*ideaLightningAddress*/ 64 && input4.value !== /*ideaLightningAddress*/ ctx[6]) {
+    				set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
     			}
 
     			const multiselectdropdown_changes = {};
 
-    			if (!updating_selected && dirty & /*selectedCategories*/ 64) {
+    			if (!updating_selected && dirty & /*selectedCategories*/ 128) {
     				updating_selected = true;
-    				multiselectdropdown_changes.selected = /*selectedCategories*/ ctx[6];
+    				multiselectdropdown_changes.selected = /*selectedCategories*/ ctx[7];
     				add_flush_callback(() => updating_selected = false);
     			}
 
     			multiselectdropdown.$set(multiselectdropdown_changes);
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 65536) {
+    			if (dirty & /*$$scope*/ 262144) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -9155,6 +9182,7 @@ var app = (function () {
 
     	let ideaName = "";
     	let ideaSubtitle = "";
+    	let ideaAbstract = "";
     	let ideaMessage = "";
     	let ideaBannerUrl = "";
     	let ideaGithubRepo = "";
@@ -9192,7 +9220,7 @@ var app = (function () {
 
     	async function postIdea() {
     		const helper = await NostrHelper.create();
-    		await helper.postIdea(ideaName, ideaSubtitle, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
+    		await helper.postIdea(ideaName, ideaSubtitle, ideaAbstract, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
     	}
 
     	function input0_input_handler() {
@@ -9205,34 +9233,40 @@ var app = (function () {
     		$$invalidate(1, ideaSubtitle);
     	}
 
-    	function textarea_input_handler() {
+    	function textarea0_input_handler() {
+    		ideaAbstract = this.value;
+    		$$invalidate(2, ideaAbstract);
+    	}
+
+    	function textarea1_input_handler() {
     		ideaMessage = this.value;
-    		$$invalidate(2, ideaMessage);
+    		$$invalidate(3, ideaMessage);
     	}
 
     	function input2_input_handler() {
     		ideaBannerUrl = this.value;
-    		$$invalidate(3, ideaBannerUrl);
+    		$$invalidate(4, ideaBannerUrl);
     	}
 
     	function input3_input_handler() {
     		ideaGithubRepo = this.value;
-    		$$invalidate(4, ideaGithubRepo);
+    		$$invalidate(5, ideaGithubRepo);
     	}
 
     	function input4_input_handler() {
     		ideaLightningAddress = this.value;
-    		$$invalidate(5, ideaLightningAddress);
+    		$$invalidate(6, ideaLightningAddress);
     	}
 
     	function multiselectdropdown_selected_binding(value) {
     		selectedCategories = value;
-    		$$invalidate(6, selectedCategories);
+    		$$invalidate(7, selectedCategories);
     	}
 
     	return [
     		ideaName,
     		ideaSubtitle,
+    		ideaAbstract,
     		ideaMessage,
     		ideaBannerUrl,
     		ideaGithubRepo,
@@ -9242,7 +9276,8 @@ var app = (function () {
     		postIdea,
     		input0_input_handler,
     		input1_input_handler,
-    		textarea_input_handler,
+    		textarea0_input_handler,
+    		textarea1_input_handler,
     		input2_input_handler,
     		input3_input_handler,
     		input4_input_handler,
