@@ -29,7 +29,6 @@
 
   async function fetchData() {
     try {
-      
       const nostrHelper = await NostrHelper.create();
       const fetchedIdea = await nostrHelper.getEvent(id);
 
@@ -48,6 +47,7 @@
         githubRepo: tags.gitrepo,
         lnAdress: tags.lnadress,
         pubkey: fetchedIdea.pubkey,
+        abstract: tags.abstract,
       };
       // Laden Sie das Profil des Erstellers der Idee
       creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey);
@@ -118,7 +118,9 @@
           <h2 class="text-2xl font-light text-white">{idea.subtitle}</h2>
 
           <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-          <div class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6">
+          <div
+            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
+          >
             <button on:click={supportIdea} style="padding: 0;">
               <img
                 src="../../img/lightning.png"
@@ -174,12 +176,31 @@
               >
                 {idea.name}
               </h3>
+              <h2
+                class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
+              >
+                {"Abstract"}
+              </h2>
+              <p
+                class="message-text"
+                style="width: 70%; margin: 2rem auto; text-align: justify; font-size: 1.2em; line-height: 1.6em;"
+              >
+                {idea.abstract}
+              </p>
+              <hr class="my-6" />
+              <!-- Strich -->
+              <h2
+                class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
+              >
+                {idea.name}
+              </h2>
               <p
                 class="message-text"
                 style="width: 70%; margin: 0 auto; text-align: justify;"
               >
                 {@html idea.message}
               </p>
+
               <hr class="my-4" />
               <!-- Strich -->
               <div class="flex items-center justify-center gap-4">

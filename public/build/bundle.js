@@ -7953,7 +7953,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (129:12) {#if creator_profile && creator_profile.picture}
+    // (131:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1$1(ctx) {
     	let div;
     	let profileimg;
@@ -7998,7 +7998,7 @@ var app = (function () {
     	};
     }
 
-    // (211:16) {#if comment.picture}
+    // (232:16) {#if comment.picture}
     function create_if_block$2(ctx) {
     	let div;
     	let profileimg;
@@ -8043,7 +8043,7 @@ var app = (function () {
     	};
     }
 
-    // (209:12) {#each comments as comment (comment.id)}
+    // (230:12) {#each comments as comment (comment.id)}
     function create_each_block$2(key_1, ctx) {
     	let li;
     	let t0;
@@ -8136,7 +8136,7 @@ var app = (function () {
     	};
     }
 
-    // (245:8) <Link to="/overview">
+    // (266:8) <Link to="/overview">
     function create_default_slot$2(ctx) {
     	let button;
 
@@ -8169,7 +8169,7 @@ var app = (function () {
     	let t1_value = /*idea*/ ctx[0].name + "";
     	let t1;
     	let t2;
-    	let h2;
+    	let h20;
     	let t3_value = /*idea*/ ctx[0].subtitle + "";
     	let t3;
     	let t4;
@@ -8192,30 +8192,42 @@ var app = (function () {
     	let t9_value = /*idea*/ ctx[0].name + "";
     	let t9;
     	let t10;
-    	let p0;
-    	let raw_value = /*idea*/ ctx[0].message + "";
-    	let t11;
-    	let hr;
+    	let h21;
     	let t12;
-    	let div4;
-    	let p1;
+    	let p0;
+    	let t13_value = /*idea*/ ctx[0].abstract + "";
+    	let t13;
     	let t14;
-    	let button1;
+    	let hr0;
     	let t15;
+    	let h22;
+    	let t16_value = /*idea*/ ctx[0].name + "";
+    	let t16;
+    	let t17;
+    	let p1;
+    	let raw_value = /*idea*/ ctx[0].message + "";
+    	let t18;
+    	let hr1;
+    	let t19;
+    	let div4;
+    	let p2;
+    	let t21;
+    	let button1;
+    	let t22;
     	let div9;
     	let h4;
-    	let t17;
+    	let t24;
     	let ul;
     	let each_blocks = [];
     	let each_1_lookup = new Map();
-    	let t18;
+    	let t25;
     	let div8;
     	let label;
-    	let t20;
+    	let t27;
     	let textarea;
-    	let t21;
+    	let t28;
     	let button2;
-    	let t23;
+    	let t30;
     	let link;
     	let current;
     	let mounted;
@@ -8250,7 +8262,7 @@ var app = (function () {
     			h1 = element("h1");
     			t1 = text(t1_value);
     			t2 = space();
-    			h2 = element("h2");
+    			h20 = element("h2");
     			t3 = text(t3_value);
     			t4 = space();
     			div0 = element("div");
@@ -8273,42 +8285,53 @@ var app = (function () {
     			h3 = element("h3");
     			t9 = text(t9_value);
     			t10 = space();
-    			p0 = element("p");
-    			t11 = space();
-    			hr = element("hr");
+    			h21 = element("h2");
+    			h21.textContent = `${"Abstract"}`;
     			t12 = space();
-    			div4 = element("div");
-    			p1 = element("p");
-    			p1.textContent = "Support via";
+    			p0 = element("p");
+    			t13 = text(t13_value);
     			t14 = space();
+    			hr0 = element("hr");
+    			t15 = space();
+    			h22 = element("h2");
+    			t16 = text(t16_value);
+    			t17 = space();
+    			p1 = element("p");
+    			t18 = space();
+    			hr1 = element("hr");
+    			t19 = space();
+    			div4 = element("div");
+    			p2 = element("p");
+    			p2.textContent = "Support via";
+    			t21 = space();
     			button1 = element("button");
     			button1.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
-    			t15 = space();
+    			t22 = space();
     			div9 = element("div");
     			h4 = element("h4");
     			h4.textContent = "Kommentare";
-    			t17 = space();
+    			t24 = space();
     			ul = element("ul");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t18 = space();
+    			t25 = space();
     			div8 = element("div");
     			label = element("label");
     			label.textContent = "Dein Kommentar:";
-    			t20 = space();
+    			t27 = space();
     			textarea = element("textarea");
-    			t21 = space();
+    			t28 = space();
     			button2 = element("button");
     			button2.textContent = "Kommentar absenden";
-    			t23 = space();
+    			t30 = space();
     			create_component(link.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
-    			attr(h2, "class", "text-2xl font-light text-white");
+    			attr(h20, "class", "text-2xl font-light text-white");
     			set_style(button0, "padding", "0");
     			attr(i, "class", "fab fa-github text-white");
     			set_style(i, "font-size", "2.5rem");
@@ -8322,12 +8345,21 @@ var app = (function () {
     			set_style(div3, "transform", "translateZ(0)");
     			attr(section0, "class", "relative block h-500-px");
     			attr(h3, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700");
+    			attr(h21, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6");
     			attr(p0, "class", "message-text");
     			set_style(p0, "width", "70%");
-    			set_style(p0, "margin", "0 auto");
+    			set_style(p0, "margin", "2rem auto");
     			set_style(p0, "text-align", "justify");
-    			attr(hr, "class", "my-4");
-    			attr(p1, "class", "mb-0");
+    			set_style(p0, "font-size", "1.2em");
+    			set_style(p0, "line-height", "1.6em");
+    			attr(hr0, "class", "my-6");
+    			attr(h22, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6");
+    			attr(p1, "class", "message-text");
+    			set_style(p1, "width", "70%");
+    			set_style(p1, "margin", "0 auto");
+    			set_style(p1, "text-align", "justify");
+    			attr(hr1, "class", "my-4");
+    			attr(p2, "class", "mb-0");
     			set_style(button1, "padding", "0");
     			set_style(button1, "display", "flex");
     			set_style(button1, "align-items", "center");
@@ -8360,8 +8392,8 @@ var app = (function () {
     			append(div1, h1);
     			append(h1, t1);
     			append(div1, t2);
-    			append(div1, h2);
-    			append(h2, t3);
+    			append(div1, h20);
+    			append(h20, t3);
     			append(div1, t4);
     			append(div1, div0);
     			append(div0, button0);
@@ -8381,19 +8413,29 @@ var app = (function () {
     			append(div5, h3);
     			append(h3, t9);
     			append(div5, t10);
-    			append(div5, p0);
-    			p0.innerHTML = raw_value;
-    			append(div5, t11);
-    			append(div5, hr);
+    			append(div5, h21);
     			append(div5, t12);
+    			append(div5, p0);
+    			append(p0, t13);
+    			append(div5, t14);
+    			append(div5, hr0);
+    			append(div5, t15);
+    			append(div5, h22);
+    			append(h22, t16);
+    			append(div5, t17);
+    			append(div5, p1);
+    			p1.innerHTML = raw_value;
+    			append(div5, t18);
+    			append(div5, hr1);
+    			append(div5, t19);
     			append(div5, div4);
-    			append(div4, p1);
-    			append(div4, t14);
+    			append(div4, p2);
+    			append(div4, t21);
     			append(div4, button1);
-    			append(div10, t15);
+    			append(div10, t22);
     			append(div10, div9);
     			append(div9, h4);
-    			append(div9, t17);
+    			append(div9, t24);
     			append(div9, ul);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -8402,15 +8444,15 @@ var app = (function () {
     				}
     			}
 
-    			append(div9, t18);
+    			append(div9, t25);
     			append(div9, div8);
     			append(div8, label);
-    			append(div8, t20);
+    			append(div8, t27);
     			append(div8, textarea);
     			set_input_value(textarea, /*newComment*/ ctx[2]);
-    			append(div8, t21);
+    			append(div8, t28);
     			append(div8, button2);
-    			append(div10, t23);
+    			append(div10, t30);
     			mount_component(link, div10, null);
     			current = true;
 
@@ -8461,7 +8503,9 @@ var app = (function () {
     			}
 
     			if ((!current || dirty & /*idea*/ 1) && t9_value !== (t9_value = /*idea*/ ctx[0].name + "")) set_data(t9, t9_value);
-    			if ((!current || dirty & /*idea*/ 1) && raw_value !== (raw_value = /*idea*/ ctx[0].message + "")) p0.innerHTML = raw_value;
+    			if ((!current || dirty & /*idea*/ 1) && t13_value !== (t13_value = /*idea*/ ctx[0].abstract + "")) set_data(t13, t13_value);
+    			if ((!current || dirty & /*idea*/ 1) && t16_value !== (t16_value = /*idea*/ ctx[0].name + "")) set_data(t16, t16_value);
+    			if ((!current || dirty & /*idea*/ 1) && raw_value !== (raw_value = /*idea*/ ctx[0].message + "")) p1.innerHTML = raw_value;
     			if (dirty & /*comments*/ 2) {
     				each_value = /*comments*/ ctx[1];
     				group_outros();
@@ -8554,7 +8598,8 @@ var app = (function () {
     				message: fetchedIdea.content,
     				githubRepo: tags.gitrepo,
     				lnAdress: tags.lnadress,
-    				pubkey: fetchedIdea.pubkey
+    				pubkey: fetchedIdea.pubkey,
+    				abstract: tags.abstract
     			});
 
     			// Laden Sie das Profil des Erstellers der Idee

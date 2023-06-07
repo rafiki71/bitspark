@@ -13,6 +13,13 @@ RUN npm install nostr-tools
 # Tailwind CSS und FontAwesome bauen
 RUN npm run build:tailwind
 RUN npm run build:fontawesome
+RUN npm install --save websocket-polyfill
+RUN npm install --save-dev @rollup/plugin-json
+RUN npm install svelte-spa-router
+RUN npm install --save-dev rollup-plugin-image
+RUN npm install --save-dev rollup-plugin-url
+RUN npm install --save-dev rollup-plugin-postcss
+
 
 # Port 5000 für den Entwicklungsserver verfügbar machen
 #EXPOSE 5000
