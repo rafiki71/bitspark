@@ -6958,7 +6958,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (79:20) <Link to={`/overview/${category}`}                         >
+    // (105:20) <Link to={`/overview/${category}`}                         >
     function create_default_slot_1(ctx) {
     	let div;
     	let t_value = /*category*/ ctx[12] + "";
@@ -6981,7 +6981,7 @@ var app = (function () {
     	};
     }
 
-    // (78:16) {#each categories as category}
+    // (104:16) {#each categories as category}
     function create_each_block$4(ctx) {
     	let link_1;
     	let current;
@@ -7026,7 +7026,7 @@ var app = (function () {
     	};
     }
 
-    // (86:12) <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">
+    // (112:12) <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">
     function create_default_slot$3(ctx) {
     	let t;
 
@@ -7043,7 +7043,7 @@ var app = (function () {
     	};
     }
 
-    // (96:12) {:else}
+    // (122:12) {:else}
     function create_else_block(ctx) {
     	let button;
     	let mounted;
@@ -7076,7 +7076,7 @@ var app = (function () {
     	};
     }
 
-    // (92:43) 
+    // (118:43) 
     function create_if_block_1$2(ctx) {
     	let button;
     	let mounted;
@@ -7109,7 +7109,7 @@ var app = (function () {
     	};
     }
 
-    // (89:12) {#if !$menuState.use_extension}
+    // (115:12) {#if !$menuState.use_extension}
     function create_if_block$4(ctx) {
     	let a;
     	let t;
@@ -7336,7 +7336,35 @@ var app = (function () {
     	const menuState = writable({ logged_in: false, use_extension: false });
     	component_subscribe($$self, menuState, value => $$invalidate(1, $menuState = value));
     	let nostrHelper = null;
-    	const categories = ["Category 1", "Category 2", "Category 3"];
+
+    	let categories = [
+    		"Art & Design",
+    		"Bitcoin & P2P",
+    		"Comics & Graphic Novels",
+    		"Crafts & DIY",
+    		"Fashion & Beauty",
+    		"Film, Video & Animation",
+    		"Food & Beverages",
+    		"Games & Gaming",
+    		"Health & Fitness",
+    		"Journalism & News",
+    		"Music & Audio",
+    		"Photography & Visual Arts",
+    		"Publishing & Writing",
+    		"Technology & Software",
+    		"Education & Learning",
+    		"Environment & Sustainability",
+    		"Sports & Outdoors",
+    		"Travel & Tourism",
+    		"Non-Profit & Social Causes",
+    		"Business & Entrepreneurship",
+    		"Science & Research",
+    		"Home & Lifestyle",
+    		"Automotive & Transportation",
+    		"Pets & Animals",
+    		"Parenting & Family"
+    	];
+
     	let showCategories = false;
     	let timeoutId;
 
@@ -7416,17 +7444,17 @@ var app = (function () {
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[9] = list[i];
+    	child_ctx[10] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[9] = list[i];
+    	child_ctx[10] = list[i];
     	return child_ctx;
     }
 
-    // (127:10) {#if profile}
+    // (125:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7471,13 +7499,13 @@ var app = (function () {
     	};
     }
 
-    // (145:12) {#each verifiedCards as card}
+    // (143:12) {#each verifiedCards as card}
     function create_each_block_1(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[9] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[10] } });
 
     	return {
     		c() {
@@ -7495,7 +7523,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[9];
+    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[10];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7514,13 +7542,13 @@ var app = (function () {
     	};
     }
 
-    // (160:12) {#each unverifiedCards as card}
+    // (158:12) {#each unverifiedCards as card}
     function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[9] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[10] } });
 
     	return {
     		c() {
@@ -7538,7 +7566,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[9];
+    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[10];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7842,7 +7870,6 @@ var app = (function () {
     	let verifiedCards = [];
     	let unverifiedCards = [];
     	let publicKey = "";
-    	let profilePicture = "";
     	let profile = null;
     	let menuState = { logged_in: false, use_extension: true };
     	let { category } = $$props;
@@ -7851,16 +7878,14 @@ var app = (function () {
     		const nostrHelper = await NostrHelper.create();
     		publicKey = nostrHelper.publicKey;
     		$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
-    		profilePicture = profile.picture;
+    		profile.picture;
     	}
 
-    	onMount(async () => {
+    	async function fetchIdeas() {
+    		console.log("fetchIdeas");
+
     		try {
     			const nostrHelper = await NostrHelper.create();
-    			publicKey = nostrHelper.publicKey;
-    			$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
-    			profilePicture = profile.picture;
-    			console.log("category:", category);
     			let ideas;
 
     			if (category) {
@@ -7898,6 +7923,11 @@ var app = (function () {
     		} catch(error) {
     			console.error("Error fetching cards:", error);
     		}
+    	}
+
+    	onMount(async () => {
+    		update();
+    		fetchIdeas();
     	});
 
     	$$self.$$set = $$props => {
@@ -7906,11 +7936,11 @@ var app = (function () {
 
     	$$self.$$.update = () => {
     		if ($$self.$$.dirty & /*$helperStore*/ 32) {
-    			if ($helperStore) {
-    				update();
-    			} else {
-    				update();
-    			}
+    			(update(), $helperStore);
+    		}
+
+    		if ($$self.$$.dirty & /*category*/ 16) {
+    			(fetchIdeas(), category);
     		}
     	};
 

@@ -27,18 +27,14 @@
     profilePicture = profile.picture;
   }
 
-  onMount(async () => {
+  async function fetchIdeas() {
+    console.log("fetchIdeas");
     try {
       const nostrHelper = await NostrHelper.create();
-      publicKey = nostrHelper.publicKey;
-      profile = await nostrHelper.getProfile(publicKey);
-      profilePicture = profile.picture;
-      console.log("category:", category);
       let ideas;
-      if(category) {
+      if (category) {
         ideas = await nostrHelper.getIdeas([category]);
-      }
-      else {
+      } else {
         ideas = await nostrHelper.getIdeas();
       }
 
@@ -55,7 +51,7 @@
           subtitle: tags.iSub,
           bannerImage: tags.ibUrl,
           message: idea.content,
-          abstract: tags.abstract
+          abstract: tags.abstract,
         };
 
         if (idea.githubVerified) {
@@ -70,13 +66,15 @@
     } catch (error) {
       console.error("Error fetching cards:", error);
     }
+  }
+
+  onMount(async () => {
+    update();
+    fetchIdeas();
   });
 
-  $: if ($helperStore) {
-    update();
-  } else {
-    update();
-  }
+  $: update(), $helperStore
+  $: fetchIdeas(), category
 </script>
 
 <div style="position: relative;">
