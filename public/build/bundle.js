@@ -6649,8 +6649,18 @@ var app = (function () {
         return await this.sendEvent(ideaEvent);
       }
 
-      async getIdeas() {
-        const filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
+      async getIdeas(categories = []) {
+        let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
+
+        if (categories.length > 0) {
+          filters = [];
+          categories.forEach(category => {
+              filters.push({ kinds: [this.idea_kind], '#s': ['bitspark'], '#c': [category] });
+          });
+        }
+
+        console.log("Filters:", filters);
+        
         let ideas = await this.pool.list(this.relays, filters);
 
         // Get the profiles for each idea and store them in the ideas
@@ -6909,43 +6919,6 @@ var app = (function () {
       unsubscribe();
       return storedInstance;
     };
-
-
-    /*
-    (async function() {
-      const bitstarter = new BitstarterHelper('360dc1e47a2170c3a7477b3a401c10039354c073128f6f673bf5c9d5e12922c5');
-      // Hole alle Ideen
-      const allIdeas = await bitstarter.getIdeas();
-      console.log('Alle Ideen:', allIdeas);
-      // Erstelle eine neue Idee
-      const ideaId = await bitstarter.postIdea("Testidee", "beste testidee ever", "Testidee", "url2banner", "github.com/user/repo", "somelnadress")
-      console.log('Idee erstellt mit ID:', ideaId);
-      
-      // Poste einen Kommentar
-      const comment = 'Das ist ja super';
-      const commentid = await bitstarter.postComment(ideaId, comment);
-      console.log('Kommentar gepostet:', commentid);
-      
-      // Like die Idee
-      const likeid = await bitstarter.likeEvent(ideaId);
-      console.log('Idee geliked:', likeid);
-      
-      
-      // Hole die erstellte Idee
-      const loadedIdea = await bitstarter.getEvent('9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b');
-      console.log('Geladene Idee:', loadedIdea);
-      
-      const loadedComment = await bitstarter.getEvent("3ad172b7463befc27b17f8edb245f5d95b25486116aa57ddcdcc10ae3d7cc304");
-      console.log('Geladener Kommentar:', loadedComment);
-      
-      // Hole die Anzahl der Likes und Kommentare der Idee
-      const likes = await bitstarter.getLikes("9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b");
-      console.log('Anzahl Likes:', likes);
-      
-      const comments = await bitstarter.getComments("9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b");
-      console.log('Anzahl Kommentare:', comments.length);
-    })();
-    */
 
     function styleInject(css, ref) {
       if ( ref === void 0 ) ref = {};
@@ -7443,17 +7416,17 @@ var app = (function () {
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[8] = list[i];
+    	child_ctx[9] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[8] = list[i];
+    	child_ctx[9] = list[i];
     	return child_ctx;
     }
 
-    // (117:10) {#if profile}
+    // (127:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7498,13 +7471,13 @@ var app = (function () {
     	};
     }
 
-    // (135:12) {#each verifiedCards as card}
+    // (145:12) {#each verifiedCards as card}
     function create_each_block_1(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[9] } });
 
     	return {
     		c() {
@@ -7522,7 +7495,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[8];
+    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[9];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7541,13 +7514,13 @@ var app = (function () {
     	};
     }
 
-    // (150:12) {#each unverifiedCards as card}
+    // (160:12) {#each unverifiedCards as card}
     function create_each_block$3(ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[8] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[9] } });
 
     	return {
     		c() {
@@ -7565,7 +7538,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[8];
+    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[9];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7865,13 +7838,14 @@ var app = (function () {
 
     function instance$5($$self, $$props, $$invalidate) {
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(4, $helperStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(5, $helperStore = $$value));
     	let verifiedCards = [];
     	let unverifiedCards = [];
     	let publicKey = "";
     	let profilePicture = "";
     	let profile = null;
     	let menuState = { logged_in: false, use_extension: true };
+    	let { category } = $$props;
 
     	async function update() {
     		const nostrHelper = await NostrHelper.create();
@@ -7886,7 +7860,15 @@ var app = (function () {
     			publicKey = nostrHelper.publicKey;
     			$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
     			profilePicture = profile.picture;
-    			const ideas = await nostrHelper.getIdeas();
+    			console.log("category:", category);
+    			let ideas;
+
+    			if (category) {
+    				ideas = await nostrHelper.getIdeas([category]);
+    			} else {
+    				ideas = await nostrHelper.getIdeas();
+    			}
+
     			let verified = [];
     			let unverified = [];
 
@@ -7918,8 +7900,12 @@ var app = (function () {
     		}
     	});
 
+    	$$self.$$set = $$props => {
+    		if ('category' in $$props) $$invalidate(4, category = $$props.category);
+    	};
+
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$helperStore*/ 16) {
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
     			if ($helperStore) {
     				update();
     			} else {
@@ -7928,13 +7914,13 @@ var app = (function () {
     		}
     	};
 
-    	return [verifiedCards, unverifiedCards, profile, menuState, $helperStore];
+    	return [verifiedCards, unverifiedCards, profile, menuState, category, $helperStore];
     }
 
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$5, create_fragment$6, safe_not_equal, {});
+    		init(this, options, instance$5, create_fragment$6, safe_not_equal, { category: 4 });
     	}
     }
 
@@ -10467,7 +10453,10 @@ var app = (function () {
     		});
 
     	route1 = new Route({
-    			props: { path: "/overview", component: Overview }
+    			props: {
+    				path: "/overview/:category",
+    				component: Overview
+    			}
     		});
 
     	route2 = new Route({

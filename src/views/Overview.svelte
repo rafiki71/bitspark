@@ -18,6 +18,8 @@
   let profile = null;
   let menuState = { logged_in: false, use_extension: true };
 
+  export let category;
+
   async function update() {
     const nostrHelper = await NostrHelper.create();
     publicKey = nostrHelper.publicKey;
@@ -31,7 +33,15 @@
       publicKey = nostrHelper.publicKey;
       profile = await nostrHelper.getProfile(publicKey);
       profilePicture = profile.picture;
-      const ideas = await nostrHelper.getIdeas();
+      console.log("category:", category);
+      let ideas;
+      if(category) {
+        ideas = await nostrHelper.getIdeas([category]);
+      }
+      else {
+        ideas = await nostrHelper.getIdeas();
+      }
+
       let verified = [];
       let unverified = [];
       ideas.forEach((idea) => {
