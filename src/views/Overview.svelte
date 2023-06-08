@@ -92,7 +92,7 @@
 
         <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
         <div
-          class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
+          class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px z-50"
           style="transform: translateZ(0);"
         >
           <svg
@@ -123,12 +123,17 @@
       </div>
       <!-- ... -->
     </section>
-    <!-- Hauptkomponente -->
-    <section class="relative py-16 bg-blueGray-200" style="display: flex;">
+
+    <div class="flex-container" style="display: flex;">
       <div class="menu-container">
-        <Menu {menuState} />
+        <div class="menu-content">
+          <Menu />
+        </div>
       </div>
-      <div class="content-container">
+
+      <!-- Hauptkomponente -->
+      <section class="content-container relative py-16 bg-blueGray-200">
+        <!-- <div class="content-container"> -->
         <div class="container mx-auto px-4">
           <div class="row">
             {#each verifiedCards as card}
@@ -156,18 +161,37 @@
             {/each}
           </div>
         </div>
-      </div>
-    </section>
+        <!-- </div> -->
+      </section>
+    </div>
   </main>
 </div>
 
 <style>
   .menu-container {
     width: 300px;
-    padding-left: 40px; /* Dies schafft Platz zwischen dem Menü und dem Inhalt */
+    min-width: 300px;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 500px);
+    overflow-y: auto;
+    /* background-color: #1a202c; */ /* Remove this line */
+    z-index: 1;
+  }
+
+  .menu-top {
+    height: 500px; /* Same as the banner height */
+    /* background-color: #1a202c; */ /* And this line */
+    clip-path: polygon(0 0, 100% 0, 0% 100%, 0% 100%);
+  }
+
+  .menu-content {
+    height: calc(100vh - 500px);
+    overflow-y: auto;
   }
 
   .content-container {
     flex-grow: 1;
+    z-index: 0;
   }
 </style>

@@ -83,8 +83,12 @@
             </div>
         </li>
         <li>
-            <Link to="/postidea" class="menu-item text-black hover:text-blue-500 px-3">Spark Idea</Link>
-        </li>             
+            <Link
+                to="/postidea"
+                class="menu-item text-black hover:text-blue-500 px-3"
+                >Spark Idea</Link
+            >
+        </li>
         <li>
             {#if !$menuState.use_extension}
                 <a href={link} class="menu-item" target="_blank">{optionText}</a
@@ -113,14 +117,13 @@
     }
 
     .menu-card {
-        width: 200px;
-        border-radius: 20px;
-        padding: 20px;
-        color: #000;
-        background: #fff;
-        box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3);
-        transition: box-shadow 0.5s;
-        position: relative;
+        height: 100%;
+        overflow-y: hidden; /* disable vertical scroll */
+        position: relative; /* to position children absolutely */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: #e2e8f0 !important;
     }
 
     .menu-card:hover {

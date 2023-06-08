@@ -90,7 +90,7 @@
     <style>
         .sidebar-container {
             width: 250px;
-            background-color: #1a202c;
+            background-color: #1a202c !important;
             overflow-y: auto;
             position: sticky;
             top: 0;
