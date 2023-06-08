@@ -23,6 +23,7 @@
     </nav>
     <main>
       <Route path="/" component={Overview} />
+      <Route path="/overview" component={Overview} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
       <Route path="/postidea" component={PostIdea} />

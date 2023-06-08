@@ -115,6 +115,10 @@ var app = (function () {
     function null_to_empty(value) {
         return value == null ? '' : value;
     }
+    function set_store_value(store, ret, value) {
+        store.set(value);
+        return ret;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -6410,9 +6414,12 @@ var app = (function () {
     if (node.is_node())
         commonjsGlobal.WebSocket = WebSocket_1.WebSocket;
 
-    class ProfileBuffer {
+    class EventBuffer {
         constructor() {
             this.profiles = new Map();
+            this.userIdeas = new Map();  // to store idea ids by user
+            this.categoryIdeas = new Map();  // to store idea ids by category
+            this.ideas = new Map();
         }
 
         // Hinzufügen eines Profils zur Map
@@ -6422,6 +6429,7 @@ var app = (function () {
             }
             const timestamp = Date.now();
             this.profiles.set(profile.pubkey, { profile, timestamp });
+            console.log("Profile added:", this.profiles.get(profile.pubkey));
         }
 
         // Abrufen eines Profils aus der Map, sofern es nicht älter als eine Stunde ist
@@ -6434,6 +6442,52 @@ var app = (function () {
                 }
             }
             return undefined;
+        }
+
+        addIdea(idea) {
+            if (!idea) {
+                return;
+            }
+            // If the idea is already in the map, don't add it again
+            if (this.ideas.has(idea.id)) {
+                return;
+            }
+            console.log("addIdea:", idea);
+            this.ideas.set(idea.id, idea);
+
+            // Add idea to user's set of ideas
+            const userIdeaSet = this.userIdeas.get(idea.pubkey) || new Set();
+            userIdeaSet.add(idea.id);
+            this.userIdeas.set(idea.pubkey, userIdeaSet);
+
+            // Add idea to each category's set of ideas
+            idea.tags.forEach(tag => {
+                if (tag[0] === 'c') {  // Assuming category is denoted by 'c'
+                    const categoryIdeaSet = this.categoryIdeas.get(tag[1]) || new Set();
+                    categoryIdeaSet.add(idea.id);
+                    this.categoryIdeas.set(tag[1], categoryIdeaSet);
+                }
+            });
+        }
+
+        // Get all ideas of a user
+        getUserIdeas(userId) {
+            const userIdeaIds = this.userIdeas.get(userId);
+            return Array.from(userIdeaIds || []).map(id => this.ideas.get(id));
+        }
+
+        // Get all ideas in a category
+        getCategoryIdeas(category) {
+            if (!category) {
+                let allIdeas = new Set();
+                for (let categoryIdeaIds of this.categoryIdeas.values()) {
+                    Array.from(categoryIdeaIds).forEach(id => allIdeas.add(this.ideas.get(id)));
+                }
+                return Array.from(allIdeas);
+            } else {
+                const categoryIdeaIds = this.categoryIdeas.get(category);
+                return Array.from(categoryIdeaIds || []).map(id => this.ideas.get(id));
+            }
         }
     }
 
@@ -6453,14 +6507,14 @@ var app = (function () {
         this.publicKey = null;
         this.publicRelays = [];
         this.clientRelays = [];
-        this.profileBuffer = new ProfileBuffer();
+        this.eventBuffer = new EventBuffer();
+        this.lastFetchTimeIdea = 0;
       }
 
       async getPublicRelaysString() {
         return ["wss://relay.damus.io",
-                "wss://nostr-pub.wellorder.net",
-                "wss://nostr.bitcoiner.social",
-                "wss://nostr-01.bolt.observer"];
+          "wss://nostr-pub.wellorder.net",
+          "wss://nostr.bitcoiner.social"];
       }
 
       async getRelaysString(pubkey) {
@@ -6650,17 +6704,27 @@ var app = (function () {
       }
 
       async getIdeas(categories = []) {
-        let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
-
-        if (categories.length > 0) {
-          filters = [];
-          categories.forEach(category => {
-              filters.push({ kinds: [this.idea_kind], '#s': ['bitspark'], '#c': [category] });
-          });
+        if (categories.length == 0) {
+          categories = undefined;
         }
 
-        console.log("Filters:", filters);
-        
+        let ret = this.eventBuffer.getCategoryIdeas(categories);
+        console.log("getIdeas:", ret);
+
+        return ret;
+      }
+
+      async fetchIdeas() {
+        const now = Date.now();
+        const thresh = 10000; // 10 seconds in milliseconds
+        console.log("this.lastFetchTimeIdea:", this.lastFetchTimeIdea);
+        // Check if it's been less than 10 seconds since the last fetch
+        if (now - this.lastFetchTimeIdea < thresh) {
+          console.log("fetchIdeas has been called too frequently. Please wait a bit.");
+          return;
+        }
+        let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }];
+
         let ideas = await this.pool.list(this.relays, filters);
 
         // Get the profiles for each idea and store them in the ideas
@@ -6668,12 +6732,15 @@ var app = (function () {
           const profile = await this.getProfile(idea.pubkey);
           // Set githubVerified property for each idea
           idea.githubVerified = profile.githubVerified || false;
+          // Hier speichern wir die Idee in unserem EventBuffer
+          this.eventBuffer.addIdea(idea);
           return idea;
         });
 
         ideas = await Promise.all(profilePromises);
 
-        console.log("getIdeas:", ideas);
+        console.log("fetchIdeas:", ideas);
+        this.lastFetchTimeIdea = now;
         return ideas;
       }
 
@@ -6773,8 +6840,8 @@ var app = (function () {
 
           for (const file in data.files) {
             if (data.files[file].content.includes(expectedText) &&
-                data.files[file].raw_url.includes(username)) {
-                  console.log(username, "verified!");
+              data.files[file].raw_url.includes(username)) {
+              console.log(username, "verified!");
               return true;
             }
           }
@@ -6790,11 +6857,14 @@ var app = (function () {
         console.log("getProfile:", pubkey);
 
         // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
-        let profile = await this.profileBuffer.getProfile(pubkey);
+        let profile = await this.eventBuffer.getProfile(pubkey);
 
         if (profile) {
           console.log("getProfile speed up:", profile);
           return profile;
+        }
+        else {
+          console.log("buffer failed:", profile);
         }
 
         const events = await this.pool.list(this.relays, [
@@ -6831,7 +6901,7 @@ var app = (function () {
         // Den ursprünglichen content entfernen
         delete event.content;
 
-        this.profileBuffer.addProfile(event);
+        this.eventBuffer.addProfile(event);
         console.log("getProfile done:", event);
         return event;
       }
@@ -6893,6 +6963,8 @@ var app = (function () {
       return uniqueTags;
     }
 
+    let storedInstance = null;
+
     NostrHelper.create = async function (write_mode) {
       // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
       if (write_mode !== undefined) {
@@ -6903,11 +6975,8 @@ var app = (function () {
       }
 
       // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
-      let storedInstance = null;
-      const unsubscribe = helperStore.subscribe(value => {
-        storedInstance = value;
-      });
-
+      helperStore.subscribe(value => { storedInstance = value; })();
+      
       // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
       if (storedInstance === null) {
         const instance = new NostrHelper(false);
@@ -6916,7 +6985,7 @@ var app = (function () {
         storedInstance = instance;
       }
 
-      unsubscribe();
+      // Gibt die Instanz aus dem Store zurück
       return storedInstance;
     };
 
@@ -7437,6 +7506,11 @@ var app = (function () {
     	}
     }
 
+    // Initialisiert den Store mit einem leeren Array
+    const ideas = writable([]);
+    const verifiedCards = writable([]);
+    const unverifiedCards = writable([]);
+
     var css_248z = ".menu-container.svelte-8hf5w1{width:300px;padding-left:40px}.content-container.svelte-8hf5w1{flex-grow:1}";
     styleInject(css_248z);
 
@@ -7444,17 +7518,17 @@ var app = (function () {
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[10] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[10] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
-    // (125:10) {#if profile}
+    // (133:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7462,7 +7536,7 @@ var app = (function () {
 
     	profileimg = new ProfileImg({
     			props: {
-    				profile: /*profile*/ ctx[2],
+    				profile: /*profile*/ ctx[0],
     				style: { width: "40px", height: "40px" }
     			}
     		});
@@ -7480,7 +7554,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const profileimg_changes = {};
-    			if (dirty & /*profile*/ 4) profileimg_changes.profile = /*profile*/ ctx[2];
+    			if (dirty & /*profile*/ 1) profileimg_changes.profile = /*profile*/ ctx[0];
     			profileimg.$set(profileimg_changes);
     		},
     		i(local) {
@@ -7499,21 +7573,24 @@ var app = (function () {
     	};
     }
 
-    // (143:12) {#each verifiedCards as card}
-    function create_each_block_1(ctx) {
+    // (151:12) {#each $verifiedCards as card (card.id)}
+    function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[10] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[12] } });
 
     	return {
+    		key: key_1,
+    		first: null,
     		c() {
     			div = element("div");
     			create_component(ideacard.$$.fragment);
     			t = space();
     			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
     			set_style(div, "margin-bottom", "2rem");
+    			this.first = div;
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
@@ -7521,9 +7598,10 @@ var app = (function () {
     			append(div, t);
     			current = true;
     		},
-    		p(ctx, dirty) {
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*verifiedCards*/ 1) ideacard_changes.card = /*card*/ ctx[10];
+    			if (dirty & /*$verifiedCards*/ 4) ideacard_changes.card = /*card*/ ctx[12];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7542,21 +7620,24 @@ var app = (function () {
     	};
     }
 
-    // (158:12) {#each unverifiedCards as card}
-    function create_each_block$3(ctx) {
+    // (166:12) {#each $unverifiedCards as card (card.id)}
+    function create_each_block$3(key_1, ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[10] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[12] } });
 
     	return {
+    		key: key_1,
+    		first: null,
     		c() {
     			div = element("div");
     			create_component(ideacard.$$.fragment);
     			t = space();
     			attr(div, "class", "col-12 col-sm-6 col-md-6 col-lg-6 mb-8");
     			set_style(div, "margin-top", "2rem");
+    			this.first = div;
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
@@ -7564,9 +7645,10 @@ var app = (function () {
     			append(div, t);
     			current = true;
     		},
-    		p(ctx, dirty) {
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[10];
+    			if (dirty & /*$unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[12];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7605,38 +7687,38 @@ var app = (function () {
     	let div9;
     	let div8;
     	let div5;
+    	let each_blocks_1 = [];
+    	let each0_lookup = new Map();
     	let t8;
     	let div6;
     	let t9;
     	let div7;
+    	let each_blocks = [];
+    	let each1_lookup = new Map();
     	let current;
-    	let if_block = /*profile*/ ctx[2] && create_if_block$3(ctx);
+    	let if_block = /*profile*/ ctx[0] && create_if_block$3(ctx);
 
     	menu = new Menu({
     			props: { menuState: /*menuState*/ ctx[3] }
     		});
 
-    	let each_value_1 = /*verifiedCards*/ ctx[0];
-    	let each_blocks_1 = [];
+    	let each_value_1 = /*$verifiedCards*/ ctx[2];
+    	const get_key = ctx => /*card*/ ctx[12].id;
 
     	for (let i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    		let child_ctx = get_each_context_1(ctx, each_value_1, i);
+    		let key = get_key(child_ctx);
+    		each0_lookup.set(key, each_blocks_1[i] = create_each_block_1(key, child_ctx));
     	}
 
-    	const out = i => transition_out(each_blocks_1[i], 1, 1, () => {
-    		each_blocks_1[i] = null;
-    	});
-
-    	let each_value = /*unverifiedCards*/ ctx[1];
-    	let each_blocks = [];
+    	let each_value = /*$unverifiedCards*/ ctx[1];
+    	const get_key_1 = ctx => /*card*/ ctx[12].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$3(get_each_context$3(ctx, each_value, i));
+    		let child_ctx = get_each_context$3(ctx, each_value, i);
+    		let key = get_key_1(child_ctx);
+    		each1_lookup.set(key, each_blocks[i] = create_each_block$3(key, child_ctx));
     	}
-
-    	const out_1 = i => transition_out(each_blocks[i], 1, 1, () => {
-    		each_blocks[i] = null;
-    	});
 
     	return {
     		c() {
@@ -7745,11 +7827,11 @@ var app = (function () {
     			current = true;
     		},
     		p(ctx, [dirty]) {
-    			if (/*profile*/ ctx[2]) {
+    			if (/*profile*/ ctx[0]) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
 
-    					if (dirty & /*profile*/ 4) {
+    					if (dirty & /*profile*/ 1) {
     						transition_in(if_block, 1);
     					}
     				} else {
@@ -7768,57 +7850,17 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if (dirty & /*verifiedCards*/ 1) {
-    				each_value_1 = /*verifiedCards*/ ctx[0];
-    				let i;
-
-    				for (i = 0; i < each_value_1.length; i += 1) {
-    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
-
-    					if (each_blocks_1[i]) {
-    						each_blocks_1[i].p(child_ctx, dirty);
-    						transition_in(each_blocks_1[i], 1);
-    					} else {
-    						each_blocks_1[i] = create_each_block_1(child_ctx);
-    						each_blocks_1[i].c();
-    						transition_in(each_blocks_1[i], 1);
-    						each_blocks_1[i].m(div5, null);
-    					}
-    				}
-
+    			if (dirty & /*$verifiedCards*/ 4) {
+    				each_value_1 = /*$verifiedCards*/ ctx[2];
     				group_outros();
-
-    				for (i = each_value_1.length; i < each_blocks_1.length; i += 1) {
-    					out(i);
-    				}
-
+    				each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key, 1, ctx, each_value_1, each0_lookup, div5, outro_and_destroy_block, create_each_block_1, null, get_each_context_1);
     				check_outros();
     			}
 
-    			if (dirty & /*unverifiedCards*/ 2) {
-    				each_value = /*unverifiedCards*/ ctx[1];
-    				let i;
-
-    				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$3(ctx, each_value, i);
-
-    					if (each_blocks[i]) {
-    						each_blocks[i].p(child_ctx, dirty);
-    						transition_in(each_blocks[i], 1);
-    					} else {
-    						each_blocks[i] = create_each_block$3(child_ctx);
-    						each_blocks[i].c();
-    						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div7, null);
-    					}
-    				}
-
+    			if (dirty & /*$unverifiedCards*/ 2) {
+    				each_value = /*$unverifiedCards*/ ctx[1];
     				group_outros();
-
-    				for (i = each_value.length; i < each_blocks.length; i += 1) {
-    					out_1(i);
-    				}
-
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div7, outro_and_destroy_block, create_each_block$3, null, get_each_context$3);
     				check_outros();
     			}
     		},
@@ -7840,13 +7882,10 @@ var app = (function () {
     		o(local) {
     			transition_out(if_block);
     			transition_out(menu.$$.fragment, local);
-    			each_blocks_1 = each_blocks_1.filter(Boolean);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				transition_out(each_blocks_1[i]);
     			}
-
-    			each_blocks = each_blocks.filter(Boolean);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				transition_out(each_blocks[i]);
@@ -7858,46 +7897,64 @@ var app = (function () {
     			if (detaching) detach(div10);
     			if (if_block) if_block.d();
     			destroy_component(menu);
-    			destroy_each(each_blocks_1, detaching);
-    			destroy_each(each_blocks, detaching);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].d();
+    			}
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d();
+    			}
     		}
     	};
     }
 
     function instance$5($$self, $$props, $$invalidate) {
     	let $helperStore;
+    	let $ideas;
+    	let $unverifiedCards;
+    	let $verifiedCards;
     	component_subscribe($$self, helperStore, $$value => $$invalidate(5, $helperStore = $$value));
-    	let verifiedCards = [];
-    	let unverifiedCards = [];
+    	component_subscribe($$self, ideas, $$value => $$invalidate(6, $ideas = $$value));
+    	component_subscribe($$self, unverifiedCards, $$value => $$invalidate(1, $unverifiedCards = $$value));
+    	component_subscribe($$self, verifiedCards, $$value => $$invalidate(2, $verifiedCards = $$value));
     	let publicKey = "";
     	let profile = null;
     	let menuState = { logged_in: false, use_extension: true };
     	let { category } = $$props;
 
-    	async function update() {
-    		const nostrHelper = await NostrHelper.create();
-    		publicKey = nostrHelper.publicKey;
-    		$$invalidate(2, profile = await nostrHelper.getProfile(publicKey));
-    		profile.picture;
-    	}
-
     	async function fetchIdeas() {
-    		console.log("fetchIdeas");
+    		console.log("fetchIdeas Overview");
 
     		try {
     			const nostrHelper = await NostrHelper.create();
-    			let ideas;
+    			await nostrHelper.fetchIdeas();
 
     			if (category) {
-    				ideas = await nostrHelper.getIdeas([category]);
+    				set_store_value(ideas, $ideas = await nostrHelper.getIdeas([category]), $ideas);
     			} else {
-    				ideas = await nostrHelper.getIdeas();
+    				set_store_value(ideas, $ideas = await nostrHelper.getIdeas(), $ideas);
     			}
+    		} catch(error) {
+    			console.error("Error updating cards:", error);
+    		}
+    	}
 
+    	async function updateProfileImg() {
+    		const nostrHelper = await NostrHelper.create();
+    		publicKey = nostrHelper.publicKey;
+    		$$invalidate(0, profile = await nostrHelper.getProfile(publicKey));
+    		profile.picture;
+    	}
+
+    	async function updateIdeas() {
+    		console.log("updateIdeas Overview", $ideas);
+
+    		try {
     			let verified = [];
     			let unverified = [];
 
-    			ideas.forEach(idea => {
+    			$ideas.forEach(idea => {
     				const tags = idea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
 
     				const card = {
@@ -7917,17 +7974,17 @@ var app = (function () {
     			});
 
     			// Assign outside of forEach loop
-    			$$invalidate(0, verifiedCards = verified);
+    			set_store_value(verifiedCards, $verifiedCards = verified, $verifiedCards);
 
-    			$$invalidate(1, unverifiedCards = unverified);
+    			set_store_value(unverifiedCards, $unverifiedCards = unverified, $unverifiedCards);
     		} catch(error) {
-    			console.error("Error fetching cards:", error);
+    			console.error("Error updating cards:", error);
     		}
     	}
 
     	onMount(async () => {
-    		update();
-    		fetchIdeas();
+    		console.log("onMount");
+    		updateIdeas(); // Update ideas immediately on mount
     	});
 
     	$$self.$$set = $$props => {
@@ -7935,16 +7992,28 @@ var app = (function () {
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
-    			(update(), $helperStore);
-    		}
-
     		if ($$self.$$.dirty & /*category*/ 16) {
     			(fetchIdeas(), category);
     		}
+
+    		if ($$self.$$.dirty & /*$ideas*/ 64) {
+    			(updateIdeas(), $ideas);
+    		}
+
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
+    			(updateProfileImg(), $helperStore);
+    		}
     	};
 
-    	return [verifiedCards, unverifiedCards, profile, menuState, category, $helperStore];
+    	return [
+    		profile,
+    		$unverifiedCards,
+    		$verifiedCards,
+    		menuState,
+    		category,
+    		$helperStore,
+    		$ideas
+    	];
     }
 
     class Overview extends SvelteComponent {
@@ -7969,7 +8038,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (131:12) {#if creator_profile && creator_profile.picture}
+    // (130:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1$1(ctx) {
     	let div;
     	let profileimg;
@@ -8014,7 +8083,7 @@ var app = (function () {
     	};
     }
 
-    // (232:16) {#if comment.picture}
+    // (231:16) {#if comment.picture}
     function create_if_block$2(ctx) {
     	let div;
     	let profileimg;
@@ -8059,7 +8128,7 @@ var app = (function () {
     	};
     }
 
-    // (230:12) {#each comments as comment (comment.id)}
+    // (229:12) {#each comments as comment (comment.id)}
     function create_each_block$2(key_1, ctx) {
     	let li;
     	let t0;
@@ -8152,7 +8221,7 @@ var app = (function () {
     	};
     }
 
-    // (266:8) <Link to="/overview">
+    // (265:8) <Link to="/overview">
     function create_default_slot$2(ctx) {
     	let button;
 
@@ -8621,8 +8690,7 @@ var app = (function () {
     			// Laden Sie das Profil des Erstellers der Idee
     			$$invalidate(3, creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey));
 
-    			console.log("creator_profile");
-    			console.log(creator_profile);
+    			console.log("creator_profile", creator_profile);
     			profiles[creator_profile.pubkey] = creator_profile;
     		} catch(error) {
     			console.error("Error fetching idea data:", error);
@@ -10476,6 +10544,8 @@ var app = (function () {
     	let route4;
     	let t5;
     	let route5;
+    	let t6;
+    	let route6;
     	let current;
 
     	route0 = new Route({
@@ -10483,28 +10553,32 @@ var app = (function () {
     		});
 
     	route1 = new Route({
+    			props: { path: "/overview", component: Overview }
+    		});
+
+    	route2 = new Route({
     			props: {
     				path: "/overview/:category",
     				component: Overview
     			}
     		});
 
-    	route2 = new Route({
+    	route3 = new Route({
     			props: { path: "/idea/:id", component: IdeaDetail }
     		});
 
-    	route3 = new Route({
+    	route4 = new Route({
     			props: { path: "/postidea", component: PostIdea }
     		});
 
-    	route4 = new Route({
+    	route5 = new Route({
     			props: {
     				path: "/edit_profile/:profile_id",
     				component: EditProfileView
     			}
     		});
 
-    	route5 = new Route({
+    	route6 = new Route({
     			props: {
     				path: "/profile/:profile_id",
     				component: ProfileView
@@ -10528,6 +10602,8 @@ var app = (function () {
     			create_component(route4.$$.fragment);
     			t5 = space();
     			create_component(route5.$$.fragment);
+    			t6 = space();
+    			create_component(route6.$$.fragment);
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
@@ -10545,6 +10621,8 @@ var app = (function () {
     			mount_component(route4, main, null);
     			append(main, t5);
     			mount_component(route5, main, null);
+    			append(main, t6);
+    			mount_component(route6, main, null);
     			current = true;
     		},
     		p: noop,
@@ -10556,6 +10634,7 @@ var app = (function () {
     			transition_in(route3.$$.fragment, local);
     			transition_in(route4.$$.fragment, local);
     			transition_in(route5.$$.fragment, local);
+    			transition_in(route6.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -10565,6 +10644,7 @@ var app = (function () {
     			transition_out(route3.$$.fragment, local);
     			transition_out(route4.$$.fragment, local);
     			transition_out(route5.$$.fragment, local);
+    			transition_out(route6.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -10575,6 +10655,7 @@ var app = (function () {
     			destroy_component(route3);
     			destroy_component(route4);
     			destroy_component(route5);
+    			destroy_component(route6);
     		}
     	};
     }

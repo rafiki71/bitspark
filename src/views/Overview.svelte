@@ -10,9 +10,8 @@
   import Menu from "../components/Menu.svelte";
   import "websocket-polyfill";
   import { helperStore } from "../helperStore.js"; // Import the store
+  import { ideas, verifiedCards, unverifiedCards } from '../ideaStore.js';
 
-  let verifiedCards = [];
-  let unverifiedCards = [];
   let publicKey = "";
   let profilePicture = "";
   let profile = null;
@@ -20,27 +19,35 @@
 
   export let category;
 
-  async function update() {
+  async function fetchIdeas() {
+    console.log("fetchIdeas Overview")
+    try {
+      const nostrHelper = await NostrHelper.create();
+      await nostrHelper.fetchIdeas();
+
+      if (category) {
+        $ideas = await nostrHelper.getIdeas([category]);
+      } else {
+        $ideas = await nostrHelper.getIdeas();
+      }
+    } catch (error) {
+      console.error("Error updating cards:", error);
+    }
+  }
+
+  async function updateProfileImg() {
     const nostrHelper = await NostrHelper.create();
     publicKey = nostrHelper.publicKey;
     profile = await nostrHelper.getProfile(publicKey);
     profilePicture = profile.picture;
   }
 
-  async function fetchIdeas() {
-    console.log("fetchIdeas");
+  async function updateIdeas() {
+    console.log("updateIdeas Overview", $ideas);
     try {
-      const nostrHelper = await NostrHelper.create();
-      let ideas;
-      if (category) {
-        ideas = await nostrHelper.getIdeas([category]);
-      } else {
-        ideas = await nostrHelper.getIdeas();
-      }
-
       let verified = [];
       let unverified = [];
-      ideas.forEach((idea) => {
+      $ideas.forEach((idea) => {
         const tags = idea.tags.reduce(
           (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
           {}
@@ -61,20 +68,21 @@
         }
       });
       // Assign outside of forEach loop
-      verifiedCards = verified;
-      unverifiedCards = unverified;
+      $verifiedCards = verified;
+      $unverifiedCards = unverified;
     } catch (error) {
-      console.error("Error fetching cards:", error);
+      console.error("Error updating cards:", error);
     }
   }
 
   onMount(async () => {
-    update();
-    fetchIdeas();
+    console.log("onMount");
+    updateIdeas(); // Update ideas immediately on mount
   });
 
-  $: update(), $helperStore
-  $: fetchIdeas(), category
+  $: fetchIdeas(), category;
+  $: updateIdeas(), $ideas;
+  $: updateProfileImg(), $helperStore;
 </script>
 
 <div style="position: relative;">
@@ -140,7 +148,7 @@
       <div class="content-container">
         <div class="container mx-auto px-4">
           <div class="row">
-            {#each verifiedCards as card}
+            {#each $verifiedCards as card (card.id)}
               <div
                 class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
                 style="margin-bottom: 2rem;"
@@ -155,7 +163,7 @@
             class="w-full"
           />
           <div class="row">
-            {#each unverifiedCards as card}
+            {#each $unverifiedCards as card (card.id)}
               <div
                 class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
                 style="margin-top: 2rem;"

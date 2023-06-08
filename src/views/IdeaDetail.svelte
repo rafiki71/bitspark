@@ -51,8 +51,7 @@
       };
       // Laden Sie das Profil des Erstellers der Idee
       creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey);
-      console.log("creator_profile");
-      console.log(creator_profile);
+      console.log("creator_profile", creator_profile);
       profiles[creator_profile.pubkey] = creator_profile;
     } catch (error) {
       console.error("Error fetching idea data:", error);
