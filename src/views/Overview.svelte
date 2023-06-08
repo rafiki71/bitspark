@@ -18,6 +18,8 @@
   let profile = null;
   let menuState = { logged_in: false, use_extension: true };
 
+  export let category;
+
   async function update() {
     const nostrHelper = await NostrHelper.create();
     publicKey = nostrHelper.publicKey;
@@ -25,13 +27,17 @@
     profilePicture = profile.picture;
   }
 
-  onMount(async () => {
+  async function fetchIdeas() {
+    console.log("fetchIdeas");
     try {
       const nostrHelper = await NostrHelper.create();
-      publicKey = nostrHelper.publicKey;
-      profile = await nostrHelper.getProfile(publicKey);
-      profilePicture = profile.picture;
-      const ideas = await nostrHelper.getIdeas();
+      let ideas;
+      if (category) {
+        ideas = await nostrHelper.getIdeas([category]);
+      } else {
+        ideas = await nostrHelper.getIdeas();
+      }
+
       let verified = [];
       let unverified = [];
       ideas.forEach((idea) => {
@@ -45,6 +51,7 @@
           subtitle: tags.iSub,
           bannerImage: tags.ibUrl,
           message: idea.content,
+          abstract: tags.abstract,
         };
 
         if (idea.githubVerified) {
@@ -59,13 +66,15 @@
     } catch (error) {
       console.error("Error fetching cards:", error);
     }
+  }
+
+  onMount(async () => {
+    update();
+    fetchIdeas();
   });
 
-  $: if ($helperStore) {
-    update();
-  } else {
-    update();
-  }
+  $: update(), $helperStore
+  $: fetchIdeas(), category
 </script>
 
 <div style="position: relative;">

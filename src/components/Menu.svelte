@@ -11,7 +11,33 @@
     let link = "https://www.getalby.com";
     let nostrHelper = null;
 
-    const categories = ["Category 1", "Category 2", "Category 3"];
+    let categories = [
+        "Art & Design",
+        "Bitcoin & P2P",
+        "Comics & Graphic Novels",
+        "Crafts & DIY",
+        "Fashion & Beauty",
+        "Film, Video & Animation",
+        "Food & Beverages",
+        "Games & Gaming",
+        "Health & Fitness",
+        "Journalism & News",
+        "Music & Audio",
+        "Photography & Visual Arts",
+        "Publishing & Writing",
+        "Technology & Software",
+        "Education & Learning",
+        "Environment & Sustainability",
+        "Sports & Outdoors",
+        "Travel & Tourism",
+        "Non-Profit & Social Causes",
+        "Business & Entrepreneurship",
+        "Science & Research",
+        "Home & Lifestyle",
+        "Automotive & Transportation",
+        "Pets & Animals",
+        "Parenting & Family",
+    ];
     let showCategories = false;
 
     let timeoutId;

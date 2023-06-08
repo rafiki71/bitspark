@@ -8,7 +8,7 @@ export default class NostrHelper {
   constructor(write_mode) {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
-    this.idea_kind = 1338;
+    this.idea_kind = 1339;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -201,14 +201,16 @@ export default class NostrHelper {
     return event;
   }
 
-  async postIdea(ideaName, ideaSubtitle, content, bannerUrl, githubRepo, lnAdress, categories) {
+  async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
     let tags = [
       ["iName", ideaName],
       ["iSub", ideaSubtitle],
       ["ibUrl", bannerUrl],
       ["gitrepo", githubRepo],
-      ["lnadress", lnAdress]
+      ["lnadress", lnAdress],
+      ["abstract", abstract]
+
     ];
 
     // Add each category to the tags
@@ -221,8 +223,18 @@ export default class NostrHelper {
     return await this.sendEvent(ideaEvent);
   }
 
-  async getIdeas() {
-    const filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }]
+  async getIdeas(categories = []) {
+    let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }]
+
+    if (categories.length > 0) {
+      filters = []
+      categories.forEach(category => {
+          filters.push({ kinds: [this.idea_kind], '#s': ['bitspark'], '#c': [category] });
+      });
+    }
+
+    console.log("Filters:", filters)
+    
     let ideas = await this.pool.list(this.relays, filters);
 
     // Get the profiles for each idea and store them in the ideas
@@ -481,40 +493,3 @@ NostrHelper.create = async function (write_mode) {
   unsubscribe();
   return storedInstance;
 }
-
-
-/*
-(async function() {
-  const bitstarter = new BitstarterHelper('360dc1e47a2170c3a7477b3a401c10039354c073128f6f673bf5c9d5e12922c5');
-  // Hole alle Ideen
-  const allIdeas = await bitstarter.getIdeas();
-  console.log('Alle Ideen:', allIdeas);
-  // Erstelle eine neue Idee
-  const ideaId = await bitstarter.postIdea("Testidee", "beste testidee ever", "Testidee", "url2banner", "github.com/user/repo", "somelnadress")
-  console.log('Idee erstellt mit ID:', ideaId);
-  
-  // Poste einen Kommentar
-  const comment = 'Das ist ja super';
-  const commentid = await bitstarter.postComment(ideaId, comment);
-  console.log('Kommentar gepostet:', commentid);
-  
-  // Like die Idee
-  const likeid = await bitstarter.likeEvent(ideaId);
-  console.log('Idee geliked:', likeid);
-  
-  
-  // Hole die erstellte Idee
-  const loadedIdea = await bitstarter.getEvent('9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b');
-  console.log('Geladene Idee:', loadedIdea);
-  
-  const loadedComment = await bitstarter.getEvent("3ad172b7463befc27b17f8edb245f5d95b25486116aa57ddcdcc10ae3d7cc304");
-  console.log('Geladener Kommentar:', loadedComment);
-  
-  // Hole die Anzahl der Likes und Kommentare der Idee
-  const likes = await bitstarter.getLikes("9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b");
-  console.log('Anzahl Likes:', likes);
-  
-  const comments = await bitstarter.getComments("9d3625d1e2dc0bbca24a96b93f5aa59ac2b090660f9b4b152cc21b8976c7fd8b");
-  console.log('Anzahl Kommentare:', comments.length);
-})();
-*/

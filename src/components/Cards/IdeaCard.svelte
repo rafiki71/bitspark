@@ -23,7 +23,7 @@
     <h3 class="text-2xl font-semibold text-blueGray-700 mb-2">{card.name}</h3>
     <h4 class="text-xl font-medium text-blueGray-500 mb-4">{card.subtitle}</h4>
     <p class="text-lg text-blueGray-600">
-      {@html truncateMessage(card.message, 700)}
+      {truncateMessage(card.abstract, 1000)}
     </p>
   </div>
   <div class="px-6 py-4 flex items-center justify-start">
