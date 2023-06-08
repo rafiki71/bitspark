@@ -69,7 +69,7 @@ class EventBuffer {
             }
             return Array.from(allIdeas);
         } else {
-            const categoryIdeaIds = this.categoryIdeas.get(category);
+            const categoryIdeaIds = this.categoryIdeas.get(category[0]);
             return Array.from(categoryIdeaIds || []).map(id => this.ideas.get(id));
         }
     }

@@ -6485,7 +6485,7 @@ var app = (function () {
                 }
                 return Array.from(allIdeas);
             } else {
-                const categoryIdeaIds = this.categoryIdeas.get(category);
+                const categoryIdeaIds = this.categoryIdeas.get(category[0]);
                 return Array.from(categoryIdeaIds || []).map(id => this.ideas.get(id));
             }
         }
@@ -6717,7 +6717,6 @@ var app = (function () {
       async fetchIdeas() {
         const now = Date.now();
         const thresh = 10000; // 10 seconds in milliseconds
-        console.log("this.lastFetchTimeIdea:", this.lastFetchTimeIdea);
         // Check if it's been less than 10 seconds since the last fetch
         if (now - this.lastFetchTimeIdea < thresh) {
           console.log("fetchIdeas has been called too frequently. Please wait a bit.");
@@ -7518,17 +7517,17 @@ var app = (function () {
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[12] = list[i];
+    	child_ctx[13] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[12] = list[i];
+    	child_ctx[13] = list[i];
     	return child_ctx;
     }
 
-    // (133:10) {#if profile}
+    // (142:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7573,13 +7572,13 @@ var app = (function () {
     	};
     }
 
-    // (151:12) {#each $verifiedCards as card (card.id)}
+    // (160:12) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[12] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[13] } });
 
     	return {
     		key: key_1,
@@ -7601,7 +7600,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*$verifiedCards*/ 4) ideacard_changes.card = /*card*/ ctx[12];
+    			if (dirty & /*$verifiedCards*/ 4) ideacard_changes.card = /*card*/ ctx[13];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7620,13 +7619,13 @@ var app = (function () {
     	};
     }
 
-    // (166:12) {#each $unverifiedCards as card (card.id)}
+    // (175:12) {#each $unverifiedCards as card (card.id)}
     function create_each_block$3(key_1, ctx) {
     	let div;
     	let ideacard;
     	let t;
     	let current;
-    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[12] } });
+    	ideacard = new IdeaCard({ props: { card: /*card*/ ctx[13] } });
 
     	return {
     		key: key_1,
@@ -7648,7 +7647,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*$unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[12];
+    			if (dirty & /*$unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[13];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7703,7 +7702,7 @@ var app = (function () {
     		});
 
     	let each_value_1 = /*$verifiedCards*/ ctx[2];
-    	const get_key = ctx => /*card*/ ctx[12].id;
+    	const get_key = ctx => /*card*/ ctx[13].id;
 
     	for (let i = 0; i < each_value_1.length; i += 1) {
     		let child_ctx = get_each_context_1(ctx, each_value_1, i);
@@ -7712,7 +7711,7 @@ var app = (function () {
     	}
 
     	let each_value = /*$unverifiedCards*/ ctx[1];
-    	const get_key_1 = ctx => /*card*/ ctx[12].id;
+    	const get_key_1 = ctx => /*card*/ ctx[13].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
     		let child_ctx = get_each_context$3(ctx, each_value, i);
@@ -7940,6 +7939,16 @@ var app = (function () {
     		}
     	}
 
+    	async function filterIdeas() {
+    		const nostrHelper = await NostrHelper.create();
+
+    		if (category) {
+    			set_store_value(ideas, $ideas = await nostrHelper.getIdeas([category]), $ideas);
+    		} else {
+    			set_store_value(ideas, $ideas = await nostrHelper.getIdeas(), $ideas);
+    		}
+    	}
+
     	async function updateProfileImg() {
     		const nostrHelper = await NostrHelper.create();
     		publicKey = nostrHelper.publicKey;
@@ -7983,7 +7992,7 @@ var app = (function () {
     	}
 
     	onMount(async () => {
-    		console.log("onMount");
+    		fetchIdeas();
     		updateIdeas(); // Update ideas immediately on mount
     	});
 
@@ -7993,7 +8002,7 @@ var app = (function () {
 
     	$$self.$$.update = () => {
     		if ($$self.$$.dirty & /*category*/ 16) {
-    			(fetchIdeas(), category);
+    			(filterIdeas(), category);
     		}
 
     		if ($$self.$$.dirty & /*$ideas*/ 64) {

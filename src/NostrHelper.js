@@ -237,7 +237,6 @@ export default class NostrHelper {
   async fetchIdeas() {
     const now = Date.now();
     const thresh = 10000; // 10 seconds in milliseconds
-    console.log("this.lastFetchTimeIdea:", this.lastFetchTimeIdea)
     // Check if it's been less than 10 seconds since the last fetch
     if (now - this.lastFetchTimeIdea < thresh) {
       console.log("fetchIdeas has been called too frequently. Please wait a bit.");

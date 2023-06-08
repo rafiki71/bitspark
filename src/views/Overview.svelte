@@ -35,6 +35,15 @@
     }
   }
 
+  async function filterIdeas() {
+    const nostrHelper = await NostrHelper.create();
+    if (category) {
+        $ideas = await nostrHelper.getIdeas([category]);
+      } else {
+        $ideas = await nostrHelper.getIdeas();
+      }
+  }
+
   async function updateProfileImg() {
     const nostrHelper = await NostrHelper.create();
     publicKey = nostrHelper.publicKey;
@@ -76,11 +85,11 @@
   }
 
   onMount(async () => {
-    console.log("onMount");
+    fetchIdeas()
     updateIdeas(); // Update ideas immediately on mount
   });
 
-  $: fetchIdeas(), category;
+  $: filterIdeas(), category;
   $: updateIdeas(), $ideas;
   $: updateProfileImg(), $helperStore;
 </script>
