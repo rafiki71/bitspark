@@ -160,9 +160,7 @@ export default class NostrHelper {
   async initialize() {
     let useExtension = await this.extensionAvailable();
     if (this.write_mode && useExtension) {
-      console.log("this.publicKey:", this.publicKey);
       this.publicKey = await window.nostr.getPublicKey();
-      console.log("this.publicKey:", this.publicKey);
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
       this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
       console.log("used relays:", this.relays);

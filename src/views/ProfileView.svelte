@@ -5,6 +5,7 @@
     import NostrHelper from "../NostrHelper.js";
     import { sendSatsLNurl } from "../LNHelper.js";
     import { helperStore } from "../helperStore.js"; // Import the store
+    import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
 
     export let profile_id;
 
@@ -21,8 +22,6 @@
     onMount(async () => {
         try {
             publicKey = $helperStore.publicKey;
-            console.log(profile_id);
-            console.log(publicKey);
             profile = await $helperStore.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
@@ -155,5 +154,6 @@
                 </div>
             </div>
         </section>
+        <UserIdeas {profile_id} /> <!-- UserIdeas component -->
     </main>
 </div>

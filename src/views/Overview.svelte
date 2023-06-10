@@ -24,7 +24,6 @@
       return;
     }
 
-    console.log("fetchIdeas Overview")
     try {
       await $helperStore.fetchIdeas();
 
@@ -54,14 +53,12 @@
     if(!$helperStore) {
       return;
     }
-    console.log("updateProfileImg")
     publicKey = $helperStore.publicKey;
     profile = await $helperStore.getProfile(publicKey);
     profilePicture = profile.picture;
   }
 
   async function updateIdeas() {
-    console.log("updateIdeas Overview", $ideas);
     try {
       let verified = [];
       let unverified = [];

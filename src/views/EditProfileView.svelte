@@ -59,7 +59,6 @@
                               proof: git_proof,
                           },
                       ];
-            console.log(updatedIdentities);
             await $helperStore.updateProfile(
                 name,
                 picture,
