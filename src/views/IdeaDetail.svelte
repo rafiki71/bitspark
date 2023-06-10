@@ -5,6 +5,7 @@
   import { sendSatsLNurl } from "../LNHelper.js";
   import ProfileImg from "../components/ProfileImg.svelte";
   import NostrHelper from "../NostrHelper.js";
+  import { helperStore } from "../helperStore.js"; // Import the store
 
   export let id;
 
@@ -29,8 +30,7 @@
 
   async function fetchData() {
     try {
-      const nostrHelper = await NostrHelper.create();
-      const fetchedIdea = await nostrHelper.getEvent(id);
+      const fetchedIdea = await $helperStore.getEvent(id);
 
       // Konvertiere die Tags in ein einfacher zu handhabendes Objekt
       const tags = fetchedIdea.tags.reduce(
@@ -50,7 +50,7 @@
         abstract: tags.abstract,
       };
       // Laden Sie das Profil des Erstellers der Idee
-      creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey);
+      creator_profile = await $helperStore.getProfile(fetchedIdea.pubkey);
       console.log("creator_profile", creator_profile);
       profiles[creator_profile.pubkey] = creator_profile;
     } catch (error) {
@@ -64,11 +64,10 @@
 
   async function fetchComments() {
     try {
-      const bitstarterHelper = await NostrHelper.create();
-      const fetchedComments = await bitstarterHelper.getComments(id);
+      const fetchedComments = await $helperStore.getComments(id);
       comments = await Promise.all(
         fetchedComments.map(async (comment) => {
-          const profile = await bitstarterHelper.getProfile(comment.pubkey);
+          const profile = await $helperStore.getProfile(comment.pubkey);
           profiles[comment.pubkey] = profile;
           return {
             id: comment.id,
@@ -89,8 +88,7 @@
     if (newComment.trim() === "") return;
 
     try {
-      const bitstarterHelper = await NostrHelper.create();
-      const commentId = await bitstarterHelper.postComment(id, newComment);
+      const commentId = await $helperStore.postComment(id, newComment);
       await fetchComments();
       newComment = "";
     } catch (error) {

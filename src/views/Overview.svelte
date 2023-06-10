@@ -20,15 +20,18 @@
   export let category;
 
   async function fetchIdeas() {
+    if(!$helperStore) {
+      return;
+    }
+
     console.log("fetchIdeas Overview")
     try {
-      const nostrHelper = await NostrHelper.create();
-      await nostrHelper.fetchIdeas();
+      await $helperStore.fetchIdeas();
 
       if (category) {
-        $ideas = await nostrHelper.getIdeas([category]);
+        $ideas = await $helperStore.getIdeas([category]);
       } else {
-        $ideas = await nostrHelper.getIdeas();
+        $ideas = await $helperStore.getIdeas();
       }
     } catch (error) {
       console.error("Error updating cards:", error);
@@ -36,18 +39,24 @@
   }
 
   async function filterIdeas() {
-    const nostrHelper = await NostrHelper.create();
+    if(!$helperStore) {
+      return;
+    }
+
     if (category) {
-        $ideas = await nostrHelper.getIdeas([category]);
+        $ideas = await $helperStore.getIdeas([category]);
       } else {
-        $ideas = await nostrHelper.getIdeas();
+        $ideas = await $helperStore.getIdeas();
       }
   }
 
   async function updateProfileImg() {
-    const nostrHelper = await NostrHelper.create();
-    publicKey = nostrHelper.publicKey;
-    profile = await nostrHelper.getProfile(publicKey);
+    if(!$helperStore) {
+      return;
+    }
+    console.log("updateProfileImg")
+    publicKey = $helperStore.publicKey;
+    profile = await $helperStore.getProfile(publicKey);
     profilePicture = profile.picture;
   }
 
@@ -85,13 +94,13 @@
   }
 
   onMount(async () => {
-    fetchIdeas()
-    updateIdeas(); // Update ideas immediately on mount
   });
 
   $: filterIdeas(), category;
   $: updateIdeas(), $ideas;
   $: updateProfileImg(), $helperStore;
+  $: fetchIdeas(), $helperStore;
+  $: filterIdeas(), $helperStore;
 </script>
 
 <div style="position: relative;">

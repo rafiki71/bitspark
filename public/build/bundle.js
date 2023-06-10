@@ -6640,7 +6640,9 @@ var app = (function () {
       async initialize() {
         let useExtension = await this.extensionAvailable();
         if (this.write_mode && useExtension) {
+          console.log("this.publicKey:", this.publicKey);
           this.publicKey = await window.nostr.getPublicKey();
+          console.log("this.publicKey:", this.publicKey);
           this.relays = await this.getPublicRelaysString(); //fetch from the public first
           this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
           console.log("used relays:", this.relays);
@@ -6679,6 +6681,11 @@ var app = (function () {
         };
 
         return event;
+      }
+
+      // Get all ideas of a user
+      async getUserIdeas(userId) {
+        return this.eventBuffer.getUserIdeas(userId);
       }
 
       async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
@@ -6765,7 +6772,6 @@ var app = (function () {
         console.log("getComments()");
         return comments;
       }
-
 
       async postComment(event_id, comment) {
         if (!this.write_mode) return; // Do nothing in read-only mode
@@ -6958,30 +6964,32 @@ var app = (function () {
 
       // Convert the set back to an array of arrays.
       const uniqueTags = Array.from(tagSet).map(tagStr => JSON.parse(tagStr));
-
+      
       return uniqueTags;
     }
 
     let storedInstance = null;
 
     NostrHelper.create = async function (write_mode) {
-      // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
-      if (write_mode !== undefined) {
+      // Get stored object.
+      helperStore.subscribe(value => { storedInstance = value; })();
+      
+      // If not in storage, create one.
+      if (storedInstance === null) {
         const instance = new NostrHelper(write_mode);
         await instance.initialize();
         helperStore.set(instance);
-        return instance;
+        storedInstance = instance;
+        return storedInstance;
       }
 
-      // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
-      helperStore.subscribe(value => { storedInstance = value; })();
-      
-      // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
-      if (storedInstance === null) {
-        const instance = new NostrHelper(false);
-        await instance.initialize();
-        helperStore.set(instance);
-        storedInstance = instance;
+      // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
+      if (write_mode !== undefined) {
+        if(storedInstance.write_mode != write_mode) {
+          storedInstance.write_mode = write_mode;
+          await storedInstance.initialize();
+          helperStore.set(storedInstance);
+        }
       }
 
       // Gibt die Instanz aus dem Store zurück
@@ -7474,7 +7482,6 @@ var app = (function () {
 
     	onMount(async () => {
     		nostrHelper = await NostrHelper.create();
-    		console.log("nostrHelper:", nostrHelper);
     		const loggedIn = await nostrHelper.publicKey != null;
     		const usingExtension = await nostrHelper.extensionAvailable();
 
@@ -7527,7 +7534,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (142:10) {#if profile}
+    // (151:10) {#if profile}
     function create_if_block$3(ctx) {
     	let div;
     	let profileimg;
@@ -7572,7 +7579,7 @@ var app = (function () {
     	};
     }
 
-    // (160:12) {#each $verifiedCards as card (card.id)}
+    // (169:12) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7619,7 +7626,7 @@ var app = (function () {
     	};
     }
 
-    // (175:12) {#each $unverifiedCards as card (card.id)}
+    // (184:12) {#each $unverifiedCards as card (card.id)}
     function create_each_block$3(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7923,16 +7930,19 @@ var app = (function () {
     	let { category } = $$props;
 
     	async function fetchIdeas() {
+    		if (!$helperStore) {
+    			return;
+    		}
+
     		console.log("fetchIdeas Overview");
 
     		try {
-    			const nostrHelper = await NostrHelper.create();
-    			await nostrHelper.fetchIdeas();
+    			await $helperStore.fetchIdeas();
 
     			if (category) {
-    				set_store_value(ideas, $ideas = await nostrHelper.getIdeas([category]), $ideas);
+    				set_store_value(ideas, $ideas = await $helperStore.getIdeas([category]), $ideas);
     			} else {
-    				set_store_value(ideas, $ideas = await nostrHelper.getIdeas(), $ideas);
+    				set_store_value(ideas, $ideas = await $helperStore.getIdeas(), $ideas);
     			}
     		} catch(error) {
     			console.error("Error updating cards:", error);
@@ -7940,19 +7950,25 @@ var app = (function () {
     	}
 
     	async function filterIdeas() {
-    		const nostrHelper = await NostrHelper.create();
+    		if (!$helperStore) {
+    			return;
+    		}
 
     		if (category) {
-    			set_store_value(ideas, $ideas = await nostrHelper.getIdeas([category]), $ideas);
+    			set_store_value(ideas, $ideas = await $helperStore.getIdeas([category]), $ideas);
     		} else {
-    			set_store_value(ideas, $ideas = await nostrHelper.getIdeas(), $ideas);
+    			set_store_value(ideas, $ideas = await $helperStore.getIdeas(), $ideas);
     		}
     	}
 
     	async function updateProfileImg() {
-    		const nostrHelper = await NostrHelper.create();
-    		publicKey = nostrHelper.publicKey;
-    		$$invalidate(0, profile = await nostrHelper.getProfile(publicKey));
+    		if (!$helperStore) {
+    			return;
+    		}
+
+    		console.log("updateProfileImg");
+    		publicKey = $helperStore.publicKey;
+    		$$invalidate(0, profile = await $helperStore.getProfile(publicKey));
     		profile.picture;
     	}
 
@@ -7992,8 +8008,7 @@ var app = (function () {
     	}
 
     	onMount(async () => {
-    		fetchIdeas();
-    		updateIdeas(); // Update ideas immediately on mount
+    		
     	});
 
     	$$self.$$set = $$props => {
@@ -8011,6 +8026,14 @@ var app = (function () {
 
     		if ($$self.$$.dirty & /*$helperStore*/ 32) {
     			(updateProfileImg(), $helperStore);
+    		}
+
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
+    			(fetchIdeas(), $helperStore);
+    		}
+
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
+    			(filterIdeas(), $helperStore);
     		}
     	};
 
@@ -8043,11 +8066,11 @@ var app = (function () {
 
     function get_each_context$2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[11] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
-    // (130:12) {#if creator_profile && creator_profile.picture}
+    // (128:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1$1(ctx) {
     	let div;
     	let profileimg;
@@ -8092,7 +8115,7 @@ var app = (function () {
     	};
     }
 
-    // (231:16) {#if comment.picture}
+    // (229:16) {#if comment.picture}
     function create_if_block$2(ctx) {
     	let div;
     	let profileimg;
@@ -8100,7 +8123,7 @@ var app = (function () {
 
     	profileimg = new ProfileImg({
     			props: {
-    				profile: /*comment*/ ctx[11],
+    				profile: /*comment*/ ctx[12],
     				style: { width: "40px", height: "40px" }
     			}
     		});
@@ -8118,7 +8141,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const profileimg_changes = {};
-    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[11];
+    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[12];
     			profileimg.$set(profileimg_changes);
     		},
     		i(local) {
@@ -8137,21 +8160,21 @@ var app = (function () {
     	};
     }
 
-    // (229:12) {#each comments as comment (comment.id)}
+    // (227:12) {#each comments as comment (comment.id)}
     function create_each_block$2(key_1, ctx) {
     	let li;
     	let t0;
     	let div;
     	let h3;
-    	let t1_value = /*comment*/ ctx[11].name + "";
+    	let t1_value = /*comment*/ ctx[12].name + "";
     	let t1;
     	let t2;
     	let p;
-    	let t3_value = /*comment*/ ctx[11].comment + "";
+    	let t3_value = /*comment*/ ctx[12].comment + "";
     	let t3;
     	let t4;
     	let current;
-    	let if_block = /*comment*/ ctx[11].picture && create_if_block$2(ctx);
+    	let if_block = /*comment*/ ctx[12].picture && create_if_block$2(ctx);
 
     	return {
     		key: key_1,
@@ -8188,7 +8211,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
 
-    			if (/*comment*/ ctx[11].picture) {
+    			if (/*comment*/ ctx[12].picture) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
 
@@ -8211,8 +8234,8 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[11].name + "")) set_data(t1, t1_value);
-    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[11].comment + "")) set_data(t3, t3_value);
+    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[12].name + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[12].comment + "")) set_data(t3, t3_value);
     		},
     		i(local) {
     			if (current) return;
@@ -8230,7 +8253,7 @@ var app = (function () {
     	};
     }
 
-    // (265:8) <Link to="/overview">
+    // (263:8) <Link to="/overview">
     function create_default_slot$2(ctx) {
     	let button;
 
@@ -8328,7 +8351,7 @@ var app = (function () {
     	let dispose;
     	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$1(ctx);
     	let each_value = /*comments*/ ctx[1];
-    	const get_key = ctx => /*comment*/ ctx[11].id;
+    	const get_key = ctx => /*comment*/ ctx[12].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
     		let child_ctx = get_each_context$2(ctx, each_value, i);
@@ -8613,7 +8636,7 @@ var app = (function () {
 
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 16384) {
+    			if (dirty & /*$$scope*/ 32768) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -8656,6 +8679,8 @@ var app = (function () {
     }
 
     function instance$4($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(9, $helperStore = $$value));
     	let { id } = $$props;
 
     	let idea = {
@@ -8678,8 +8703,7 @@ var app = (function () {
 
     	async function fetchData() {
     		try {
-    			const nostrHelper = await NostrHelper.create();
-    			const fetchedIdea = await nostrHelper.getEvent(id);
+    			const fetchedIdea = await $helperStore.getEvent(id);
 
     			// Konvertiere die Tags in ein einfacher zu handhabendes Objekt
     			const tags = fetchedIdea.tags.reduce((tagObj, [key, value]) => ({ ...tagObj, [key]: value }), {});
@@ -8697,7 +8721,7 @@ var app = (function () {
     			});
 
     			// Laden Sie das Profil des Erstellers der Idee
-    			$$invalidate(3, creator_profile = await nostrHelper.getProfile(fetchedIdea.pubkey));
+    			$$invalidate(3, creator_profile = await $helperStore.getProfile(fetchedIdea.pubkey));
 
     			console.log("creator_profile", creator_profile);
     			profiles[creator_profile.pubkey] = creator_profile;
@@ -8712,11 +8736,10 @@ var app = (function () {
 
     	async function fetchComments() {
     		try {
-    			const bitstarterHelper = await NostrHelper.create();
-    			const fetchedComments = await bitstarterHelper.getComments(id);
+    			const fetchedComments = await $helperStore.getComments(id);
 
     			$$invalidate(1, comments = await Promise.all(fetchedComments.map(async comment => {
-    				const profile = await bitstarterHelper.getProfile(comment.pubkey);
+    				const profile = await $helperStore.getProfile(comment.pubkey);
     				profiles[comment.pubkey] = profile;
 
     				return {
@@ -8737,8 +8760,7 @@ var app = (function () {
     		if (newComment.trim() === "") return;
 
     		try {
-    			const bitstarterHelper = await NostrHelper.create();
-    			const commentId = await bitstarterHelper.postComment(id, newComment);
+    			const commentId = await $helperStore.postComment(id, newComment);
     			await fetchComments();
     			$$invalidate(2, newComment = "");
     		} catch(error) {
@@ -9281,7 +9303,7 @@ var app = (function () {
     			multiselectdropdown.$set(multiselectdropdown_changes);
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 262144) {
+    			if (dirty & /*$$scope*/ 524288) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -9314,6 +9336,9 @@ var app = (function () {
     }
 
     function instance$2($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(18, $helperStore = $$value));
+
     	onMount(async () => {
     		
     	});
@@ -9357,8 +9382,7 @@ var app = (function () {
     	let selectedCategories = [];
 
     	async function postIdea() {
-    		const helper = await NostrHelper.create();
-    		await helper.postIdea(ideaName, ideaSubtitle, ideaAbstract, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
+    		await $helperStore.postIdea(ideaName, ideaSubtitle, ideaAbstract, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
     	}
 
     	function input0_input_handler() {
@@ -9438,7 +9462,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (160:36) {#if profile && profile.picture}
+    // (159:36) {#if profile && profile.picture}
     function create_if_block$1(ctx) {
     	let profileimg;
     	let current;
@@ -9485,7 +9509,7 @@ var app = (function () {
     	};
     }
 
-    // (276:56) {#each relays as relay}
+    // (275:56) {#each relays as relay}
     function create_each_block(ctx) {
     	let div1;
     	let div0;
@@ -9999,6 +10023,8 @@ var app = (function () {
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(22, $helperStore = $$value));
     	let { profile_id } = $$props;
     	let profile = null;
     	let name = "";
@@ -10009,12 +10035,10 @@ var app = (function () {
     	let git_proof = "";
     	let relays = [];
     	let newRelay = "";
-    	let nostrHelper = null;
 
     	onMount(async () => {
     		try {
-    			nostrHelper = await NostrHelper.create();
-    			$$invalidate(0, profile = await nostrHelper.getProfile(profile_id));
+    			$$invalidate(0, profile = await $helperStore.getProfile(profile_id));
 
     			if (profile) {
     				$$invalidate(1, name = profile.name);
@@ -10026,7 +10050,7 @@ var app = (function () {
     				$$invalidate(5, git_username = profile.githubUsername || "");
 
     				$$invalidate(6, git_proof = profile.githubProof || "");
-    				$$invalidate(7, relays = await nostrHelper.clientRelays);
+    				$$invalidate(7, relays = await $helperStore.clientRelays);
     			}
     		} catch(error) {
     			console.error("Error fetching profile:", error);
@@ -10053,7 +10077,7 @@ var app = (function () {
     				];
 
     			console.log(updatedIdentities);
-    			await nostrHelper.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
+    			await $helperStore.updateProfile(name, picture, banner, dev_about, profile.lnurl, updatedIdentities);
     			await navigate("/overview"); // navigate back to home page after saving
     		} catch(error) {
     			console.error("Error updating profile:", error);
@@ -10193,7 +10217,7 @@ var app = (function () {
     	};
     }
 
-    // (118:36) {#if profile && profile.picture}
+    // (117:36) {#if profile && profile.picture}
     function create_if_block(ctx) {
     	let profileimg;
     	let current;
@@ -10472,6 +10496,8 @@ var app = (function () {
     }
 
     function instance($$self, $$props, $$invalidate) {
+    	let $helperStore;
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(12, $helperStore = $$value));
     	let { profile_id } = $$props;
     	let profile = null;
     	let name = "";
@@ -10484,11 +10510,10 @@ var app = (function () {
 
     	onMount(async () => {
     		try {
-    			const nostrHelper = await NostrHelper.create();
-    			$$invalidate(6, publicKey = nostrHelper.publicKey);
+    			$$invalidate(6, publicKey = $helperStore.publicKey);
     			console.log(profile_id);
     			console.log(publicKey);
-    			$$invalidate(1, profile = await nostrHelper.getProfile(profile_id));
+    			$$invalidate(1, profile = await $helperStore.getProfile(profile_id));
 
     			if (profile) {
     				$$invalidate(2, name = profile.name);

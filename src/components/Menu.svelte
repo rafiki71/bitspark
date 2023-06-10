@@ -4,6 +4,7 @@
     import { Link, navigate } from "svelte-routing";
     import NostrHelper from "../NostrHelper.js";
     import { writable } from "svelte/store";
+    import { helperStore } from "../helperStore.js"; // Import the store
 
     const menuState = writable({ logged_in: false, use_extension: false });
 
@@ -76,7 +77,6 @@
 
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
-        console.log("nostrHelper:", nostrHelper);
         const loggedIn = (await nostrHelper.publicKey) != null;
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });

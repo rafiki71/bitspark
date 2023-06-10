@@ -4,7 +4,7 @@
   import Overview from "./views/Overview.svelte";
   import IdeaDetail from "./views/IdeaDetail.svelte";
   import PostIdea from "./views/PostIdea.svelte";
-  import Login from "./views/Login.svelte";
+  //import Login from "./views/Login.svelte";
   import EditProfileView from "./views/EditProfileView.svelte";
   import ProfileView from "./views/ProfileView.svelte";
 </script>

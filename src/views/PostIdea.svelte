@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import NostrHelper from "../NostrHelper.js";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
+    import { helperStore } from "../helperStore.js"; // Import the store
 
     onMount(async () => {});
     let ideaName = "";
@@ -47,8 +48,7 @@
     }
 
     async function postIdea() {
-        const helper = await NostrHelper.create();
-        await helper.postIdea(
+        await $helperStore.postIdea(
             ideaName,
             ideaSubtitle,
             ideaAbstract,

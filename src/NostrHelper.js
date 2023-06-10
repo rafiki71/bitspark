@@ -160,10 +160,12 @@ export default class NostrHelper {
   async initialize() {
     let useExtension = await this.extensionAvailable();
     if (this.write_mode && useExtension) {
+      console.log("this.publicKey:", this.publicKey);
       this.publicKey = await window.nostr.getPublicKey();
+      console.log("this.publicKey:", this.publicKey);
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
       this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
-      console.log("used relays:", this.relays)
+      console.log("used relays:", this.relays);
     }
     else {
       this.write_mode = false;
@@ -199,6 +201,11 @@ export default class NostrHelper {
     };
 
     return event;
+  }
+
+  // Get all ideas of a user
+  async getUserIdeas(userId) {
+    return this.eventBuffer.getUserIdeas(userId);
   }
 
   async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
@@ -285,7 +292,6 @@ export default class NostrHelper {
     console.log("getComments()")
     return comments;
   }
-
 
   async postComment(event_id, comment) {
     if (!this.write_mode) return; // Do nothing in read-only mode
@@ -478,30 +484,35 @@ function uniqueTags(tags) {
 
   // Convert the set back to an array of arrays.
   const uniqueTags = Array.from(tagSet).map(tagStr => JSON.parse(tagStr));
-
+  
   return uniqueTags;
 }
 
 let storedInstance = null;
 
 NostrHelper.create = async function (write_mode) {
-  // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
-  if (write_mode !== undefined) {
+  // Get stored object.
+  helperStore.subscribe(value => { storedInstance = value; })();
+  
+  // If not in storage, create one.
+  if (storedInstance === null) {
+    if(write_mode == undefined) {
+      write_mode == false;
+    }
     const instance = new NostrHelper(write_mode);
     await instance.initialize();
     helperStore.set(instance);
-    return instance;
+    storedInstance = instance;
+    return storedInstance;
   }
 
-  // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
-  helperStore.subscribe(value => { storedInstance = value; })();
-  
-  // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
-  if (storedInstance === null) {
-    const instance = new NostrHelper(false);
-    await instance.initialize();
-    helperStore.set(instance);
-    storedInstance = instance;
+  // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
+  if (write_mode !== undefined) {
+    if(storedInstance.write_mode != write_mode) {
+      storedInstance.write_mode = write_mode;
+      await storedInstance.initialize();
+      helperStore.set(storedInstance);
+    }
   }
 
   // Gibt die Instanz aus dem Store zurück

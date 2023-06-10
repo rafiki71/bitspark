@@ -4,6 +4,7 @@
     import ProfileImg from "../components/ProfileImg.svelte";
     import NostrHelper from "../NostrHelper.js";
     import { sendSatsLNurl } from "../LNHelper.js";
+    import { helperStore } from "../helperStore.js"; // Import the store
 
     export let profile_id;
 
@@ -17,14 +18,12 @@
 
     let publicKey = "";
 
-
     onMount(async () => {
         try {
-            const nostrHelper = await NostrHelper.create();
-            publicKey = nostrHelper.publicKey;
+            publicKey = $helperStore.publicKey;
             console.log(profile_id);
             console.log(publicKey);
-            profile = await nostrHelper.getProfile(profile_id);
+            profile = await $helperStore.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
                 about = profile.dev_about;
