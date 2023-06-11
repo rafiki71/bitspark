@@ -1264,7 +1264,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$d(ctx) {
+    function create_fragment$e(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1468,7 +1468,7 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$c, create_fragment$d, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$c, create_fragment$e, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
@@ -1482,7 +1482,7 @@ var app = (function () {
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_1$3, create_else_block$1];
+    	const if_block_creators = [create_if_block_1$4, create_else_block$1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -1595,7 +1595,7 @@ var app = (function () {
     }
 
     // (45:4) {#if component}
-    function create_if_block_1$3(ctx) {
+    function create_if_block_1$4(ctx) {
     	let await_block_anchor;
     	let promise;
     	let current;
@@ -1760,7 +1760,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$c(ctx) {
+    function create_fragment$d(ctx) {
     	let if_block_anchor;
     	let current;
     	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$6(ctx);
@@ -1879,7 +1879,7 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$b, create_fragment$c, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$b, create_fragment$d, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
@@ -1887,7 +1887,7 @@ var app = (function () {
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -2063,7 +2063,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$a, create_fragment$b, safe_not_equal, {
+    		init(this, options, instance$a, create_fragment$c, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -2090,7 +2090,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -2220,7 +2220,7 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$a, safe_not_equal, { card: 0 });
+    		init(this, options, instance$9, create_fragment$b, safe_not_equal, { card: 0 });
     	}
     }
 
@@ -2261,7 +2261,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$9(ctx) {
+    function create_fragment$a(ctx) {
     	let link;
     	let current;
 
@@ -2345,7 +2345,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$8, create_fragment$9, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$8, create_fragment$a, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -7151,7 +7151,7 @@ var app = (function () {
     }
 
     // (118:43) 
-    function create_if_block_1$2(ctx) {
+    function create_if_block_1$3(ctx) {
     	let button;
     	let mounted;
     	let dispose;
@@ -7207,7 +7207,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$9(ctx) {
     	let div2;
     	let ul;
     	let li0;
@@ -7245,7 +7245,7 @@ var app = (function () {
 
     	function select_block_type(ctx, dirty) {
     		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$5;
-    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$2;
+    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$3;
     		return create_else_block;
     	}
 
@@ -7506,7 +7506,7 @@ var app = (function () {
     class Menu extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, {});
+    		init(this, options, instance$7, create_fragment$9, safe_not_equal, {});
     	}
     }
 
@@ -7671,7 +7671,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$7(ctx) {
+    function create_fragment$8(ctx) {
     	let div10;
     	let main;
     	let section0;
@@ -8044,7 +8044,7 @@ var app = (function () {
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$7, safe_not_equal, { category: 4 });
+    		init(this, options, instance$6, create_fragment$8, safe_not_equal, { category: 4 });
     	}
     }
 
@@ -8064,7 +8064,7 @@ var app = (function () {
     }
 
     // (127:12) {#if creator_profile && creator_profile.picture}
-    function create_if_block_1$1(ctx) {
+    function create_if_block_1$2(ctx) {
     	let div;
     	let profileimg;
     	let current;
@@ -8267,7 +8267,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$6(ctx) {
+    function create_fragment$7(ctx) {
     	let div11;
     	let main;
     	let section0;
@@ -8342,7 +8342,7 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$1(ctx);
+    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$2(ctx);
     	let each_value = /*comments*/ ctx[1];
     	const get_key = ctx => /*comment*/ ctx[12].id;
 
@@ -8589,7 +8589,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block_1$1(ctx);
+    					if_block = create_if_block_1$2(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(div0, t6);
@@ -8784,7 +8784,7 @@ var app = (function () {
     class IdeaDetail extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$5, create_fragment$6, safe_not_equal, { id: 6 });
+    		init(this, options, instance$5, create_fragment$7, safe_not_equal, { id: 6 });
     	}
     }
 
@@ -8862,7 +8862,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$5(ctx) {
+    function create_fragment$6(ctx) {
     	let div1;
     	let button;
     	let t1;
@@ -9002,7 +9002,7 @@ var app = (function () {
     class MultiSelectDropdown extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$4, create_fragment$5, safe_not_equal, { categories: 0, selected: 4 });
+    		init(this, options, instance$4, create_fragment$6, safe_not_equal, { categories: 0, selected: 4 });
     	}
     }
 
@@ -9024,7 +9024,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$4(ctx) {
+    function create_fragment$5(ctx) {
     	let main;
     	let section0;
     	let t5;
@@ -9442,7 +9442,7 @@ var app = (function () {
     class PostIdea extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$3, create_fragment$4, safe_not_equal, {});
+    		init(this, options, instance$3, create_fragment$5, safe_not_equal, {});
     	}
     }
 
@@ -9551,7 +9551,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$3(ctx) {
+    function create_fragment$4(ctx) {
     	let div28;
     	let main;
     	let section0;
@@ -10171,7 +10171,7 @@ var app = (function () {
     class EditProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$2, create_fragment$3, safe_not_equal, { profile_id: 12 });
+    		init(this, options, instance$2, create_fragment$4, safe_not_equal, { profile_id: 12 });
     	}
     }
 
@@ -10179,14 +10179,42 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[3] = list[i];
+    	child_ctx[4] = list[i];
     	return child_ctx;
     }
 
-    // (54:40) {#if idea.subtitle}
+    // (42:20) {#if profile}
+    function create_if_block_1$1(ctx) {
+    	let h1;
+    	let t0_value = /*profile*/ ctx[1].name + "";
+    	let t0;
+    	let t1;
+
+    	return {
+    		c() {
+    			h1 = element("h1");
+    			t0 = text(t0_value);
+    			t1 = text("'s Ideas");
+    			attr(h1, "class", "relative flex text-4xl font-bold text-black ml-6 mb-6");
+    		},
+    		m(target, anchor) {
+    			insert(target, h1, anchor);
+    			append(h1, t0);
+    			append(h1, t1);
+    		},
+    		p(ctx, dirty) {
+    			if (dirty & /*profile*/ 2 && t0_value !== (t0_value = /*profile*/ ctx[1].name + "")) set_data(t0, t0_value);
+    		},
+    		d(detaching) {
+    			if (detaching) detach(h1);
+    		}
+    	};
+    }
+
+    // (69:40) {#if idea.subtitle}
     function create_if_block$1(ctx) {
     	let p;
-    	let t_value = /*idea*/ ctx[3].subtitle + "";
+    	let t_value = /*idea*/ ctx[4].subtitle + "";
     	let t;
 
     	return {
@@ -10200,7 +10228,7 @@ var app = (function () {
     			append(p, t);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*ideas*/ 1 && t_value !== (t_value = /*idea*/ ctx[3].subtitle + "")) set_data(t, t_value);
+    			if (dirty & /*ideas*/ 1 && t_value !== (t_value = /*idea*/ ctx[4].subtitle + "")) set_data(t, t_value);
     		},
     		d(detaching) {
     			if (detaching) detach(p);
@@ -10208,7 +10236,7 @@ var app = (function () {
     	};
     }
 
-    // (43:28) <Link to={`/idea/${idea.id}`} class="w-full sm:w-6/12 md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline">
+    // (47:28) <Link                                 to={`/idea/${idea.id}`}                                 class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"                             >
     function create_default_slot$1(ctx) {
     	let div1;
     	let div0;
@@ -10218,11 +10246,11 @@ var app = (function () {
     	let t0;
     	let blockquote;
     	let h4;
-    	let t1_value = /*idea*/ ctx[3].name + "";
+    	let t1_value = /*idea*/ ctx[4].name + "";
     	let t1;
     	let t2;
     	let t3;
-    	let if_block = /*idea*/ ctx[3].subtitle && create_if_block$1(ctx);
+    	let if_block = /*idea*/ ctx[4].subtitle && create_if_block$1(ctx);
 
     	return {
     		c() {
@@ -10237,12 +10265,12 @@ var app = (function () {
     			if (if_block) if_block.c();
     			t3 = space();
     			attr(img, "class", "align-middle border-none max-w-full h-auto rounded-lg");
-    			if (!src_url_equal(img.src, img_src_value = /*idea*/ ctx[3].bannerImage)) attr(img, "src", img_src_value);
-    			attr(img, "alt", img_alt_value = /*idea*/ ctx[3].name);
+    			if (!src_url_equal(img.src, img_src_value = /*idea*/ ctx[4].bannerImage)) attr(img, "src", img_src_value);
+    			attr(img, "alt", img_alt_value = /*idea*/ ctx[4].name);
     			attr(div0, "class", "relative flex flex-col min-w-0 w-full mb-0 shadow-lg rounded-lg bg-blueGray-600");
     			attr(h4, "class", "text-xl font-bold text-blueGray-700");
     			attr(blockquote, "class", "relative p-8 mb-4");
-    			attr(div1, "class", "shadow-lg rounded-lg text-center relative w-full min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg pointer-events-auto cursor-pointer");
+    			attr(div1, "class", "shadow-lg rounded-lg text-center relative min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg pointer-events-auto cursor-pointer lg:w-full");
     		},
     		m(target, anchor) {
     			insert(target, div1, anchor);
@@ -10257,17 +10285,17 @@ var app = (function () {
     			insert(target, t3, anchor);
     		},
     		p(ctx, dirty) {
-    			if (dirty & /*ideas*/ 1 && !src_url_equal(img.src, img_src_value = /*idea*/ ctx[3].bannerImage)) {
+    			if (dirty & /*ideas*/ 1 && !src_url_equal(img.src, img_src_value = /*idea*/ ctx[4].bannerImage)) {
     				attr(img, "src", img_src_value);
     			}
 
-    			if (dirty & /*ideas*/ 1 && img_alt_value !== (img_alt_value = /*idea*/ ctx[3].name)) {
+    			if (dirty & /*ideas*/ 1 && img_alt_value !== (img_alt_value = /*idea*/ ctx[4].name)) {
     				attr(img, "alt", img_alt_value);
     			}
 
-    			if (dirty & /*ideas*/ 1 && t1_value !== (t1_value = /*idea*/ ctx[3].name + "")) set_data(t1, t1_value);
+    			if (dirty & /*ideas*/ 1 && t1_value !== (t1_value = /*idea*/ ctx[4].name + "")) set_data(t1, t1_value);
 
-    			if (/*idea*/ ctx[3].subtitle) {
+    			if (/*idea*/ ctx[4].subtitle) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
     				} else {
@@ -10288,7 +10316,7 @@ var app = (function () {
     	};
     }
 
-    // (42:24) {#each ideas as idea (idea.id)}
+    // (46:24) {#each ideas as idea (idea.id)}
     function create_each_block(key_1, ctx) {
     	let first;
     	let link;
@@ -10296,8 +10324,8 @@ var app = (function () {
 
     	link = new Link({
     			props: {
-    				to: `/idea/${/*idea*/ ctx[3].id}`,
-    				class: "w-full sm:w-6/12 md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline",
+    				to: `/idea/${/*idea*/ ctx[4].id}`,
+    				class: "w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline",
     				$$slots: { default: [create_default_slot$1] },
     				$$scope: { ctx }
     			}
@@ -10319,9 +10347,9 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const link_changes = {};
-    			if (dirty & /*ideas*/ 1) link_changes.to = `/idea/${/*idea*/ ctx[3].id}`;
+    			if (dirty & /*ideas*/ 1) link_changes.to = `/idea/${/*idea*/ ctx[4].id}`;
 
-    			if (dirty & /*$$scope, ideas*/ 65) {
+    			if (dirty & /*$$scope, ideas*/ 129) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -10343,18 +10371,20 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$2(ctx) {
-    	let section;
+    function create_fragment$3(ctx) {
     	let div4;
+    	let section;
     	let div3;
     	let div2;
     	let div1;
+    	let t;
     	let div0;
     	let each_blocks = [];
     	let each_1_lookup = new Map();
     	let current;
+    	let if_block = /*profile*/ ctx[1] && create_if_block_1$1(ctx);
     	let each_value = /*ideas*/ ctx[0];
-    	const get_key = ctx => /*idea*/ ctx[3].id;
+    	const get_key = ctx => /*idea*/ ctx[4].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
     		let child_ctx = get_each_context(ctx, each_value, i);
@@ -10364,30 +10394,34 @@ var app = (function () {
 
     	return {
     		c() {
-    			section = element("section");
     			div4 = element("div");
+    			section = element("section");
     			div3 = element("div");
     			div2 = element("div");
     			div1 = element("div");
+    			if (if_block) if_block.c();
+    			t = space();
     			div0 = element("div");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			attr(div0, "class", "flex flex-wrap justify-center");
-    			attr(div1, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
-    			attr(div2, "class", "px-6");
-    			attr(div3, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(div4, "class", "container mx-auto px-4");
+    			attr(div0, "class", "flex flex-wrap justify-between");
+    			attr(div1, "class", "px-6 py-6");
+    			attr(div2, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg mx-auto");
+    			set_style(div2, "max-width", "100%");
     			attr(section, "class", "relative py-16 bg-blueGray-200");
+    			set_style(div4, "width", "100%");
     		},
     		m(target, anchor) {
-    			insert(target, section, anchor);
-    			append(section, div4);
-    			append(div4, div3);
+    			insert(target, div4, anchor);
+    			append(div4, section);
+    			append(section, div3);
     			append(div3, div2);
     			append(div2, div1);
+    			if (if_block) if_block.m(div1, null);
+    			append(div1, t);
     			append(div1, div0);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -10399,6 +10433,19 @@ var app = (function () {
     			current = true;
     		},
     		p(ctx, [dirty]) {
+    			if (/*profile*/ ctx[1]) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+    				} else {
+    					if_block = create_if_block_1$1(ctx);
+    					if_block.c();
+    					if_block.m(div1, t);
+    				}
+    			} else if (if_block) {
+    				if_block.d(1);
+    				if_block = null;
+    			}
+
     			if (dirty & /*ideas*/ 1) {
     				each_value = /*ideas*/ ctx[0];
     				group_outros();
@@ -10423,7 +10470,8 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(section);
+    			if (detaching) detach(div4);
+    			if (if_block) if_block.d();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].d();
@@ -10434,12 +10482,14 @@ var app = (function () {
 
     function instance$1($$self, $$props, $$invalidate) {
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(2, $helperStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(3, $helperStore = $$value));
     	let { profile_id } = $$props;
     	let ideas = [];
+    	let profile = null;
 
     	onMount(async () => {
     		try {
+    			$$invalidate(1, profile = await $helperStore.getProfile(profile_id));
     			const ideas_ = await $helperStore.getUserIdeas(profile_id);
 
     			$$invalidate(0, ideas = ideas_.map(idea => {
@@ -10460,16 +10510,16 @@ var app = (function () {
     	});
 
     	$$self.$$set = $$props => {
-    		if ('profile_id' in $$props) $$invalidate(1, profile_id = $$props.profile_id);
+    		if ('profile_id' in $$props) $$invalidate(2, profile_id = $$props.profile_id);
     	};
 
-    	return [ideas, profile_id];
+    	return [ideas, profile, profile_id];
     }
 
     class UserIdeas extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$1, create_fragment$2, safe_not_equal, { profile_id: 1 });
+    		init(this, options, instance$1, create_fragment$3, safe_not_equal, { profile_id: 2 });
     	}
     }
 
@@ -10506,7 +10556,7 @@ var app = (function () {
     	};
     }
 
-    // (116:36) {#if profile && profile.picture}
+    // (125:36) {#if profile && profile.picture}
     function create_if_block(ctx) {
     	let profileimg;
     	let current;
@@ -10553,8 +10603,8 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$1(ctx) {
-    	let div15;
+    function create_fragment$2(ctx) {
+    	let div18;
     	let main;
     	let section0;
     	let div2;
@@ -10574,7 +10624,8 @@ var app = (function () {
     	let div3;
     	let t5;
     	let section1;
-    	let div14;
+    	let div17;
+    	let div16;
     	let div12;
     	let t6;
     	let div11;
@@ -10587,10 +10638,12 @@ var app = (function () {
     	let div8;
     	let div7;
     	let t8;
+    	let div14;
     	let div13;
-    	let button1;
-    	let t10;
     	let userideas;
+    	let t9;
+    	let div15;
+    	let button1;
     	let current;
     	let mounted;
     	let dispose;
@@ -10603,7 +10656,7 @@ var app = (function () {
 
     	return {
     		c() {
-    			div15 = element("div");
+    			div18 = element("div");
     			main = element("main");
     			section0 = element("section");
     			div2 = element("div");
@@ -10623,7 +10676,8 @@ var app = (function () {
     			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
     			t5 = space();
     			section1 = element("section");
-    			div14 = element("div");
+    			div17 = element("div");
+    			div16 = element("div");
     			div12 = element("div");
     			if (if_block0) if_block0.c();
     			t6 = space();
@@ -10638,11 +10692,13 @@ var app = (function () {
     			div8 = element("div");
     			div7 = element("div");
     			t8 = space();
+    			div14 = element("div");
     			div13 = element("div");
+    			create_component(userideas.$$.fragment);
+    			t9 = space();
+    			div15 = element("div");
     			button1 = element("button");
     			button1.textContent = "Back";
-    			t10 = space();
-    			create_component(userideas.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(div0, "class", "absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5");
@@ -10671,15 +10727,18 @@ var app = (function () {
     			attr(div10, "class", "mt-10 py-10 border-t border-blueGray-200 text-center");
     			attr(div11, "class", "px-6");
     			attr(div12, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64");
-    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mr-4");
-    			attr(div13, "class", "flex justify-end mt-0");
-    			attr(div14, "class", "container mx-auto px-4");
+    			attr(div13, "class", "w-full");
+    			attr(div14, "class", "ideas-section mt-4");
+    			attr(button1, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded");
+    			attr(div15, "class", "flex justify-end mt-0 items-center mr-0");
+    			attr(div16, "class", "profile-section");
+    			attr(div17, "class", "container mx-auto px-4");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(main, "class", "profile-page");
     		},
     		m(target, anchor) {
-    			insert(target, div15, anchor);
-    			append(div15, main);
+    			insert(target, div18, anchor);
+    			append(div18, main);
     			append(main, section0);
     			append(section0, div2);
     			append(div2, span);
@@ -10696,8 +10755,9 @@ var app = (function () {
     			append(section0, div3);
     			append(main, t5);
     			append(main, section1);
-    			append(section1, div14);
-    			append(div14, div12);
+    			append(section1, div17);
+    			append(div17, div16);
+    			append(div16, div12);
     			if (if_block0) if_block0.m(div12, null);
     			append(div12, t6);
     			append(div12, div11);
@@ -10711,11 +10771,13 @@ var app = (function () {
     			append(div9, div8);
     			append(div8, div7);
     			div7.innerHTML = /*about*/ ctx[3];
-    			append(div14, t8);
+    			append(div16, t8);
+    			append(div16, div14);
     			append(div14, div13);
-    			append(div13, button1);
-    			append(main, t10);
-    			mount_component(userideas, main, null);
+    			mount_component(userideas, div13, null);
+    			append(div16, t9);
+    			append(div16, div15);
+    			append(div15, button1);
     			current = true;
 
     			if (!mounted) {
@@ -10790,7 +10852,7 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div15);
+    			if (detaching) detach(div18);
     			if (if_block0) if_block0.d();
     			if (if_block1) if_block1.d();
     			destroy_component(userideas);
@@ -10859,7 +10921,52 @@ var app = (function () {
     class ProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance, create_fragment$1, safe_not_equal, { profile_id: 0 });
+    		init(this, options, instance, create_fragment$2, safe_not_equal, { profile_id: 0 });
+    	}
+    }
+
+    /* src/views/TestView.svelte generated by Svelte v3.59.1 */
+
+    function create_fragment$1(ctx) {
+    	let div;
+    	let userideas;
+    	let current;
+    	userideas = new UserIdeas({ props: { profile_id } });
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(userideas.$$.fragment);
+    			set_style(div, "width", "100%");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(userideas, div, null);
+    			current = true;
+    		},
+    		p: noop,
+    		i(local) {
+    			if (current) return;
+    			transition_in(userideas.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(userideas.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(userideas);
+    		}
+    	};
+    }
+
+    let profile_id = '32ff6345af6bea020295e43cd71c3d2365396f1a740d196af64d16e18db15d2a'; // Setzen Sie hier Ihre Profil-ID ein
+
+    class TestView extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, null, create_fragment$1, safe_not_equal, {});
     	}
     }
 
@@ -10883,6 +10990,8 @@ var app = (function () {
     	let route5;
     	let t6;
     	let route6;
+    	let t7;
+    	let route7;
     	let current;
 
     	route0 = new Route({
@@ -10894,28 +11003,32 @@ var app = (function () {
     		});
 
     	route2 = new Route({
+    			props: { path: "/test", component: TestView }
+    		});
+
+    	route3 = new Route({
     			props: {
     				path: "/overview/:category",
     				component: Overview
     			}
     		});
 
-    	route3 = new Route({
+    	route4 = new Route({
     			props: { path: "/idea/:id", component: IdeaDetail }
     		});
 
-    	route4 = new Route({
+    	route5 = new Route({
     			props: { path: "/postidea", component: PostIdea }
     		});
 
-    	route5 = new Route({
+    	route6 = new Route({
     			props: {
     				path: "/edit_profile/:profile_id",
     				component: EditProfileView
     			}
     		});
 
-    	route6 = new Route({
+    	route7 = new Route({
     			props: {
     				path: "/profile/:profile_id",
     				component: ProfileView
@@ -10941,6 +11054,8 @@ var app = (function () {
     			create_component(route5.$$.fragment);
     			t6 = space();
     			create_component(route6.$$.fragment);
+    			t7 = space();
+    			create_component(route7.$$.fragment);
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
@@ -10960,6 +11075,8 @@ var app = (function () {
     			mount_component(route5, main, null);
     			append(main, t6);
     			mount_component(route6, main, null);
+    			append(main, t7);
+    			mount_component(route7, main, null);
     			current = true;
     		},
     		p: noop,
@@ -10972,6 +11089,7 @@ var app = (function () {
     			transition_in(route4.$$.fragment, local);
     			transition_in(route5.$$.fragment, local);
     			transition_in(route6.$$.fragment, local);
+    			transition_in(route7.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -10982,6 +11100,7 @@ var app = (function () {
     			transition_out(route4.$$.fragment, local);
     			transition_out(route5.$$.fragment, local);
     			transition_out(route6.$$.fragment, local);
+    			transition_out(route7.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -10993,6 +11112,7 @@ var app = (function () {
     			destroy_component(route4);
     			destroy_component(route5);
     			destroy_component(route6);
+    			destroy_component(route7);
     		}
     	};
     }

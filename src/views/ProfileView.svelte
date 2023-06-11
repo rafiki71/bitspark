@@ -37,8 +37,8 @@
     });
 
     async function supportIdea() {
-    await sendSatsLNurl(lnAdress);
-  }
+        await sendSatsLNurl(lnAdress);
+    }
 </script>
 
 <div>
@@ -52,22 +52,32 @@
                     id="blackOverlay"
                     class="w-full h-full absolute opacity-50 bg-black"
                 />
-                <div class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5">
+                <div
+                    class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5"
+                >
                     {name}
                 </div>
                 <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-          <div class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6">
-            <button on:click={supportIdea} style="padding: 0;">
-              <img
-                src="/img/lightning.png"
-                style="height: 2.5rem; width: 2.5rem;"
-                alt="Support via Bitcoin Lightning"
-              />
-            </button>
-            <a href={"https://www.github.com/"+ghUser} target="_blank">
-              <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
-            </a>
-          </div>
+                <div
+                    class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
+                >
+                    <button on:click={supportIdea} style="padding: 0;">
+                        <img
+                            src="/img/lightning.png"
+                            style="height: 2.5rem; width: 2.5rem;"
+                            alt="Support via Bitcoin Lightning"
+                        />
+                    </button>
+                    <a
+                        href={"https://www.github.com/" + ghUser}
+                        target="_blank"
+                    >
+                        <i
+                            class="fab fa-github text-white"
+                            style="font-size: 2.5rem;"
+                        />
+                    </a>
+                </div>
             </div>
             <div
                 class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
@@ -92,9 +102,8 @@
 
         <section class="relative py-16 bg-blueGray-200">
             <div class="container mx-auto px-4">
-                <div
-                    class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64"
-                >
+                <div class="profile-section">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
                     {#if profile_id === publicKey}
                         <button
                             class="bg-blue-500 text-white font-bold py-2 px-4 rounded absolute"
@@ -144,16 +153,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end mt-0">
-                    <button
-                        class="bg-red-500 text-white font-bold py-2 px-4 rounded mr-4"
-                        on:click={() => window.history.back()}
-                    >
+
+                <div class="ideas-section mt-4">
+                    <div class="w-full">
+                        <UserIdeas {profile_id} />
+                    </div>
+                </div>
+        
+                <div class="flex justify-end mt-0 items-center mr-0">
+                    <button class="bg-red-500 text-white font-bold py-2 px-4 rounded" on:click={() => window.history.back()}>
                         Back
                     </button>
                 </div>
             </div>
         </section>
-        <UserIdeas {profile_id} /> <!-- UserIdeas component -->
     </main>
 </div>
