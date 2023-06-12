@@ -106,7 +106,7 @@
               <h3
                 class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700"
               >
-                {$previewStore.name}
+                {$previewStore.name} Preview
               </h3>
               <h2
                 class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
