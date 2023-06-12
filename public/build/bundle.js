@@ -9129,13 +9129,13 @@ var app = (function () {
     			t15 = space();
     			div14 = element("div");
     			button0 = element("button");
-    			button0.textContent = "Spark Idea";
+    			button0.textContent = "Back to Home";
     			t17 = space();
     			button1 = element("button");
     			button1.textContent = "Preview";
     			t19 = space();
     			button2 = element("button");
-    			button2.textContent = "Back to Home";
+    			button2.textContent = "Spark Idea";
     			t21 = space();
     			section2 = element("section");
     			attr(section0, "class", "relative block h-500-px");
@@ -9179,9 +9179,9 @@ var app = (function () {
     			attr(div12, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
     			set_style(div12, "width", "100%");
     			attr(div13, "class", "container mx-auto px-4");
-    			attr(button0, "class", "bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent mt-2 hover:shadow-xl");
+    			attr(button0, "class", "bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 mt-2 hover:shadow-xl");
     			attr(button1, "class", "bg-blue-500 text-white font-bold py-2 px-4 block rounded border border-blue-500 ml-4 mt-2 hover:shadow-xl");
-    			attr(button2, "class", "bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:shadow-xl");
+    			attr(button2, "class", "bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent ml-4 mt-2 hover:shadow-xl");
     			attr(div14, "class", "container mx-auto px-4 flex justify-end");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(section2, "class", "relative pb-16");
@@ -9249,9 +9249,9 @@ var app = (function () {
     					listen(input2, "input", /*input2_input_handler*/ ctx[8]),
     					listen(input3, "input", /*input3_input_handler*/ ctx[9]),
     					listen(input4, "input", /*input4_input_handler*/ ctx[10]),
-    					listen(button0, "click", /*postIdea*/ ctx[3]),
-    					listen(button1, "click", /*click_handler*/ ctx[12]),
-    					listen(button2, "click", /*click_handler_1*/ ctx[13])
+    					listen(button0, "click", /*click_handler*/ ctx[12]),
+    					listen(button1, "click", /*click_handler_1*/ ctx[13]),
+    					listen(button2, "click", /*postIdea*/ ctx[3])
     				];
 
     				mounted = true;
@@ -9364,13 +9364,13 @@ var app = (function () {
     	async function postIdea() {
     		if ($previewStore.name && $previewStore.subtitle && $previewStore.abstract && $previewStore.message && $previewStore.bannerUrl && $previewStore.githubRepo && $previewStore.lightningAddress && $previewStore.categories) {
     			await $helperStore.postIdea($previewStore.name, $previewStore.subtitle, $previewStore.abstract, $previewStore.message, $previewStore.bannerUrl, $previewStore.githubRepo, $previewStore.lightningAddress, $previewStore.categories);
-    			set_store_value(previewStore, $previewStore.name = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.subtitle = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.abstract = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.message = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.bannerUrl = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.githubRepo = '', $previewStore);
-    			set_store_value(previewStore, $previewStore.lightningAddress = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.name = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.subtitle = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.abstract = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.message = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.bannerUrl = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.githubRepo = "", $previewStore);
+    			set_store_value(previewStore, $previewStore.lightningAddress = "", $previewStore);
     			set_store_value(previewStore, $previewStore.categories = [], $previewStore);
     			navigate("/overview");
     		} else {
@@ -9420,8 +9420,8 @@ var app = (function () {
     		}
     	}
 
-    	const click_handler = () => navigateTo("/preview");
-    	const click_handler_1 = () => navigateTo("/overview");
+    	const click_handler = () => navigateTo("/overview");
+    	const click_handler_1 = () => navigateTo("/preview");
 
     	return [
     		$previewStore,

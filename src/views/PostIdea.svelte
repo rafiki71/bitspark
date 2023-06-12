@@ -44,42 +44,40 @@
     }
 
     async function postIdea() {
-    if (
-        $previewStore.name &&
-        $previewStore.subtitle &&
-        $previewStore.abstract &&
-        $previewStore.message &&
-        $previewStore.bannerUrl &&
-        $previewStore.githubRepo &&
-        $previewStore.lightningAddress &&
-        $previewStore.categories
-    ) {
-        await $helperStore.postIdea(
-            $previewStore.name,
-            $previewStore.subtitle,
-            $previewStore.abstract,
-            $previewStore.message,
-            $previewStore.bannerUrl,
-            $previewStore.githubRepo,
-            $previewStore.lightningAddress,
+        if (
+            $previewStore.name &&
+            $previewStore.subtitle &&
+            $previewStore.abstract &&
+            $previewStore.message &&
+            $previewStore.bannerUrl &&
+            $previewStore.githubRepo &&
+            $previewStore.lightningAddress &&
             $previewStore.categories
-        );
-        
-        $previewStore.name = '';
-        $previewStore.subtitle = '';
-        $previewStore.abstract = '';
-        $previewStore.message = '';
-        $previewStore.bannerUrl = '';
-        $previewStore.githubRepo = '';
-        $previewStore.lightningAddress = '';
-        $previewStore.categories = [];
-        navigate("/overview");
-    }
-    else {
-        console.log("Please fill all fields.")
-    }
-}
+        ) {
+            await $helperStore.postIdea(
+                $previewStore.name,
+                $previewStore.subtitle,
+                $previewStore.abstract,
+                $previewStore.message,
+                $previewStore.bannerUrl,
+                $previewStore.githubRepo,
+                $previewStore.lightningAddress,
+                $previewStore.categories
+            );
 
+            $previewStore.name = "";
+            $previewStore.subtitle = "";
+            $previewStore.abstract = "";
+            $previewStore.message = "";
+            $previewStore.bannerUrl = "";
+            $previewStore.githubRepo = "";
+            $previewStore.lightningAddress = "";
+            $previewStore.categories = [];
+            navigate("/overview");
+        } else {
+            console.log("Please fill all fields.");
+        }
+    }
 </script>
 
 <main class="profile-page">
@@ -212,10 +210,10 @@
         </div>
         <div class="container mx-auto px-4 flex justify-end">
             <button
-                class="bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent mt-2 hover:shadow-xl"
-                on:click={postIdea}
+                class="bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 mt-2 hover:shadow-xl"
+                on:click={() => navigateTo("/overview")}
             >
-                Spark Idea
+                Back to Home
             </button>
             <button
                 class="bg-blue-500 text-white font-bold py-2 px-4 block rounded border border-blue-500 ml-4 mt-2 hover:shadow-xl"
@@ -224,10 +222,10 @@
                 Preview
             </button>
             <button
-                class="bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:shadow-xl"
-                on:click={() => navigateTo("/overview")}
+                class="bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent ml-4 mt-2 hover:shadow-xl"
+                on:click={postIdea}
             >
-                Back to Home
+                Spark Idea
             </button>
         </div>
     </section>
