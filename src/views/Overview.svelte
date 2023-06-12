@@ -8,6 +8,7 @@
   import ProfileImg from "../components/ProfileImg.svelte";
   import NostrHelper from "../NostrHelper.js";
   import Menu from "../components/Menu.svelte";
+  import Footer from "../components/Footers/FooterBS.svelte";
   import "websocket-polyfill";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { ideas, verifiedCards, unverifiedCards } from '../ideaStore.js';
@@ -190,6 +191,7 @@
         </div>
       </div>
     </section>
+  <Footer/>
   </main>
 </div>
 

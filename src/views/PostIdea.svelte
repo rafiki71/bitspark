@@ -4,6 +4,7 @@
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
     import { helperStore } from "../helperStore.js";
     import { previewStore } from "../previewStore.js";
+    import Footer from "../components/Footers/FooterBS.svelte";
 
     function navigateTo(route) {
         navigate(route);
@@ -230,4 +231,5 @@
         </div>
     </section>
     <section class="relative pb-16" />
+    <Footer/>
 </main>

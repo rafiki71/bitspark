@@ -2,10 +2,10 @@
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import NostrHelper from "../NostrHelper.js";
     import { sendSatsLNurl } from "../LNHelper.js";
     import { helperStore } from "../helperStore.js"; // Import the store
     import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
+    import Footer from "../components/Footers/FooterBS.svelte";
 
     export let profile_id;
 
@@ -167,5 +167,6 @@
                 </div>
             </div>
         </section>
+        <Footer/>
     </main>
 </div>

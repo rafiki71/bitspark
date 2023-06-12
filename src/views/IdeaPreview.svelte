@@ -4,9 +4,10 @@
   import { Link } from "svelte-routing";
   import { sendSatsLNurl } from "../LNHelper.js";
   import ProfileImg from "../components/ProfileImg.svelte";
-  import NostrHelper from "../NostrHelper.js";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { previewStore } from "../previewStore.js";
+  import Footer from "../components/Footers/FooterBS.svelte";
+
 
   let comments = [];
   let newComment = "";
@@ -156,7 +157,7 @@
         <!--Comments-->
         <div class="bg-white w-full mb-6 shadow-xl rounded-lg p-4">
           <h4 class="text-2xl font-semibold text-blueGray-700 mb-4">
-            Kommentare
+            Comments
           </h4>
           <ul>
             {#each comments as comment (comment.id)}
@@ -178,7 +179,7 @@
           </ul>
           <div class="mt-6">
             <label for="newComment" class="text-lg text-blueGray-600"
-              >Dein Kommentar:</label
+              >Your Comment:</label
             >
             <textarea
               id="newComment"
@@ -191,7 +192,7 @@
               type="button"
               on:click={submitComment}
             >
-              Kommentar absenden
+              Send
             </button>
           </div>
         </div>
@@ -205,5 +206,6 @@
         </Link>
       </div>
     </section>
+    <Footer/>
   </main>
 </div>

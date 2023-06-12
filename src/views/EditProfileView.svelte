@@ -4,6 +4,8 @@
     import ProfileImg from "../components/ProfileImg.svelte";
     import NostrHelper from "../NostrHelper.js";
     import { helperStore } from "../helperStore.js"; // Import the store
+    import Footer from "../components/Footers/FooterBS.svelte";
+
 
     export let profile_id;
 
@@ -324,5 +326,6 @@
                 </div>
             </div>
         </section>
+        <Footer/>
     </main>
 </div>

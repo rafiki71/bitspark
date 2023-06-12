@@ -1264,7 +1264,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$f(ctx) {
+    function create_fragment$g(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1311,7 +1311,7 @@ var app = (function () {
     	};
     }
 
-    function instance$d($$self, $$props, $$invalidate) {
+    function instance$e($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
     	let $base;
@@ -1468,7 +1468,7 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$d, create_fragment$f, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$e, create_fragment$g, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
@@ -1760,7 +1760,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$e(ctx) {
+    function create_fragment$f(ctx) {
     	let if_block_anchor;
     	let current;
     	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$7(ctx);
@@ -1815,7 +1815,7 @@ var app = (function () {
     	};
     }
 
-    function instance$c($$self, $$props, $$invalidate) {
+    function instance$d($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1879,7 +1879,7 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$c, create_fragment$e, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$d, create_fragment$f, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
@@ -1887,7 +1887,7 @@ var app = (function () {
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$d(ctx) {
+    function create_fragment$e(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1969,7 +1969,7 @@ var app = (function () {
     	};
     }
 
-    function instance$b($$self, $$props, $$invalidate) {
+    function instance$c($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
@@ -2063,7 +2063,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$b, create_fragment$d, safe_not_equal, {
+    		init(this, options, instance$c, create_fragment$e, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -2090,7 +2090,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$c(ctx) {
+    function create_fragment$d(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -2207,7 +2207,7 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
+    function instance$b($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
@@ -2220,7 +2220,7 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$a, create_fragment$c, safe_not_equal, { card: 0 });
+    		init(this, options, instance$b, create_fragment$d, safe_not_equal, { card: 0 });
     	}
     }
 
@@ -2261,7 +2261,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let link;
     	let current;
 
@@ -2306,7 +2306,7 @@ var app = (function () {
     	};
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
     	let { style = {} } = $$props;
@@ -2345,7 +2345,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$b, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$a, create_fragment$c, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -7224,7 +7224,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let div2;
     	let ul;
     	let li0;
@@ -7422,7 +7422,7 @@ var app = (function () {
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let $menuState;
     	const menuState = writable({ logged_in: false, use_extension: false });
     	component_subscribe($$self, menuState, value => $$invalidate(1, $menuState = value));
@@ -7523,6 +7523,48 @@ var app = (function () {
     class Menu extends SvelteComponent {
     	constructor(options) {
     		super();
+    		init(this, options, instance$9, create_fragment$b, safe_not_equal, {});
+    	}
+    }
+
+    /* src/components/Footers/FooterBS.svelte generated by Svelte v3.59.1 */
+
+    function create_fragment$a(ctx) {
+    	let footer;
+
+    	return {
+    		c() {
+    			footer = element("footer");
+
+    			footer.innerHTML = `<div class="container mx-auto px-4"><hr class="mb-4 border-b-1 border-blueGray-200"/> 
+    <div class="flex flex-wrap items-center md:justify-between justify-center"><div class="w-full px-4"><ul class="flex flex-wrap list-none md:justify-center justify-center"><li><a href="https://lightning.network/lightning-network-paper.pdf" class="text-blueGray-600 hover:text-blueGray-800 text-sm font-semibold block py-1 px-3">Powered by Lightning</a></li> 
+          <li><a href="https://nostr.com/" class="text-blueGray-600 hover:text-blueGray-800 text-sm font-semibold block py-1 px-3">Powered by Nostr</a></li> 
+          <li><a href="https://getalby.com/" class="text-blueGray-600 hover:text-blueGray-800 text-sm font-semibold block py-1 px-3">Powered by Alby</a></li> 
+          <li><a href="https://www.creative-tim.com?ref=ns-footer-admin" class="text-blueGray-600 hover:text-blueGray-800 text-sm font-semibold block py-1 px-3">Creative Tim</a></li> 
+          <li><a href="https://github.com/creativetimofficial/notus-svelte/blob/main/LICENSE.md?ref=ns-footer-admin" class="text-blueGray-600 hover:text-blueGray-800 text-sm font-semibold block py-1 px-3">MIT License</a></li></ul></div></div></div>`;
+
+    			attr(footer, "class", "block py-4");
+    		},
+    		m(target, anchor) {
+    			insert(target, footer, anchor);
+    		},
+    		p: noop,
+    		i: noop,
+    		o: noop,
+    		d(detaching) {
+    			if (detaching) detach(footer);
+    		}
+    	};
+    }
+
+    function instance$8($$self) {
+    	new Date().getFullYear();
+    	return [];
+    }
+
+    class FooterBS extends SvelteComponent {
+    	constructor(options) {
+    		super();
     		init(this, options, instance$8, create_fragment$a, safe_not_equal, {});
     	}
     }
@@ -7549,7 +7591,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (148:10) {#if profile}
+    // (149:10) {#if profile}
     function create_if_block$5(ctx) {
     	let div;
     	let profileimg;
@@ -7594,7 +7636,7 @@ var app = (function () {
     	};
     }
 
-    // (166:12) {#each $verifiedCards as card (card.id)}
+    // (167:12) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7641,7 +7683,7 @@ var app = (function () {
     	};
     }
 
-    // (181:12) {#each $unverifiedCards as card (card.id)}
+    // (182:12) {#each $unverifiedCards as card (card.id)}
     function create_each_block$5(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7716,6 +7758,8 @@ var app = (function () {
     	let div7;
     	let each_blocks = [];
     	let each1_lookup = new Map();
+    	let t10;
+    	let footer;
     	let current;
     	let if_block = /*profile*/ ctx[0] && create_if_block$5(ctx);
 
@@ -7740,6 +7784,8 @@ var app = (function () {
     		let key = get_key_1(child_ctx);
     		each1_lookup.set(key, each_blocks[i] = create_each_block$5(key, child_ctx));
     	}
+
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -7782,6 +7828,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
+    			t10 = space();
+    			create_component(footer.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(div0, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
@@ -7845,6 +7893,8 @@ var app = (function () {
     				}
     			}
 
+    			append(main, t10);
+    			mount_component(footer, main, null);
     			current = true;
     		},
     		p(ctx, [dirty]) {
@@ -7898,6 +7948,7 @@ var app = (function () {
     				transition_in(each_blocks[i]);
     			}
 
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -7912,6 +7963,7 @@ var app = (function () {
     				transition_out(each_blocks[i]);
     			}
 
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -7926,6 +7978,8 @@ var app = (function () {
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].d();
     			}
+
+    			destroy_component(footer);
     		}
     	};
     }
@@ -8080,7 +8134,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (139:12) {#if creator_profile && creator_profile.picture}
+    // (138:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_2(ctx) {
     	let div;
     	let profileimg;
@@ -8125,7 +8179,7 @@ var app = (function () {
     	};
     }
 
-    // (180:10) {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+    // (179:10) {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
     function create_if_block_1$3(ctx) {
     	let button;
     	let mounted;
@@ -8154,7 +8208,7 @@ var app = (function () {
     	};
     }
 
-    // (248:16) {#if comment.picture}
+    // (247:16) {#if comment.picture}
     function create_if_block$4(ctx) {
     	let div;
     	let profileimg;
@@ -8199,7 +8253,7 @@ var app = (function () {
     	};
     }
 
-    // (246:12) {#each comments as comment (comment.id)}
+    // (245:12) {#each comments as comment (comment.id)}
     function create_each_block$4(key_1, ctx) {
     	let li;
     	let t0;
@@ -8292,7 +8346,7 @@ var app = (function () {
     	};
     }
 
-    // (282:8) <Link to="/overview">
+    // (281:8) <Link to="/overview">
     function create_default_slot$3(ctx) {
     	let button;
 
@@ -8386,6 +8440,8 @@ var app = (function () {
     	let button2;
     	let t31;
     	let link;
+    	let t32;
+    	let footer;
     	let current;
     	let mounted;
     	let dispose;
@@ -8407,6 +8463,8 @@ var app = (function () {
     				$$scope: { ctx }
     			}
     		});
+
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -8469,7 +8527,7 @@ var app = (function () {
     			t23 = space();
     			div9 = element("div");
     			h4 = element("h4");
-    			h4.textContent = "Kommentare";
+    			h4.textContent = "Comments";
     			t25 = space();
     			ul = element("ul");
 
@@ -8480,14 +8538,16 @@ var app = (function () {
     			t26 = space();
     			div8 = element("div");
     			label = element("label");
-    			label.textContent = "Dein Kommentar:";
+    			label.textContent = "Your Comment:";
     			t28 = space();
     			textarea = element("textarea");
     			t29 = space();
     			button2 = element("button");
-    			button2.textContent = "Kommentar absenden";
+    			button2.textContent = "Send";
     			t31 = space();
     			create_component(link.$$.fragment);
+    			t32 = space();
+    			create_component(footer.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
@@ -8616,6 +8676,8 @@ var app = (function () {
     			append(div8, button2);
     			append(div10, t31);
     			mount_component(link, div10, null);
+    			append(main, t32);
+    			mount_component(footer, main, null);
     			current = true;
 
     			if (!mounted) {
@@ -8709,6 +8771,7 @@ var app = (function () {
     			}
 
     			transition_in(link.$$.fragment, local);
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -8719,6 +8782,7 @@ var app = (function () {
     			}
 
     			transition_out(link.$$.fragment, local);
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -8731,6 +8795,7 @@ var app = (function () {
     			}
 
     			destroy_component(link);
+    			destroy_component(footer);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -9146,6 +9211,8 @@ var app = (function () {
     	let button2;
     	let t21;
     	let section2;
+    	let t22;
+    	let footer;
     	let current;
     	let mounted;
     	let dispose;
@@ -9162,6 +9229,7 @@ var app = (function () {
 
     	multiselectdropdown = new MultiSelectDropdown({ props: multiselectdropdown_props });
     	binding_callbacks.push(() => bind(multiselectdropdown, 'selected', multiselectdropdown_selected_binding));
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -9218,6 +9286,8 @@ var app = (function () {
     			button2.textContent = "Spark Idea";
     			t21 = space();
     			section2 = element("section");
+    			t22 = space();
+    			create_component(footer.$$.fragment);
     			attr(section0, "class", "relative block h-500-px");
     			attr(h21, "class", "text-2xl font-semibold mb-4");
     			attr(input0, "type", "text");
@@ -9316,6 +9386,8 @@ var app = (function () {
     			append(div14, button2);
     			append(main, t21);
     			append(main, section2);
+    			append(main, t22);
+    			mount_component(footer, main, null);
     			current = true;
 
     			if (!mounted) {
@@ -9379,15 +9451,18 @@ var app = (function () {
     		i(local) {
     			if (current) return;
     			transition_in(multiselectdropdown.$$.fragment, local);
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
     			transition_out(multiselectdropdown.$$.fragment, local);
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
     			if (detaching) detach(main);
     			destroy_component(multiselectdropdown);
+    			destroy_component(footer);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -9536,7 +9611,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (158:36) {#if profile && profile.picture}
+    // (160:36) {#if profile && profile.picture}
     function create_if_block$3(ctx) {
     	let profileimg;
     	let current;
@@ -9583,7 +9658,7 @@ var app = (function () {
     	};
     }
 
-    // (274:56) {#each relays as relay}
+    // (276:56) {#each relays as relay}
     function create_each_block$2(ctx) {
     	let div1;
     	let div0;
@@ -9708,6 +9783,8 @@ var app = (function () {
     	let button1;
     	let t30;
     	let button2;
+    	let t32;
+    	let footer;
     	let current;
     	let mounted;
     	let dispose;
@@ -9718,6 +9795,8 @@ var app = (function () {
     	for (let i = 0; i < each_value.length; i += 1) {
     		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
     	}
+
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -9811,6 +9890,8 @@ var app = (function () {
     			t30 = space();
     			button2 = element("button");
     			button2.textContent = "Update Profile";
+    			t32 = space();
+    			create_component(footer.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
@@ -9969,6 +10050,8 @@ var app = (function () {
     			append(div26, button1);
     			append(div26, t30);
     			append(div26, button2);
+    			append(main, t32);
+    			mount_component(footer, main, null);
     			current = true;
 
     			if (!mounted) {
@@ -10073,16 +10156,19 @@ var app = (function () {
     		i(local) {
     			if (current) return;
     			transition_in(if_block);
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
     			transition_out(if_block);
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
     			if (detaching) detach(div28);
     			if (if_block) if_block.d();
     			destroy_each(each_blocks, detaching);
+    			destroy_component(footer);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -10726,6 +10812,8 @@ var app = (function () {
     	let t9;
     	let div15;
     	let button1;
+    	let t11;
+    	let footer;
     	let current;
     	let mounted;
     	let dispose;
@@ -10735,6 +10823,8 @@ var app = (function () {
     	userideas = new UserIdeas({
     			props: { profile_id: /*profile_id*/ ctx[0] }
     		});
+
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -10781,6 +10871,8 @@ var app = (function () {
     			div15 = element("div");
     			button1 = element("button");
     			button1.textContent = "Back";
+    			t11 = space();
+    			create_component(footer.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(div0, "class", "absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5");
@@ -10860,6 +10952,8 @@ var app = (function () {
     			append(div16, t9);
     			append(div16, div15);
     			append(div15, button1);
+    			append(main, t11);
+    			mount_component(footer, main, null);
     			current = true;
 
     			if (!mounted) {
@@ -10926,11 +11020,13 @@ var app = (function () {
     			if (current) return;
     			transition_in(if_block1);
     			transition_in(userideas.$$.fragment, local);
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
     			transition_out(if_block1);
     			transition_out(userideas.$$.fragment, local);
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -10938,6 +11034,7 @@ var app = (function () {
     			if (if_block0) if_block0.d();
     			if (if_block1) if_block1.d();
     			destroy_component(userideas);
+    			destroy_component(footer);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -11060,7 +11157,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (63:12) {#if creator_profile && creator_profile.picture}
+    // (64:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1(ctx) {
     	let div;
     	let profileimg;
@@ -11105,7 +11202,7 @@ var app = (function () {
     	};
     }
 
-    // (164:16) {#if comment.picture}
+    // (165:16) {#if comment.picture}
     function create_if_block(ctx) {
     	let div;
     	let profileimg;
@@ -11146,7 +11243,7 @@ var app = (function () {
     	};
     }
 
-    // (162:12) {#each comments as comment (comment.id)}
+    // (163:12) {#each comments as comment (comment.id)}
     function create_each_block(key_1, ctx) {
     	let li;
     	let t0;
@@ -11214,7 +11311,7 @@ var app = (function () {
     	};
     }
 
-    // (198:8) <Link to="/postidea">
+    // (199:8) <Link to="/postidea">
     function create_default_slot$1(ctx) {
     	let button;
 
@@ -11308,6 +11405,8 @@ var app = (function () {
     	let button2;
     	let t31;
     	let link;
+    	let t32;
+    	let footer;
     	let current;
     	let mounted;
     	let dispose;
@@ -11328,6 +11427,8 @@ var app = (function () {
     				$$scope: { ctx }
     			}
     		});
+
+    	footer = new FooterBS({});
 
     	return {
     		c() {
@@ -11389,7 +11490,7 @@ var app = (function () {
     			t23 = space();
     			div9 = element("div");
     			h4 = element("h4");
-    			h4.textContent = "Kommentare";
+    			h4.textContent = "Comments";
     			t25 = space();
     			ul = element("ul");
 
@@ -11400,14 +11501,16 @@ var app = (function () {
     			t26 = space();
     			div8 = element("div");
     			label = element("label");
-    			label.textContent = "Dein Kommentar:";
+    			label.textContent = "Your Comment:";
     			t28 = space();
     			textarea = element("textarea");
     			t29 = space();
     			button2 = element("button");
-    			button2.textContent = "Kommentar absenden";
+    			button2.textContent = "Send";
     			t31 = space();
     			create_component(link.$$.fragment);
+    			t32 = space();
+    			create_component(footer.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
     			attr(h1, "class", "text-4xl font-bold text-white");
@@ -11535,6 +11638,8 @@ var app = (function () {
     			append(div8, button2);
     			append(div10, t31);
     			mount_component(link, div10, null);
+    			append(main, t32);
+    			mount_component(footer, main, null);
     			current = true;
 
     			if (!mounted) {
@@ -11615,6 +11720,7 @@ var app = (function () {
     			}
 
     			transition_in(link.$$.fragment, local);
+    			transition_in(footer.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -11625,6 +11731,7 @@ var app = (function () {
     			}
 
     			transition_out(link.$$.fragment, local);
+    			transition_out(footer.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -11636,6 +11743,7 @@ var app = (function () {
     			}
 
     			destroy_component(link);
+    			destroy_component(footer);
     			mounted = false;
     			run_all(dispose);
     		}
