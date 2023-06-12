@@ -23,6 +23,18 @@
   let profiles = {};
   let creator_profile = null;
 
+  async function deleteIdea() {
+  const confirmDelete = confirm("Do you really want to delete this idea?");
+  if (confirmDelete) {
+    try {
+      await $helperStore.deleteEvent(id);
+    } catch (error) {
+      console.error("Error deleting idea:", error);
+    }
+  }
+}
+
+
   onMount(async () => {
     await fetchData();
     await fetchComments();
@@ -165,6 +177,14 @@
         <div
           class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
         >
+          {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+            <button
+              on:click={deleteIdea}
+              class="absolute top-4 right-4 text-gray-400"
+            >
+              <i class="fas fa-times-circle" />
+            </button>
+          {/if}
           <div class="px-6">
             <div class="text-center mt-6">
               <h3
@@ -199,7 +219,7 @@
 
               <hr class="my-4" />
               <!-- Strich -->
-              <div class="flex items-center justify-center gap-4">
+              <div class="flex items-center justify-center gap-4 mb-4">
                 <!-- Hinzufügen von justify-center zum Zentrieren entlang der Hauptachse -->
                 <p class="mb-0">Support via</p>
                 <!-- Entfernen Sie margin-bottom -->

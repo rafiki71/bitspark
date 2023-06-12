@@ -201,6 +201,23 @@ export default class NostrHelper {
     return event;
   }
 
+  async deleteEvent(event_id) {
+    if (!this.write_mode) return; // Do nothing in read-only mode
+
+    let tags = [["e", event_id]];
+
+    const deleteEvent = this.createEvent(5, "", tags);
+    console.log("Event deleted:", event_id);
+    return await this.sendEvent(deleteEvent);
+  }
+
+  async isDeleted(event_id) {
+    let filters = [{ kinds: [5], '#s': ['bitspark'], '#e': [event_id] }]
+
+    let deleted = await this.pool.list(this.relays, filters);
+    console.log(deleted);
+  }
+
   // Get all ideas of a user
   async getUserIdeas(userId) {
     return this.eventBuffer.getUserIdeas(userId);

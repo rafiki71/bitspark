@@ -6681,6 +6681,23 @@ var app = (function () {
         return event;
       }
 
+      async deleteEvent(event_id) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+
+        let tags = [["e", event_id]];
+
+        const deleteEvent = this.createEvent(5, "", tags);
+        console.log("Event deleted:", event_id);
+        return await this.sendEvent(deleteEvent);
+      }
+
+      async isDeleted(event_id) {
+        let filters = [{ kinds: [5], '#s': ['bitspark'], '#e': [event_id] }];
+
+        let deleted = await this.pool.list(this.relays, filters);
+        console.log(deleted);
+      }
+
       // Get all ideas of a user
       async getUserIdeas(userId) {
         return this.eventBuffer.getUserIdeas(userId);
@@ -8059,12 +8076,12 @@ var app = (function () {
 
     function get_each_context$4(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[12] = list[i];
+    	child_ctx[13] = list[i];
     	return child_ctx;
     }
 
-    // (127:12) {#if creator_profile && creator_profile.picture}
-    function create_if_block_1$3(ctx) {
+    // (139:12) {#if creator_profile && creator_profile.picture}
+    function create_if_block_2(ctx) {
     	let div;
     	let profileimg;
     	let current;
@@ -8108,7 +8125,36 @@ var app = (function () {
     	};
     }
 
-    // (228:16) {#if comment.picture}
+    // (180:10) {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+    function create_if_block_1$3(ctx) {
+    	let button;
+    	let mounted;
+    	let dispose;
+
+    	return {
+    		c() {
+    			button = element("button");
+    			button.innerHTML = `<i class="fas fa-times-circle"></i>`;
+    			attr(button, "class", "absolute top-4 right-4 text-gray-400");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = listen(button, "click", /*deleteIdea*/ ctx[5]);
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+    }
+
+    // (248:16) {#if comment.picture}
     function create_if_block$4(ctx) {
     	let div;
     	let profileimg;
@@ -8116,7 +8162,7 @@ var app = (function () {
 
     	profileimg = new ProfileImg({
     			props: {
-    				profile: /*comment*/ ctx[12],
+    				profile: /*comment*/ ctx[13],
     				style: { width: "40px", height: "40px" }
     			}
     		});
@@ -8134,7 +8180,7 @@ var app = (function () {
     		},
     		p(ctx, dirty) {
     			const profileimg_changes = {};
-    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[12];
+    			if (dirty & /*comments*/ 2) profileimg_changes.profile = /*comment*/ ctx[13];
     			profileimg.$set(profileimg_changes);
     		},
     		i(local) {
@@ -8153,21 +8199,21 @@ var app = (function () {
     	};
     }
 
-    // (226:12) {#each comments as comment (comment.id)}
+    // (246:12) {#each comments as comment (comment.id)}
     function create_each_block$4(key_1, ctx) {
     	let li;
     	let t0;
     	let div;
     	let h3;
-    	let t1_value = /*comment*/ ctx[12].name + "";
+    	let t1_value = /*comment*/ ctx[13].name + "";
     	let t1;
     	let t2;
     	let p;
-    	let t3_value = /*comment*/ ctx[12].comment + "";
+    	let t3_value = /*comment*/ ctx[13].comment + "";
     	let t3;
     	let t4;
     	let current;
-    	let if_block = /*comment*/ ctx[12].picture && create_if_block$4(ctx);
+    	let if_block = /*comment*/ ctx[13].picture && create_if_block$4(ctx);
 
     	return {
     		key: key_1,
@@ -8204,7 +8250,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
 
-    			if (/*comment*/ ctx[12].picture) {
+    			if (/*comment*/ ctx[13].picture) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
 
@@ -8227,8 +8273,8 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[12].name + "")) set_data(t1, t1_value);
-    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[12].comment + "")) set_data(t3, t3_value);
+    			if ((!current || dirty & /*comments*/ 2) && t1_value !== (t1_value = /*comment*/ ctx[13].name + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*comments*/ 2) && t3_value !== (t3_value = /*comment*/ ctx[13].comment + "")) set_data(t3, t3_value);
     		},
     		i(local) {
     			if (current) return;
@@ -8246,7 +8292,7 @@ var app = (function () {
     	};
     }
 
-    // (262:8) <Link to="/overview">
+    // (282:8) <Link to="/overview">
     function create_default_slot$3(ctx) {
     	let button;
 
@@ -8296,55 +8342,57 @@ var app = (function () {
     	let section1;
     	let div10;
     	let div7;
+    	let t9;
     	let div6;
     	let div5;
     	let h3;
-    	let t9_value = /*idea*/ ctx[0].name + "";
-    	let t9;
+    	let t10_value = /*idea*/ ctx[0].name + "";
     	let t10;
+    	let t11;
     	let h21;
-    	let t12;
-    	let p0;
-    	let t13_value = /*idea*/ ctx[0].abstract + "";
     	let t13;
+    	let p0;
+    	let t14_value = /*idea*/ ctx[0].abstract + "";
     	let t14;
-    	let hr0;
     	let t15;
-    	let h22;
-    	let t16_value = /*idea*/ ctx[0].name + "";
+    	let hr0;
     	let t16;
+    	let h22;
+    	let t17_value = /*idea*/ ctx[0].name + "";
     	let t17;
+    	let t18;
     	let p1;
     	let raw_value = /*idea*/ ctx[0].message + "";
-    	let t18;
-    	let hr1;
     	let t19;
+    	let hr1;
+    	let t20;
     	let div4;
     	let p2;
-    	let t21;
-    	let button1;
     	let t22;
+    	let button1;
+    	let t23;
     	let div9;
     	let h4;
-    	let t24;
+    	let t25;
     	let ul;
     	let each_blocks = [];
     	let each_1_lookup = new Map();
-    	let t25;
+    	let t26;
     	let div8;
     	let label;
-    	let t27;
-    	let textarea;
     	let t28;
+    	let textarea;
+    	let t29;
     	let button2;
-    	let t30;
+    	let t31;
     	let link;
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$3(ctx);
+    	let if_block0 = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_2(ctx);
+    	let if_block1 = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].pubkey === /*$helperStore*/ ctx[4].publicKey && create_if_block_1$3(ctx);
     	let each_value = /*comments*/ ctx[1];
-    	const get_key = ctx => /*comment*/ ctx[12].id;
+    	const get_key = ctx => /*comment*/ ctx[13].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
     		let child_ctx = get_each_context$4(ctx, each_value, i);
@@ -8379,7 +8427,7 @@ var app = (function () {
     			button0 = element("button");
     			button0.innerHTML = `<img src="../../img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
     			t5 = space();
-    			if (if_block) if_block.c();
+    			if (if_block0) if_block0.c();
     			t6 = space();
     			a = element("a");
     			i = element("i");
@@ -8390,53 +8438,55 @@ var app = (function () {
     			section1 = element("section");
     			div10 = element("div");
     			div7 = element("div");
+    			if (if_block1) if_block1.c();
+    			t9 = space();
     			div6 = element("div");
     			div5 = element("div");
     			h3 = element("h3");
-    			t9 = text(t9_value);
-    			t10 = space();
+    			t10 = text(t10_value);
+    			t11 = space();
     			h21 = element("h2");
     			h21.textContent = `${"Abstract"}`;
-    			t12 = space();
+    			t13 = space();
     			p0 = element("p");
-    			t13 = text(t13_value);
-    			t14 = space();
-    			hr0 = element("hr");
+    			t14 = text(t14_value);
     			t15 = space();
+    			hr0 = element("hr");
+    			t16 = space();
     			h22 = element("h2");
-    			t16 = text(t16_value);
-    			t17 = space();
-    			p1 = element("p");
+    			t17 = text(t17_value);
     			t18 = space();
-    			hr1 = element("hr");
+    			p1 = element("p");
     			t19 = space();
+    			hr1 = element("hr");
+    			t20 = space();
     			div4 = element("div");
     			p2 = element("p");
     			p2.textContent = "Support via";
-    			t21 = space();
+    			t22 = space();
     			button1 = element("button");
     			button1.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
-    			t22 = space();
+    			t23 = space();
     			div9 = element("div");
     			h4 = element("h4");
     			h4.textContent = "Kommentare";
-    			t24 = space();
+    			t25 = space();
     			ul = element("ul");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t25 = space();
+    			t26 = space();
     			div8 = element("div");
     			label = element("label");
     			label.textContent = "Dein Kommentar:";
-    			t27 = space();
-    			textarea = element("textarea");
     			t28 = space();
+    			textarea = element("textarea");
+    			t29 = space();
     			button2 = element("button");
     			button2.textContent = "Kommentar absenden";
-    			t30 = space();
+    			t31 = space();
     			create_component(link.$$.fragment);
     			attr(span, "id", "blackOverlay");
     			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
@@ -8473,7 +8523,7 @@ var app = (function () {
     			set_style(button1, "padding", "0");
     			set_style(button1, "display", "flex");
     			set_style(button1, "align-items", "center");
-    			attr(div4, "class", "flex items-center justify-center gap-4");
+    			attr(div4, "class", "flex items-center justify-center gap-4 mb-4");
     			attr(div5, "class", "text-center mt-6");
     			attr(div6, "class", "px-6");
     			attr(div7, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg");
@@ -8508,7 +8558,7 @@ var app = (function () {
     			append(div1, div0);
     			append(div0, button0);
     			append(div0, t5);
-    			if (if_block) if_block.m(div0, null);
+    			if (if_block0) if_block0.m(div0, null);
     			append(div0, t6);
     			append(div0, a);
     			append(a, i);
@@ -8518,34 +8568,36 @@ var app = (function () {
     			append(main, section1);
     			append(section1, div10);
     			append(div10, div7);
+    			if (if_block1) if_block1.m(div7, null);
+    			append(div7, t9);
     			append(div7, div6);
     			append(div6, div5);
     			append(div5, h3);
-    			append(h3, t9);
-    			append(div5, t10);
+    			append(h3, t10);
+    			append(div5, t11);
     			append(div5, h21);
-    			append(div5, t12);
+    			append(div5, t13);
     			append(div5, p0);
-    			append(p0, t13);
-    			append(div5, t14);
-    			append(div5, hr0);
+    			append(p0, t14);
     			append(div5, t15);
+    			append(div5, hr0);
+    			append(div5, t16);
     			append(div5, h22);
-    			append(h22, t16);
-    			append(div5, t17);
+    			append(h22, t17);
+    			append(div5, t18);
     			append(div5, p1);
     			p1.innerHTML = raw_value;
-    			append(div5, t18);
-    			append(div5, hr1);
     			append(div5, t19);
+    			append(div5, hr1);
+    			append(div5, t20);
     			append(div5, div4);
     			append(div4, p2);
-    			append(div4, t21);
+    			append(div4, t22);
     			append(div4, button1);
-    			append(div10, t22);
+    			append(div10, t23);
     			append(div10, div9);
     			append(div9, h4);
-    			append(div9, t24);
+    			append(div9, t25);
     			append(div9, ul);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -8554,24 +8606,24 @@ var app = (function () {
     				}
     			}
 
-    			append(div9, t25);
+    			append(div9, t26);
     			append(div9, div8);
     			append(div8, label);
-    			append(div8, t27);
+    			append(div8, t28);
     			append(div8, textarea);
     			set_input_value(textarea, /*newComment*/ ctx[2]);
-    			append(div8, t28);
+    			append(div8, t29);
     			append(div8, button2);
-    			append(div10, t30);
+    			append(div10, t31);
     			mount_component(link, div10, null);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(button0, "click", /*supportIdea*/ ctx[4]),
-    					listen(button1, "click", /*supportIdea*/ ctx[4]),
-    					listen(textarea, "input", /*textarea_input_handler*/ ctx[7]),
-    					listen(button2, "click", /*submitComment*/ ctx[5])
+    					listen(button0, "click", /*supportIdea*/ ctx[6]),
+    					listen(button1, "click", /*supportIdea*/ ctx[6]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[9]),
+    					listen(button2, "click", /*submitComment*/ ctx[7])
     				];
 
     				mounted = true;
@@ -8582,23 +8634,23 @@ var app = (function () {
     			if ((!current || dirty & /*idea*/ 1) && t3_value !== (t3_value = /*idea*/ ctx[0].subtitle + "")) set_data(t3, t3_value);
 
     			if (/*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
 
     					if (dirty & /*creator_profile*/ 8) {
-    						transition_in(if_block, 1);
+    						transition_in(if_block0, 1);
     					}
     				} else {
-    					if_block = create_if_block_1$3(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(div0, t6);
+    					if_block0 = create_if_block_2(ctx);
+    					if_block0.c();
+    					transition_in(if_block0, 1);
+    					if_block0.m(div0, t6);
     				}
-    			} else if (if_block) {
+    			} else if (if_block0) {
     				group_outros();
 
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
+    				transition_out(if_block0, 1, 1, () => {
+    					if_block0 = null;
     				});
 
     				check_outros();
@@ -8612,9 +8664,22 @@ var app = (function () {
     				set_style(div2, "background-image", "url(" + /*idea*/ ctx[0].bannerImage + ")");
     			}
 
-    			if ((!current || dirty & /*idea*/ 1) && t9_value !== (t9_value = /*idea*/ ctx[0].name + "")) set_data(t9, t9_value);
-    			if ((!current || dirty & /*idea*/ 1) && t13_value !== (t13_value = /*idea*/ ctx[0].abstract + "")) set_data(t13, t13_value);
-    			if ((!current || dirty & /*idea*/ 1) && t16_value !== (t16_value = /*idea*/ ctx[0].name + "")) set_data(t16, t16_value);
+    			if (/*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].pubkey === /*$helperStore*/ ctx[4].publicKey) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block_1$3(ctx);
+    					if_block1.c();
+    					if_block1.m(div7, t9);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+
+    			if ((!current || dirty & /*idea*/ 1) && t10_value !== (t10_value = /*idea*/ ctx[0].name + "")) set_data(t10, t10_value);
+    			if ((!current || dirty & /*idea*/ 1) && t14_value !== (t14_value = /*idea*/ ctx[0].abstract + "")) set_data(t14, t14_value);
+    			if ((!current || dirty & /*idea*/ 1) && t17_value !== (t17_value = /*idea*/ ctx[0].name + "")) set_data(t17, t17_value);
     			if ((!current || dirty & /*idea*/ 1) && raw_value !== (raw_value = /*idea*/ ctx[0].message + "")) p1.innerHTML = raw_value;
     			if (dirty & /*comments*/ 2) {
     				each_value = /*comments*/ ctx[1];
@@ -8629,7 +8694,7 @@ var app = (function () {
 
     			const link_changes = {};
 
-    			if (dirty & /*$$scope*/ 32768) {
+    			if (dirty & /*$$scope*/ 65536) {
     				link_changes.$$scope = { dirty, ctx };
     			}
 
@@ -8637,7 +8702,7 @@ var app = (function () {
     		},
     		i(local) {
     			if (current) return;
-    			transition_in(if_block);
+    			transition_in(if_block0);
 
     			for (let i = 0; i < each_value.length; i += 1) {
     				transition_in(each_blocks[i]);
@@ -8647,7 +8712,7 @@ var app = (function () {
     			current = true;
     		},
     		o(local) {
-    			transition_out(if_block);
+    			transition_out(if_block0);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				transition_out(each_blocks[i]);
@@ -8658,7 +8723,8 @@ var app = (function () {
     		},
     		d(detaching) {
     			if (detaching) detach(div11);
-    			if (if_block) if_block.d();
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].d();
@@ -8673,7 +8739,7 @@ var app = (function () {
 
     function instance$6($$self, $$props, $$invalidate) {
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(9, $helperStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(4, $helperStore = $$value));
     	let { id } = $$props;
 
     	let idea = {
@@ -8688,6 +8754,18 @@ var app = (function () {
     	let newComment = "";
     	let profiles = {};
     	let creator_profile = null;
+
+    	async function deleteIdea() {
+    		const confirmDelete = confirm("Do you really want to delete this idea?");
+
+    		if (confirmDelete) {
+    			try {
+    				await $helperStore.deleteEvent(id);
+    			} catch(error) {
+    				console.error("Error deleting idea:", error);
+    			}
+    		}
+    	}
 
     	onMount(async () => {
     		await fetchData();
@@ -8766,7 +8844,7 @@ var app = (function () {
     	}
 
     	$$self.$$set = $$props => {
-    		if ('id' in $$props) $$invalidate(6, id = $$props.id);
+    		if ('id' in $$props) $$invalidate(8, id = $$props.id);
     	};
 
     	return [
@@ -8774,6 +8852,8 @@ var app = (function () {
     		comments,
     		newComment,
     		creator_profile,
+    		$helperStore,
+    		deleteIdea,
     		supportIdea,
     		submitComment,
     		id,
@@ -8784,7 +8864,7 @@ var app = (function () {
     class IdeaDetail extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$8, safe_not_equal, { id: 6 });
+    		init(this, options, instance$6, create_fragment$8, safe_not_equal, { id: 8 });
     	}
     }
 
