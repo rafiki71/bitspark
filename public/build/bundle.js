@@ -1264,7 +1264,7 @@ var app = (function () {
     	location: /*$location*/ ctx[0]
     });
 
-    function create_fragment$e(ctx) {
+    function create_fragment$f(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[12].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[11], get_default_slot_context$2);
@@ -1311,7 +1311,7 @@ var app = (function () {
     	};
     }
 
-    function instance$c($$self, $$props, $$invalidate) {
+    function instance$d($$self, $$props, $$invalidate) {
     	let $location;
     	let $routes;
     	let $base;
@@ -1468,7 +1468,7 @@ var app = (function () {
     class Router extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$c, create_fragment$e, safe_not_equal, { basepath: 6, url: 7, history: 8 });
+    		init(this, options, instance$d, create_fragment$f, safe_not_equal, { basepath: 6, url: 7, history: 8 });
     	}
     }
 
@@ -1477,12 +1477,12 @@ var app = (function () {
     const get_default_slot_context$1 = ctx => ({ params: /*routeParams*/ ctx[2] });
 
     // (44:0) {#if $activeRoute && $activeRoute.route === route}
-    function create_if_block$6(ctx) {
+    function create_if_block$7(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_1$4, create_else_block$1];
+    	const if_block_creators = [create_if_block_1$5, create_else_block$1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -1595,7 +1595,7 @@ var app = (function () {
     }
 
     // (45:4) {#if component}
-    function create_if_block_1$4(ctx) {
+    function create_if_block_1$5(ctx) {
     	let await_block_anchor;
     	let promise;
     	let current;
@@ -1760,10 +1760,10 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$d(ctx) {
+    function create_fragment$e(ctx) {
     	let if_block_anchor;
     	let current;
-    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$6(ctx);
+    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$7(ctx);
 
     	return {
     		c() {
@@ -1784,7 +1784,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$6(ctx);
+    					if_block = create_if_block$7(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(if_block_anchor.parentNode, if_block_anchor);
@@ -1815,7 +1815,7 @@ var app = (function () {
     	};
     }
 
-    function instance$b($$self, $$props, $$invalidate) {
+    function instance$c($$self, $$props, $$invalidate) {
     	let $activeRoute;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	let { path = "" } = $$props;
@@ -1879,7 +1879,7 @@ var app = (function () {
     class Route extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$b, create_fragment$d, safe_not_equal, { path: 6, component: 0 });
+    		init(this, options, instance$c, create_fragment$e, safe_not_equal, { path: 6, component: 0 });
     	}
     }
 
@@ -1887,7 +1887,7 @@ var app = (function () {
     const get_default_slot_changes = dirty => ({ active: dirty & /*ariaCurrent*/ 4 });
     const get_default_slot_context = ctx => ({ active: !!/*ariaCurrent*/ ctx[2] });
 
-    function create_fragment$c(ctx) {
+    function create_fragment$d(ctx) {
     	let a;
     	let current;
     	let mounted;
@@ -1969,7 +1969,7 @@ var app = (function () {
     	};
     }
 
-    function instance$a($$self, $$props, $$invalidate) {
+    function instance$b($$self, $$props, $$invalidate) {
     	let ariaCurrent;
     	const omit_props_names = ["to","replace","state","getProps"];
     	let $$restProps = compute_rest_props($$props, omit_props_names);
@@ -2063,7 +2063,7 @@ var app = (function () {
     	constructor(options) {
     		super();
 
-    		init(this, options, instance$a, create_fragment$c, safe_not_equal, {
+    		init(this, options, instance$b, create_fragment$d, safe_not_equal, {
     			to: 7,
     			replace: 8,
     			state: 9,
@@ -2090,7 +2090,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$b(ctx) {
+    function create_fragment$c(ctx) {
     	let div2;
     	let img;
     	let img_src_value;
@@ -2207,7 +2207,7 @@ var app = (function () {
     	: message.slice(0, maxLength) + "...";
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let { card } = $$props;
 
     	$$self.$$set = $$props => {
@@ -2220,7 +2220,7 @@ var app = (function () {
     class IdeaCard extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$9, create_fragment$b, safe_not_equal, { card: 0 });
+    		init(this, options, instance$a, create_fragment$c, safe_not_equal, { card: 0 });
     	}
     }
 
@@ -2261,7 +2261,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$a(ctx) {
+    function create_fragment$b(ctx) {
     	let link;
     	let current;
 
@@ -2306,7 +2306,7 @@ var app = (function () {
     	};
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let styleString;
     	let { profile = {} } = $$props;
     	let { style = {} } = $$props;
@@ -2345,7 +2345,7 @@ var app = (function () {
     class ProfileImg extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$8, create_fragment$a, safe_not_equal, { profile: 4, style: 5 });
+    		init(this, options, instance$9, create_fragment$b, safe_not_equal, { profile: 4, style: 5 });
     	}
     }
 
@@ -7026,7 +7026,7 @@ var app = (function () {
 
     /* src/components/Menu.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$5(ctx, list, i) {
+    function get_each_context$6(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[12] = list[i];
     	return child_ctx;
@@ -7056,7 +7056,7 @@ var app = (function () {
     }
 
     // (104:16) {#each categories as category}
-    function create_each_block$5(ctx) {
+    function create_each_block$6(ctx) {
     	let link_1;
     	let current;
 
@@ -7151,7 +7151,7 @@ var app = (function () {
     }
 
     // (118:43) 
-    function create_if_block_1$3(ctx) {
+    function create_if_block_1$4(ctx) {
     	let button;
     	let mounted;
     	let dispose;
@@ -7184,7 +7184,7 @@ var app = (function () {
     }
 
     // (115:12) {#if !$menuState.use_extension}
-    function create_if_block$5(ctx) {
+    function create_if_block$6(ctx) {
     	let a;
     	let t;
 
@@ -7207,7 +7207,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$9(ctx) {
+    function create_fragment$a(ctx) {
     	let div2;
     	let ul;
     	let li0;
@@ -7227,7 +7227,7 @@ var app = (function () {
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$5(get_each_context$5(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$6(get_each_context$6(ctx, each_value, i));
     	}
 
     	const out = i => transition_out(each_blocks[i], 1, 1, () => {
@@ -7244,8 +7244,8 @@ var app = (function () {
     		});
 
     	function select_block_type(ctx, dirty) {
-    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$5;
-    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$3;
+    		if (!/*$menuState*/ ctx[1].use_extension) return create_if_block$6;
+    		if (/*$menuState*/ ctx[1].logged_in) return create_if_block_1$4;
     		return create_else_block;
     	}
 
@@ -7323,13 +7323,13 @@ var app = (function () {
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$5(ctx, each_value, i);
+    					const child_ctx = get_each_context$6(ctx, each_value, i);
 
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
     						transition_in(each_blocks[i], 1);
     					} else {
-    						each_blocks[i] = create_each_block$5(child_ctx);
+    						each_blocks[i] = create_each_block$6(child_ctx);
     						each_blocks[i].c();
     						transition_in(each_blocks[i], 1);
     						each_blocks[i].m(div1, null);
@@ -7405,7 +7405,7 @@ var app = (function () {
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
 
-    function instance$7($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let $menuState;
     	const menuState = writable({ logged_in: false, use_extension: false });
     	component_subscribe($$self, menuState, value => $$invalidate(1, $menuState = value));
@@ -7506,7 +7506,7 @@ var app = (function () {
     class Menu extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$9, safe_not_equal, {});
+    		init(this, options, instance$8, create_fragment$a, safe_not_equal, {});
     	}
     }
 
@@ -7520,7 +7520,7 @@ var app = (function () {
 
     /* src/views/Overview.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$4(ctx, list, i) {
+    function get_each_context$5(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[13] = list[i];
     	return child_ctx;
@@ -7533,7 +7533,7 @@ var app = (function () {
     }
 
     // (148:10) {#if profile}
-    function create_if_block$4(ctx) {
+    function create_if_block$5(ctx) {
     	let div;
     	let profileimg;
     	let current;
@@ -7625,7 +7625,7 @@ var app = (function () {
     }
 
     // (181:12) {#each $unverifiedCards as card (card.id)}
-    function create_each_block$4(key_1, ctx) {
+    function create_each_block$5(key_1, ctx) {
     	let div;
     	let ideacard;
     	let t;
@@ -7671,7 +7671,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$8(ctx) {
+    function create_fragment$9(ctx) {
     	let div10;
     	let main;
     	let section0;
@@ -7700,7 +7700,7 @@ var app = (function () {
     	let each_blocks = [];
     	let each1_lookup = new Map();
     	let current;
-    	let if_block = /*profile*/ ctx[0] && create_if_block$4(ctx);
+    	let if_block = /*profile*/ ctx[0] && create_if_block$5(ctx);
 
     	menu = new Menu({
     			props: { menuState: /*menuState*/ ctx[3] }
@@ -7719,9 +7719,9 @@ var app = (function () {
     	const get_key_1 = ctx => /*card*/ ctx[13].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		let child_ctx = get_each_context$4(ctx, each_value, i);
+    		let child_ctx = get_each_context$5(ctx, each_value, i);
     		let key = get_key_1(child_ctx);
-    		each1_lookup.set(key, each_blocks[i] = create_each_block$4(key, child_ctx));
+    		each1_lookup.set(key, each_blocks[i] = create_each_block$5(key, child_ctx));
     	}
 
     	return {
@@ -7839,7 +7839,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$4(ctx);
+    					if_block = create_if_block$5(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(div2, null);
@@ -7864,7 +7864,7 @@ var app = (function () {
     			if (dirty & /*$unverifiedCards*/ 2) {
     				each_value = /*$unverifiedCards*/ ctx[1];
     				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div7, outro_and_destroy_block, create_each_block$4, null, get_each_context$4);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div7, outro_and_destroy_block, create_each_block$5, null, get_each_context$5);
     				check_outros();
     			}
     		},
@@ -7913,7 +7913,7 @@ var app = (function () {
     	};
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	let $helperStore;
     	let $ideas;
     	let $unverifiedCards;
@@ -8044,7 +8044,7 @@ var app = (function () {
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$6, create_fragment$8, safe_not_equal, { category: 4 });
+    		init(this, options, instance$7, create_fragment$9, safe_not_equal, { category: 4 });
     	}
     }
 
@@ -8057,14 +8057,14 @@ var app = (function () {
 
     /* src/views/IdeaDetail.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$3(ctx, list, i) {
+    function get_each_context$4(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
     // (127:12) {#if creator_profile && creator_profile.picture}
-    function create_if_block_1$2(ctx) {
+    function create_if_block_1$3(ctx) {
     	let div;
     	let profileimg;
     	let current;
@@ -8109,7 +8109,7 @@ var app = (function () {
     }
 
     // (228:16) {#if comment.picture}
-    function create_if_block$3(ctx) {
+    function create_if_block$4(ctx) {
     	let div;
     	let profileimg;
     	let current;
@@ -8154,7 +8154,7 @@ var app = (function () {
     }
 
     // (226:12) {#each comments as comment (comment.id)}
-    function create_each_block$3(key_1, ctx) {
+    function create_each_block$4(key_1, ctx) {
     	let li;
     	let t0;
     	let div;
@@ -8167,7 +8167,7 @@ var app = (function () {
     	let t3;
     	let t4;
     	let current;
-    	let if_block = /*comment*/ ctx[12].picture && create_if_block$3(ctx);
+    	let if_block = /*comment*/ ctx[12].picture && create_if_block$4(ctx);
 
     	return {
     		key: key_1,
@@ -8212,7 +8212,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$3(ctx);
+    					if_block = create_if_block$4(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(li, t0);
@@ -8267,7 +8267,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$7(ctx) {
+    function create_fragment$8(ctx) {
     	let div11;
     	let main;
     	let section0;
@@ -8342,14 +8342,14 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$2(ctx);
+    	let if_block = /*creator_profile*/ ctx[3] && /*creator_profile*/ ctx[3].picture && create_if_block_1$3(ctx);
     	let each_value = /*comments*/ ctx[1];
     	const get_key = ctx => /*comment*/ ctx[12].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		let child_ctx = get_each_context$3(ctx, each_value, i);
+    		let child_ctx = get_each_context$4(ctx, each_value, i);
     		let key = get_key(child_ctx);
-    		each_1_lookup.set(key, each_blocks[i] = create_each_block$3(key, child_ctx));
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block$4(key, child_ctx));
     	}
 
     	link = new Link({
@@ -8589,7 +8589,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block_1$2(ctx);
+    					if_block = create_if_block_1$3(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(div0, t6);
@@ -8619,7 +8619,7 @@ var app = (function () {
     			if (dirty & /*comments*/ 2) {
     				each_value = /*comments*/ ctx[1];
     				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block$3, null, get_each_context$3);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block$4, null, get_each_context$4);
     				check_outros();
     			}
 
@@ -8671,7 +8671,7 @@ var app = (function () {
     	};
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$6($$self, $$props, $$invalidate) {
     	let $helperStore;
     	component_subscribe($$self, helperStore, $$value => $$invalidate(9, $helperStore = $$value));
     	let { id } = $$props;
@@ -8784,13 +8784,13 @@ var app = (function () {
     class IdeaDetail extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$5, create_fragment$7, safe_not_equal, { id: 6 });
+    		init(this, options, instance$6, create_fragment$8, safe_not_equal, { id: 6 });
     	}
     }
 
     /* src/components/Dropdowns/MultiSelectDropdown.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$2(ctx, list, i) {
+    function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[8] = list[i];
     	child_ctx[9] = list;
@@ -8799,7 +8799,7 @@ var app = (function () {
     }
 
     // (30:4) {#each categories as category}
-    function create_each_block$2(ctx) {
+    function create_each_block$3(ctx) {
     	let label;
     	let input;
     	let t0;
@@ -8862,7 +8862,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$6(ctx) {
+    function create_fragment$7(ctx) {
     	let div1;
     	let button;
     	let t1;
@@ -8874,7 +8874,7 @@ var app = (function () {
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$3(get_each_context$3(ctx, each_value, i));
     	}
 
     	return {
@@ -8916,12 +8916,12 @@ var app = (function () {
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$2(ctx, each_value, i);
+    					const child_ctx = get_each_context$3(ctx, each_value, i);
 
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
     					} else {
-    						each_blocks[i] = create_each_block$2(child_ctx);
+    						each_blocks[i] = create_each_block$3(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].m(div0, null);
     					}
@@ -8949,7 +8949,7 @@ var app = (function () {
     	};
     }
 
-    function instance$4($$self, $$props, $$invalidate) {
+    function instance$5($$self, $$props, $$invalidate) {
     	let { categories = [] } = $$props;
     	let { selected = [] } = $$props;
     	let dropdownOpen = false;
@@ -9002,29 +9002,28 @@ var app = (function () {
     class MultiSelectDropdown extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$4, create_fragment$6, safe_not_equal, { categories: 0, selected: 4 });
+    		init(this, options, instance$5, create_fragment$7, safe_not_equal, { categories: 0, selected: 4 });
     	}
     }
 
+    // Definieren Sie die anfänglichen Daten
+    const initialIdea = {
+        name: "",
+        subtitle: "",
+        abstract: "",
+        message: "",
+        bannerUrl: "",
+        githubRepo: "",
+        lightningAddress: "",
+        categories: [],
+    };
+
+    // Erstellen Sie den Store
+    const previewStore = writable(initialIdea);
+
     /* src/views/PostIdea.svelte generated by Svelte v3.59.1 */
 
-    function create_default_slot$2(ctx) {
-    	let t;
-
-    	return {
-    		c() {
-    			t = text("Back to Home");
-    		},
-    		m(target, anchor) {
-    			insert(target, t, anchor);
-    		},
-    		d(detaching) {
-    			if (detaching) detach(t);
-    		}
-    	};
-    }
-
-    function create_fragment$5(ctx) {
+    function create_fragment$6(ctx) {
     	let main;
     	let section0;
     	let t5;
@@ -9060,36 +9059,29 @@ var app = (function () {
     	let updating_selected;
     	let t15;
     	let div14;
-    	let button;
+    	let button0;
     	let t17;
-    	let link;
-    	let t18;
+    	let button1;
+    	let t19;
+    	let button2;
+    	let t21;
     	let section2;
     	let current;
     	let mounted;
     	let dispose;
 
     	function multiselectdropdown_selected_binding(value) {
-    		/*multiselectdropdown_selected_binding*/ ctx[17](value);
+    		/*multiselectdropdown_selected_binding*/ ctx[11](value);
     	}
 
-    	let multiselectdropdown_props = { categories: /*categories*/ ctx[8] };
+    	let multiselectdropdown_props = { categories: /*categories*/ ctx[2] };
 
-    	if (/*selectedCategories*/ ctx[7] !== void 0) {
-    		multiselectdropdown_props.selected = /*selectedCategories*/ ctx[7];
+    	if (/*$previewStore*/ ctx[0].categories !== void 0) {
+    		multiselectdropdown_props.selected = /*$previewStore*/ ctx[0].categories;
     	}
 
     	multiselectdropdown = new MultiSelectDropdown({ props: multiselectdropdown_props });
     	binding_callbacks.push(() => bind(multiselectdropdown, 'selected', multiselectdropdown_selected_binding));
-
-    	link = new Link({
-    			props: {
-    				to: "/overview",
-    				class: "bg-white text-red-500 font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:bg-red-500 hover:text-white",
-    				$$slots: { default: [create_default_slot$2] },
-    				$$scope: { ctx }
-    			}
-    		});
 
     	return {
     		c() {
@@ -9136,11 +9128,15 @@ var app = (function () {
     			create_component(multiselectdropdown.$$.fragment);
     			t15 = space();
     			div14 = element("div");
-    			button = element("button");
-    			button.textContent = "Spark Idea";
+    			button0 = element("button");
+    			button0.textContent = "Spark Idea";
     			t17 = space();
-    			create_component(link.$$.fragment);
-    			t18 = space();
+    			button1 = element("button");
+    			button1.textContent = "Preview";
+    			t19 = space();
+    			button2 = element("button");
+    			button2.textContent = "Back to Home";
+    			t21 = space();
     			section2 = element("section");
     			attr(section0, "class", "relative block h-500-px");
     			attr(h21, "class", "text-2xl font-semibold mb-4");
@@ -9183,7 +9179,9 @@ var app = (function () {
     			attr(div12, "class", "w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto bg-white p-8 rounded-xl shadow-lg");
     			set_style(div12, "width", "100%");
     			attr(div13, "class", "container mx-auto px-4");
-    			attr(button, "class", "bg-red-500 text-white font-bold py-2 px-4 rounded mt-2");
+    			attr(button0, "class", "bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent mt-2 hover:shadow-xl");
+    			attr(button1, "class", "bg-blue-500 text-white font-bold py-2 px-4 block rounded border border-blue-500 ml-4 mt-2 hover:shadow-xl");
+    			attr(button2, "class", "bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:shadow-xl");
     			attr(div14, "class", "container mx-auto px-4 flex justify-end");
     			attr(section1, "class", "relative py-16 bg-blueGray-200");
     			attr(section2, "class", "relative pb-16");
@@ -9201,121 +9199,115 @@ var app = (function () {
     			append(div12, div11);
     			append(div11, div3);
     			append(div3, input0);
-    			set_input_value(input0, /*ideaName*/ ctx[0]);
+    			set_input_value(input0, /*$previewStore*/ ctx[0].name);
     			append(div11, t8);
     			append(div11, div4);
     			append(div4, input1);
-    			set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			set_input_value(input1, /*$previewStore*/ ctx[0].subtitle);
     			append(div11, t9);
     			append(div11, div5);
     			append(div5, textarea0);
-    			set_input_value(textarea0, /*ideaAbstract*/ ctx[2]);
+    			set_input_value(textarea0, /*$previewStore*/ ctx[0].abstract);
     			append(div11, t10);
     			append(div11, div6);
     			append(div6, textarea1);
-    			set_input_value(textarea1, /*ideaMessage*/ ctx[3]);
+    			set_input_value(textarea1, /*$previewStore*/ ctx[0].message);
     			append(div11, t11);
     			append(div11, div7);
     			append(div7, input2);
-    			set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
+    			set_input_value(input2, /*$previewStore*/ ctx[0].bannerUrl);
     			append(div11, t12);
     			append(div11, div8);
     			append(div8, input3);
-    			set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
+    			set_input_value(input3, /*$previewStore*/ ctx[0].githubRepo);
     			append(div11, t13);
     			append(div11, div9);
     			append(div9, input4);
-    			set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
+    			set_input_value(input4, /*$previewStore*/ ctx[0].lightningAddress);
     			append(div11, t14);
     			append(div11, div10);
     			mount_component(multiselectdropdown, div10, null);
     			append(section1, t15);
     			append(section1, div14);
-    			append(div14, button);
+    			append(div14, button0);
     			append(div14, t17);
-    			mount_component(link, div14, null);
-    			append(main, t18);
+    			append(div14, button1);
+    			append(div14, t19);
+    			append(div14, button2);
+    			append(main, t21);
     			append(main, section2);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen(input0, "input", /*input0_input_handler*/ ctx[10]),
-    					listen(input1, "input", /*input1_input_handler*/ ctx[11]),
-    					listen(textarea0, "input", /*textarea0_input_handler*/ ctx[12]),
+    					listen(input0, "input", /*input0_input_handler*/ ctx[4]),
+    					listen(input1, "input", /*input1_input_handler*/ ctx[5]),
+    					listen(textarea0, "input", /*textarea0_input_handler*/ ctx[6]),
     					listen(textarea0, "input", autoResizeTextarea$1),
-    					listen(textarea1, "input", /*textarea1_input_handler*/ ctx[13]),
+    					listen(textarea1, "input", /*textarea1_input_handler*/ ctx[7]),
     					listen(textarea1, "input", autoResizeTextarea$1),
-    					listen(input2, "input", /*input2_input_handler*/ ctx[14]),
-    					listen(input3, "input", /*input3_input_handler*/ ctx[15]),
-    					listen(input4, "input", /*input4_input_handler*/ ctx[16]),
-    					listen(button, "click", /*postIdea*/ ctx[9])
+    					listen(input2, "input", /*input2_input_handler*/ ctx[8]),
+    					listen(input3, "input", /*input3_input_handler*/ ctx[9]),
+    					listen(input4, "input", /*input4_input_handler*/ ctx[10]),
+    					listen(button0, "click", /*postIdea*/ ctx[3]),
+    					listen(button1, "click", /*click_handler*/ ctx[12]),
+    					listen(button2, "click", /*click_handler_1*/ ctx[13])
     				];
 
     				mounted = true;
     			}
     		},
     		p(ctx, [dirty]) {
-    			if (dirty & /*ideaName*/ 1 && input0.value !== /*ideaName*/ ctx[0]) {
-    				set_input_value(input0, /*ideaName*/ ctx[0]);
+    			if (dirty & /*$previewStore*/ 1 && input0.value !== /*$previewStore*/ ctx[0].name) {
+    				set_input_value(input0, /*$previewStore*/ ctx[0].name);
     			}
 
-    			if (dirty & /*ideaSubtitle*/ 2 && input1.value !== /*ideaSubtitle*/ ctx[1]) {
-    				set_input_value(input1, /*ideaSubtitle*/ ctx[1]);
+    			if (dirty & /*$previewStore*/ 1 && input1.value !== /*$previewStore*/ ctx[0].subtitle) {
+    				set_input_value(input1, /*$previewStore*/ ctx[0].subtitle);
     			}
 
-    			if (dirty & /*ideaAbstract*/ 4) {
-    				set_input_value(textarea0, /*ideaAbstract*/ ctx[2]);
+    			if (dirty & /*$previewStore*/ 1) {
+    				set_input_value(textarea0, /*$previewStore*/ ctx[0].abstract);
     			}
 
-    			if (dirty & /*ideaMessage*/ 8) {
-    				set_input_value(textarea1, /*ideaMessage*/ ctx[3]);
+    			if (dirty & /*$previewStore*/ 1) {
+    				set_input_value(textarea1, /*$previewStore*/ ctx[0].message);
     			}
 
-    			if (dirty & /*ideaBannerUrl*/ 16 && input2.value !== /*ideaBannerUrl*/ ctx[4]) {
-    				set_input_value(input2, /*ideaBannerUrl*/ ctx[4]);
+    			if (dirty & /*$previewStore*/ 1 && input2.value !== /*$previewStore*/ ctx[0].bannerUrl) {
+    				set_input_value(input2, /*$previewStore*/ ctx[0].bannerUrl);
     			}
 
-    			if (dirty & /*ideaGithubRepo*/ 32 && input3.value !== /*ideaGithubRepo*/ ctx[5]) {
-    				set_input_value(input3, /*ideaGithubRepo*/ ctx[5]);
+    			if (dirty & /*$previewStore*/ 1 && input3.value !== /*$previewStore*/ ctx[0].githubRepo) {
+    				set_input_value(input3, /*$previewStore*/ ctx[0].githubRepo);
     			}
 
-    			if (dirty & /*ideaLightningAddress*/ 64 && input4.value !== /*ideaLightningAddress*/ ctx[6]) {
-    				set_input_value(input4, /*ideaLightningAddress*/ ctx[6]);
+    			if (dirty & /*$previewStore*/ 1 && input4.value !== /*$previewStore*/ ctx[0].lightningAddress) {
+    				set_input_value(input4, /*$previewStore*/ ctx[0].lightningAddress);
     			}
 
     			const multiselectdropdown_changes = {};
 
-    			if (!updating_selected && dirty & /*selectedCategories*/ 128) {
+    			if (!updating_selected && dirty & /*$previewStore*/ 1) {
     				updating_selected = true;
-    				multiselectdropdown_changes.selected = /*selectedCategories*/ ctx[7];
+    				multiselectdropdown_changes.selected = /*$previewStore*/ ctx[0].categories;
     				add_flush_callback(() => updating_selected = false);
     			}
 
     			multiselectdropdown.$set(multiselectdropdown_changes);
-    			const link_changes = {};
-
-    			if (dirty & /*$$scope*/ 524288) {
-    				link_changes.$$scope = { dirty, ctx };
-    			}
-
-    			link.$set(link_changes);
     		},
     		i(local) {
     			if (current) return;
     			transition_in(multiselectdropdown.$$.fragment, local);
-    			transition_in(link.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
     			transition_out(multiselectdropdown.$$.fragment, local);
-    			transition_out(link.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
     			if (detaching) detach(main);
     			destroy_component(multiselectdropdown);
-    			destroy_component(link);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -9327,21 +9319,19 @@ var app = (function () {
     	e.target.style.height = e.target.scrollHeight + "px";
     }
 
-    function instance$3($$self, $$props, $$invalidate) {
+    function instance$4($$self, $$props, $$invalidate) {
+    	let $previewStore;
     	let $helperStore;
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(18, $helperStore = $$value));
+    	component_subscribe($$self, previewStore, $$value => $$invalidate(0, $previewStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(14, $helperStore = $$value));
+
+    	function navigateTo(route) {
+    		navigate(route);
+    	}
 
     	onMount(async () => {
     		
     	});
-
-    	let ideaName = "";
-    	let ideaSubtitle = "";
-    	let ideaAbstract = "";
-    	let ideaMessage = "";
-    	let ideaBannerUrl = "";
-    	let ideaGithubRepo = "";
-    	let ideaLightningAddress = "";
 
     	let categories = [
     		"Art & Design",
@@ -9371,61 +9361,71 @@ var app = (function () {
     		"Parenting & Family"
     	];
 
-    	let selectedCategories = [];
-
     	async function postIdea() {
-    		await $helperStore.postIdea(ideaName, ideaSubtitle, ideaAbstract, ideaMessage, ideaBannerUrl, ideaGithubRepo, ideaLightningAddress, selectedCategories);
+    		if ($previewStore.name && $previewStore.subtitle && $previewStore.abstract && $previewStore.message && $previewStore.bannerUrl && $previewStore.githubRepo && $previewStore.lightningAddress && $previewStore.categories) {
+    			await $helperStore.postIdea($previewStore.name, $previewStore.subtitle, $previewStore.abstract, $previewStore.message, $previewStore.bannerUrl, $previewStore.githubRepo, $previewStore.lightningAddress, $previewStore.categories);
+    			set_store_value(previewStore, $previewStore.name = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.subtitle = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.abstract = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.message = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.bannerUrl = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.githubRepo = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.lightningAddress = '', $previewStore);
+    			set_store_value(previewStore, $previewStore.categories = [], $previewStore);
+    			navigate("/overview");
+    		} else {
+    			console.log("Please fill all fields.");
+    		}
     	}
 
     	function input0_input_handler() {
-    		ideaName = this.value;
-    		$$invalidate(0, ideaName);
+    		$previewStore.name = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function input1_input_handler() {
-    		ideaSubtitle = this.value;
-    		$$invalidate(1, ideaSubtitle);
+    		$previewStore.subtitle = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function textarea0_input_handler() {
-    		ideaAbstract = this.value;
-    		$$invalidate(2, ideaAbstract);
+    		$previewStore.abstract = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function textarea1_input_handler() {
-    		ideaMessage = this.value;
-    		$$invalidate(3, ideaMessage);
+    		$previewStore.message = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function input2_input_handler() {
-    		ideaBannerUrl = this.value;
-    		$$invalidate(4, ideaBannerUrl);
+    		$previewStore.bannerUrl = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function input3_input_handler() {
-    		ideaGithubRepo = this.value;
-    		$$invalidate(5, ideaGithubRepo);
+    		$previewStore.githubRepo = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function input4_input_handler() {
-    		ideaLightningAddress = this.value;
-    		$$invalidate(6, ideaLightningAddress);
+    		$previewStore.lightningAddress = this.value;
+    		previewStore.set($previewStore);
     	}
 
     	function multiselectdropdown_selected_binding(value) {
-    		selectedCategories = value;
-    		$$invalidate(7, selectedCategories);
+    		if ($$self.$$.not_equal($previewStore.categories, value)) {
+    			$previewStore.categories = value;
+    			previewStore.set($previewStore);
+    		}
     	}
 
+    	const click_handler = () => navigateTo("/preview");
+    	const click_handler_1 = () => navigateTo("/overview");
+
     	return [
-    		ideaName,
-    		ideaSubtitle,
-    		ideaAbstract,
-    		ideaMessage,
-    		ideaBannerUrl,
-    		ideaGithubRepo,
-    		ideaLightningAddress,
-    		selectedCategories,
+    		$previewStore,
+    		navigateTo,
     		categories,
     		postIdea,
     		input0_input_handler,
@@ -9435,27 +9435,29 @@ var app = (function () {
     		input2_input_handler,
     		input3_input_handler,
     		input4_input_handler,
-    		multiselectdropdown_selected_binding
+    		multiselectdropdown_selected_binding,
+    		click_handler,
+    		click_handler_1
     	];
     }
 
     class PostIdea extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$3, create_fragment$5, safe_not_equal, {});
+    		init(this, options, instance$4, create_fragment$6, safe_not_equal, {});
     	}
     }
 
     /* src/views/EditProfileView.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context$1(ctx, list, i) {
+    function get_each_context$2(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[23] = list[i];
     	return child_ctx;
     }
 
     // (158:36) {#if profile && profile.picture}
-    function create_if_block$2(ctx) {
+    function create_if_block$3(ctx) {
     	let profileimg;
     	let current;
 
@@ -9502,7 +9504,7 @@ var app = (function () {
     }
 
     // (274:56) {#each relays as relay}
-    function create_each_block$1(ctx) {
+    function create_each_block$2(ctx) {
     	let div1;
     	let div0;
     	let t0_value = /*relay*/ ctx[23] + "";
@@ -9551,7 +9553,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$4(ctx) {
+    function create_fragment$5(ctx) {
     	let div28;
     	let main;
     	let section0;
@@ -9629,12 +9631,12 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block = /*profile*/ ctx[0] && /*profile*/ ctx[0].picture && create_if_block$2(ctx);
+    	let if_block = /*profile*/ ctx[0] && /*profile*/ ctx[0].picture && create_if_block$3(ctx);
     	let each_value = /*relays*/ ctx[7];
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
     	}
 
     	return {
@@ -9922,7 +9924,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$2(ctx);
+    					if_block = create_if_block$3(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(div3, null);
@@ -9966,12 +9968,12 @@ var app = (function () {
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$1(ctx, each_value, i);
+    					const child_ctx = get_each_context$2(ctx, each_value, i);
 
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
     					} else {
-    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i] = create_each_block$2(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].m(div16, t25);
     					}
@@ -10014,7 +10016,7 @@ var app = (function () {
     	e.target.style.height = e.target.scrollHeight + "px";
     }
 
-    function instance$2($$self, $$props, $$invalidate) {
+    function instance$3($$self, $$props, $$invalidate) {
     	let $helperStore;
     	component_subscribe($$self, helperStore, $$value => $$invalidate(22, $helperStore = $$value));
     	let { profile_id } = $$props;
@@ -10171,20 +10173,20 @@ var app = (function () {
     class EditProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$2, create_fragment$4, safe_not_equal, { profile_id: 12 });
+    		init(this, options, instance$3, create_fragment$5, safe_not_equal, { profile_id: 12 });
     	}
     }
 
     /* src/components/UserIdeas.svelte generated by Svelte v3.59.1 */
 
-    function get_each_context(ctx, list, i) {
+    function get_each_context$1(ctx, list, i) {
     	const child_ctx = ctx.slice();
     	child_ctx[4] = list[i];
     	return child_ctx;
     }
 
     // (42:20) {#if profile}
-    function create_if_block_1$1(ctx) {
+    function create_if_block_1$2(ctx) {
     	let h1;
     	let t0_value = /*profile*/ ctx[1].name + "";
     	let t0;
@@ -10212,7 +10214,7 @@ var app = (function () {
     }
 
     // (69:40) {#if idea.subtitle}
-    function create_if_block$1(ctx) {
+    function create_if_block$2(ctx) {
     	let p;
     	let t_value = /*idea*/ ctx[4].subtitle + "";
     	let t;
@@ -10237,7 +10239,7 @@ var app = (function () {
     }
 
     // (47:28) <Link                                 to={`/idea/${idea.id}`}                                 class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"                             >
-    function create_default_slot$1(ctx) {
+    function create_default_slot$2(ctx) {
     	let div1;
     	let div0;
     	let img;
@@ -10250,7 +10252,7 @@ var app = (function () {
     	let t1;
     	let t2;
     	let t3;
-    	let if_block = /*idea*/ ctx[4].subtitle && create_if_block$1(ctx);
+    	let if_block = /*idea*/ ctx[4].subtitle && create_if_block$2(ctx);
 
     	return {
     		c() {
@@ -10299,7 +10301,7 @@ var app = (function () {
     				if (if_block) {
     					if_block.p(ctx, dirty);
     				} else {
-    					if_block = create_if_block$1(ctx);
+    					if_block = create_if_block$2(ctx);
     					if_block.c();
     					if_block.m(blockquote, null);
     				}
@@ -10317,7 +10319,7 @@ var app = (function () {
     }
 
     // (46:24) {#each ideas as idea (idea.id)}
-    function create_each_block(key_1, ctx) {
+    function create_each_block$1(key_1, ctx) {
     	let first;
     	let link;
     	let current;
@@ -10326,7 +10328,7 @@ var app = (function () {
     			props: {
     				to: `/idea/${/*idea*/ ctx[4].id}`,
     				class: "w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline",
-    				$$slots: { default: [create_default_slot$1] },
+    				$$slots: { default: [create_default_slot$2] },
     				$$scope: { ctx }
     			}
     		});
@@ -10371,7 +10373,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$3(ctx) {
+    function create_fragment$4(ctx) {
     	let div4;
     	let section;
     	let div3;
@@ -10382,14 +10384,14 @@ var app = (function () {
     	let each_blocks = [];
     	let each_1_lookup = new Map();
     	let current;
-    	let if_block = /*profile*/ ctx[1] && create_if_block_1$1(ctx);
+    	let if_block = /*profile*/ ctx[1] && create_if_block_1$2(ctx);
     	let each_value = /*ideas*/ ctx[0];
     	const get_key = ctx => /*idea*/ ctx[4].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		let child_ctx = get_each_context(ctx, each_value, i);
+    		let child_ctx = get_each_context$1(ctx, each_value, i);
     		let key = get_key(child_ctx);
-    		each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block$1(key, child_ctx));
     	}
 
     	return {
@@ -10437,7 +10439,7 @@ var app = (function () {
     				if (if_block) {
     					if_block.p(ctx, dirty);
     				} else {
-    					if_block = create_if_block_1$1(ctx);
+    					if_block = create_if_block_1$2(ctx);
     					if_block.c();
     					if_block.m(div1, t);
     				}
@@ -10449,7 +10451,7 @@ var app = (function () {
     			if (dirty & /*ideas*/ 1) {
     				each_value = /*ideas*/ ctx[0];
     				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, div0, outro_and_destroy_block, create_each_block, null, get_each_context);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, div0, outro_and_destroy_block, create_each_block$1, null, get_each_context$1);
     				check_outros();
     			}
     		},
@@ -10480,7 +10482,7 @@ var app = (function () {
     	};
     }
 
-    function instance$1($$self, $$props, $$invalidate) {
+    function instance$2($$self, $$props, $$invalidate) {
     	let $helperStore;
     	component_subscribe($$self, helperStore, $$value => $$invalidate(3, $helperStore = $$value));
     	let { profile_id } = $$props;
@@ -10519,13 +10521,13 @@ var app = (function () {
     class UserIdeas extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$1, create_fragment$3, safe_not_equal, { profile_id: 2 });
+    		init(this, options, instance$2, create_fragment$4, safe_not_equal, { profile_id: 2 });
     	}
     }
 
     /* src/views/ProfileView.svelte generated by Svelte v3.59.1 */
 
-    function create_if_block_1(ctx) {
+    function create_if_block_1$1(ctx) {
     	let button;
     	let mounted;
     	let dispose;
@@ -10557,7 +10559,7 @@ var app = (function () {
     }
 
     // (125:36) {#if profile && profile.picture}
-    function create_if_block(ctx) {
+    function create_if_block$1(ctx) {
     	let profileimg;
     	let current;
 
@@ -10603,7 +10605,7 @@ var app = (function () {
     	};
     }
 
-    function create_fragment$2(ctx) {
+    function create_fragment$3(ctx) {
     	let div18;
     	let main;
     	let section0;
@@ -10647,8 +10649,8 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[6] && create_if_block_1(ctx);
-    	let if_block1 = /*profile*/ ctx[1] && /*profile*/ ctx[1].picture && create_if_block(ctx);
+    	let if_block0 = /*profile_id*/ ctx[0] === /*publicKey*/ ctx[6] && create_if_block_1$1(ctx);
+    	let if_block1 = /*profile*/ ctx[1] && /*profile*/ ctx[1].picture && create_if_block$1(ctx);
 
     	userideas = new UserIdeas({
     			props: { profile_id: /*profile_id*/ ctx[0] }
@@ -10804,7 +10806,7 @@ var app = (function () {
     				if (if_block0) {
     					if_block0.p(ctx, dirty);
     				} else {
-    					if_block0 = create_if_block_1(ctx);
+    					if_block0 = create_if_block_1$1(ctx);
     					if_block0.c();
     					if_block0.m(div12, t6);
     				}
@@ -10821,7 +10823,7 @@ var app = (function () {
     						transition_in(if_block1, 1);
     					}
     				} else {
-    					if_block1 = create_if_block(ctx);
+    					if_block1 = create_if_block$1(ctx);
     					if_block1.c();
     					transition_in(if_block1, 1);
     					if_block1.m(div4, null);
@@ -10862,7 +10864,7 @@ var app = (function () {
     	};
     }
 
-    function instance($$self, $$props, $$invalidate) {
+    function instance$1($$self, $$props, $$invalidate) {
     	let $helperStore;
     	component_subscribe($$self, helperStore, $$value => $$invalidate(12, $helperStore = $$value));
     	let { profile_id } = $$props;
@@ -10921,13 +10923,13 @@ var app = (function () {
     class ProfileView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance, create_fragment$2, safe_not_equal, { profile_id: 0 });
+    		init(this, options, instance$1, create_fragment$3, safe_not_equal, { profile_id: 0 });
     	}
     }
 
     /* src/views/TestView.svelte generated by Svelte v3.59.1 */
 
-    function create_fragment$1(ctx) {
+    function create_fragment$2(ctx) {
     	let div;
     	let userideas;
     	let current;
@@ -10966,7 +10968,645 @@ var app = (function () {
     class TestView extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, null, create_fragment$1, safe_not_equal, {});
+    		init(this, options, null, create_fragment$2, safe_not_equal, {});
+    	}
+    }
+
+    /* src/views/IdeaPreview.svelte generated by Svelte v3.59.1 */
+
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[8] = list[i];
+    	return child_ctx;
+    }
+
+    // (63:12) {#if creator_profile && creator_profile.picture}
+    function create_if_block_1(ctx) {
+    	let div;
+    	let profileimg;
+    	let current;
+
+    	profileimg = new ProfileImg({
+    			props: {
+    				profile: /*creator_profile*/ ctx[1],
+    				style: { width: "40px", height: "40px" }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(profileimg.$$.fragment);
+    			set_style(div, "margin-right", "10px");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(profileimg, div, null);
+    			current = true;
+    		},
+    		p(ctx, dirty) {
+    			const profileimg_changes = {};
+    			if (dirty & /*creator_profile*/ 2) profileimg_changes.profile = /*creator_profile*/ ctx[1];
+    			profileimg.$set(profileimg_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(profileimg.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(profileimg.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(profileimg);
+    		}
+    	};
+    }
+
+    // (164:16) {#if comment.picture}
+    function create_if_block(ctx) {
+    	let div;
+    	let profileimg;
+    	let current;
+
+    	profileimg = new ProfileImg({
+    			props: {
+    				profile: /*comment*/ ctx[8],
+    				style: { width: "40px", height: "40px" }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div = element("div");
+    			create_component(profileimg.$$.fragment);
+    			set_style(div, "margin-right", "10px");
+    		},
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			mount_component(profileimg, div, null);
+    			current = true;
+    		},
+    		p: noop,
+    		i(local) {
+    			if (current) return;
+    			transition_in(profileimg.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(profileimg.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div);
+    			destroy_component(profileimg);
+    		}
+    	};
+    }
+
+    // (162:12) {#each comments as comment (comment.id)}
+    function create_each_block(key_1, ctx) {
+    	let li;
+    	let t0;
+    	let div;
+    	let h3;
+    	let t1_value = /*comment*/ ctx[8].name + "";
+    	let t1;
+    	let t2;
+    	let p;
+    	let t3_value = /*comment*/ ctx[8].comment + "";
+    	let t3;
+    	let t4;
+    	let current;
+    	let if_block = /*comment*/ ctx[8].picture && create_if_block(ctx);
+
+    	return {
+    		key: key_1,
+    		first: null,
+    		c() {
+    			li = element("li");
+    			if (if_block) if_block.c();
+    			t0 = space();
+    			div = element("div");
+    			h3 = element("h3");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			p = element("p");
+    			t3 = text(t3_value);
+    			t4 = space();
+    			attr(h3, "class", "font-bold text-sm");
+    			attr(p, "class", "text-m");
+    			attr(li, "class", "flex items-center gap-4 my-2");
+    			this.first = li;
+    		},
+    		m(target, anchor) {
+    			insert(target, li, anchor);
+    			if (if_block) if_block.m(li, null);
+    			append(li, t0);
+    			append(li, div);
+    			append(div, h3);
+    			append(h3, t1);
+    			append(div, t2);
+    			append(div, p);
+    			append(p, t3);
+    			append(li, t4);
+    			current = true;
+    		},
+    		p(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			if (/*comment*/ ctx[8].picture) if_block.p(ctx, dirty);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(li);
+    			if (if_block) if_block.d();
+    		}
+    	};
+    }
+
+    // (198:8) <Link to="/postidea">
+    function create_default_slot$1(ctx) {
+    	let button;
+
+    	return {
+    		c() {
+    			button = element("button");
+    			button.textContent = "Back";
+    			attr(button, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mb-1 ease-linear transition-all duration-150");
+    			attr(button, "type", "button");
+    		},
+    		m(target, anchor) {
+    			insert(target, button, anchor);
+    		},
+    		p: noop,
+    		d(detaching) {
+    			if (detaching) detach(button);
+    		}
+    	};
+    }
+
+    function create_fragment$1(ctx) {
+    	let div11;
+    	let main;
+    	let section0;
+    	let div2;
+    	let span;
+    	let t0;
+    	let div1;
+    	let h1;
+    	let t1_value = /*$previewStore*/ ctx[2].name + "";
+    	let t1;
+    	let t2;
+    	let h20;
+    	let t3_value = /*$previewStore*/ ctx[2].subtitle + "";
+    	let t3;
+    	let t4;
+    	let div0;
+    	let button0;
+    	let t5;
+    	let t6;
+    	let a;
+    	let i;
+    	let a_href_value;
+    	let t7;
+    	let div3;
+    	let t8;
+    	let section1;
+    	let div10;
+    	let div7;
+    	let div6;
+    	let div5;
+    	let h3;
+    	let t9_value = /*$previewStore*/ ctx[2].name + "";
+    	let t9;
+    	let t10;
+    	let h21;
+    	let t12;
+    	let p0;
+    	let t13_value = /*$previewStore*/ ctx[2].abstract + "";
+    	let t13;
+    	let t14;
+    	let hr0;
+    	let t15;
+    	let h22;
+    	let t16_value = /*$previewStore*/ ctx[2].name + "";
+    	let t16;
+    	let t17;
+    	let p1;
+    	let raw_value = /*$previewStore*/ ctx[2].message + "";
+    	let t18;
+    	let hr1;
+    	let t19;
+    	let div4;
+    	let p2;
+    	let t21;
+    	let button1;
+    	let t22;
+    	let div9;
+    	let h4;
+    	let t24;
+    	let ul;
+    	let each_blocks = [];
+    	let each_1_lookup = new Map();
+    	let t25;
+    	let div8;
+    	let label;
+    	let t27;
+    	let textarea;
+    	let t28;
+    	let button2;
+    	let t30;
+    	let link;
+    	let current;
+    	let mounted;
+    	let dispose;
+    	let if_block = /*creator_profile*/ ctx[1] && /*creator_profile*/ ctx[1].picture && create_if_block_1(ctx);
+    	let each_value = /*comments*/ ctx[3];
+    	const get_key = ctx => /*comment*/ ctx[8].id;
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		let child_ctx = get_each_context(ctx, each_value, i);
+    		let key = get_key(child_ctx);
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+    	}
+
+    	link = new Link({
+    			props: {
+    				to: "/postidea",
+    				$$slots: { default: [create_default_slot$1] },
+    				$$scope: { ctx }
+    			}
+    		});
+
+    	return {
+    		c() {
+    			div11 = element("div");
+    			main = element("main");
+    			section0 = element("section");
+    			div2 = element("div");
+    			span = element("span");
+    			t0 = space();
+    			div1 = element("div");
+    			h1 = element("h1");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			h20 = element("h2");
+    			t3 = text(t3_value);
+    			t4 = space();
+    			div0 = element("div");
+    			button0 = element("button");
+    			button0.innerHTML = `<img src="../../img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			t5 = space();
+    			if (if_block) if_block.c();
+    			t6 = space();
+    			a = element("a");
+    			i = element("i");
+    			t7 = space();
+    			div3 = element("div");
+    			div3.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+    			t8 = space();
+    			section1 = element("section");
+    			div10 = element("div");
+    			div7 = element("div");
+    			div6 = element("div");
+    			div5 = element("div");
+    			h3 = element("h3");
+    			t9 = text(t9_value);
+    			t10 = space();
+    			h21 = element("h2");
+    			h21.textContent = `${"Abstract"}`;
+    			t12 = space();
+    			p0 = element("p");
+    			t13 = text(t13_value);
+    			t14 = space();
+    			hr0 = element("hr");
+    			t15 = space();
+    			h22 = element("h2");
+    			t16 = text(t16_value);
+    			t17 = space();
+    			p1 = element("p");
+    			t18 = space();
+    			hr1 = element("hr");
+    			t19 = space();
+    			div4 = element("div");
+    			p2 = element("p");
+    			p2.textContent = "Support via";
+    			t21 = space();
+    			button1 = element("button");
+    			button1.innerHTML = `<img src="/img/lightning.png" style="height: 2.5rem; width: 2.5rem;" alt="Support via Bitcoin Lightning"/>`;
+    			t22 = space();
+    			div9 = element("div");
+    			h4 = element("h4");
+    			h4.textContent = "Kommentare";
+    			t24 = space();
+    			ul = element("ul");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t25 = space();
+    			div8 = element("div");
+    			label = element("label");
+    			label.textContent = "Dein Kommentar:";
+    			t27 = space();
+    			textarea = element("textarea");
+    			t28 = space();
+    			button2 = element("button");
+    			button2.textContent = "Kommentar absenden";
+    			t30 = space();
+    			create_component(link.$$.fragment);
+    			attr(span, "id", "blackOverlay");
+    			attr(span, "class", "w-full h-full absolute opacity-50 bg-black");
+    			attr(h1, "class", "text-4xl font-bold text-white");
+    			attr(h20, "class", "text-2xl font-light text-white");
+    			set_style(button0, "padding", "0");
+    			attr(i, "class", "fab fa-github text-white");
+    			set_style(i, "font-size", "2.5rem");
+    			attr(a, "href", a_href_value = /*$previewStore*/ ctx[2].githubRepo);
+    			attr(a, "target", "_blank");
+    			attr(div0, "class", "absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6");
+    			attr(div1, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
+    			attr(div2, "class", "absolute top-0 w-full h-full bg-center bg-cover");
+    			set_style(div2, "background-image", "url(" + /*$previewStore*/ ctx[2].bannerUrl + ")");
+    			attr(div3, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
+    			set_style(div3, "transform", "translateZ(0)");
+    			attr(section0, "class", "relative block h-500-px");
+    			attr(h3, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700");
+    			attr(h21, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6");
+    			attr(p0, "class", "message-text");
+    			set_style(p0, "width", "70%");
+    			set_style(p0, "margin", "2rem auto");
+    			set_style(p0, "text-align", "justify");
+    			set_style(p0, "font-size", "1.2em");
+    			set_style(p0, "line-height", "1.6em");
+    			attr(hr0, "class", "my-6");
+    			attr(h22, "class", "text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6");
+    			attr(p1, "class", "message-text");
+    			set_style(p1, "width", "70%");
+    			set_style(p1, "margin", "0 auto");
+    			set_style(p1, "text-align", "justify");
+    			attr(hr1, "class", "my-4");
+    			attr(p2, "class", "mb-0");
+    			set_style(button1, "padding", "0");
+    			set_style(button1, "display", "flex");
+    			set_style(button1, "align-items", "center");
+    			attr(div4, "class", "flex items-center justify-center gap-4");
+    			attr(div5, "class", "text-center mt-6");
+    			attr(div6, "class", "px-6");
+    			attr(div7, "class", "relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg");
+    			attr(h4, "class", "text-2xl font-semibold text-blueGray-700 mb-4");
+    			attr(label, "for", "newComment");
+    			attr(label, "class", "text-lg text-blueGray-600");
+    			attr(textarea, "id", "newComment");
+    			attr(textarea, "class", "w-full h-24 p-2 mt-2 rounded-md border-2 border-blueGray-200");
+    			attr(textarea, "placeholder", "Schreibe hier deinen Kommentar...");
+    			attr(button2, "class", "bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150");
+    			attr(button2, "type", "button");
+    			attr(div8, "class", "mt-6");
+    			attr(div9, "class", "bg-white w-full mb-6 shadow-xl rounded-lg p-4");
+    			attr(div10, "class", "container mx-auto px-4");
+    			attr(section1, "class", "relative py-16 bg-blueGray-200");
+    			attr(main, "class", "profile-page");
+    		},
+    		m(target, anchor) {
+    			insert(target, div11, anchor);
+    			append(div11, main);
+    			append(main, section0);
+    			append(section0, div2);
+    			append(div2, span);
+    			append(div2, t0);
+    			append(div2, div1);
+    			append(div1, h1);
+    			append(h1, t1);
+    			append(div1, t2);
+    			append(div1, h20);
+    			append(h20, t3);
+    			append(div1, t4);
+    			append(div1, div0);
+    			append(div0, button0);
+    			append(div0, t5);
+    			if (if_block) if_block.m(div0, null);
+    			append(div0, t6);
+    			append(div0, a);
+    			append(a, i);
+    			append(section0, t7);
+    			append(section0, div3);
+    			append(main, t8);
+    			append(main, section1);
+    			append(section1, div10);
+    			append(div10, div7);
+    			append(div7, div6);
+    			append(div6, div5);
+    			append(div5, h3);
+    			append(h3, t9);
+    			append(div5, t10);
+    			append(div5, h21);
+    			append(div5, t12);
+    			append(div5, p0);
+    			append(p0, t13);
+    			append(div5, t14);
+    			append(div5, hr0);
+    			append(div5, t15);
+    			append(div5, h22);
+    			append(h22, t16);
+    			append(div5, t17);
+    			append(div5, p1);
+    			p1.innerHTML = raw_value;
+    			append(div5, t18);
+    			append(div5, hr1);
+    			append(div5, t19);
+    			append(div5, div4);
+    			append(div4, p2);
+    			append(div4, t21);
+    			append(div4, button1);
+    			append(div10, t22);
+    			append(div10, div9);
+    			append(div9, h4);
+    			append(div9, t24);
+    			append(div9, ul);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				if (each_blocks[i]) {
+    					each_blocks[i].m(ul, null);
+    				}
+    			}
+
+    			append(div9, t25);
+    			append(div9, div8);
+    			append(div8, label);
+    			append(div8, t27);
+    			append(div8, textarea);
+    			set_input_value(textarea, /*newComment*/ ctx[0]);
+    			append(div8, t28);
+    			append(div8, button2);
+    			append(div10, t30);
+    			mount_component(link, div10, null);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen(button0, "click", /*supportIdea*/ ctx[4]),
+    					listen(button1, "click", /*supportIdea*/ ctx[4]),
+    					listen(textarea, "input", /*textarea_input_handler*/ ctx[5]),
+    					listen(button2, "click", submitComment)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p(ctx, [dirty]) {
+    			if ((!current || dirty & /*$previewStore*/ 4) && t1_value !== (t1_value = /*$previewStore*/ ctx[2].name + "")) set_data(t1, t1_value);
+    			if ((!current || dirty & /*$previewStore*/ 4) && t3_value !== (t3_value = /*$previewStore*/ ctx[2].subtitle + "")) set_data(t3, t3_value);
+
+    			if (/*creator_profile*/ ctx[1] && /*creator_profile*/ ctx[1].picture) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty & /*creator_profile*/ 2) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block_1(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(div0, t6);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (!current || dirty & /*$previewStore*/ 4 && a_href_value !== (a_href_value = /*$previewStore*/ ctx[2].githubRepo)) {
+    				attr(a, "href", a_href_value);
+    			}
+
+    			if (!current || dirty & /*$previewStore*/ 4) {
+    				set_style(div2, "background-image", "url(" + /*$previewStore*/ ctx[2].bannerUrl + ")");
+    			}
+
+    			if ((!current || dirty & /*$previewStore*/ 4) && t9_value !== (t9_value = /*$previewStore*/ ctx[2].name + "")) set_data(t9, t9_value);
+    			if ((!current || dirty & /*$previewStore*/ 4) && t13_value !== (t13_value = /*$previewStore*/ ctx[2].abstract + "")) set_data(t13, t13_value);
+    			if ((!current || dirty & /*$previewStore*/ 4) && t16_value !== (t16_value = /*$previewStore*/ ctx[2].name + "")) set_data(t16, t16_value);
+    			if ((!current || dirty & /*$previewStore*/ 4) && raw_value !== (raw_value = /*$previewStore*/ ctx[2].message + "")) p1.innerHTML = raw_value;
+    			if (dirty & /*comments*/ 8) {
+    				each_value = /*comments*/ ctx[3];
+    				group_outros();
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, ul, outro_and_destroy_block, create_each_block, null, get_each_context);
+    				check_outros();
+    			}
+
+    			if (dirty & /*newComment*/ 1) {
+    				set_input_value(textarea, /*newComment*/ ctx[0]);
+    			}
+
+    			const link_changes = {};
+
+    			if (dirty & /*$$scope*/ 2048) {
+    				link_changes.$$scope = { dirty, ctx };
+    			}
+
+    			link.$set(link_changes);
+    		},
+    		i(local) {
+    			if (current) return;
+    			transition_in(if_block);
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			transition_in(link.$$.fragment, local);
+    			current = true;
+    		},
+    		o(local) {
+    			transition_out(if_block);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			transition_out(link.$$.fragment, local);
+    			current = false;
+    		},
+    		d(detaching) {
+    			if (detaching) detach(div11);
+    			if (if_block) if_block.d();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d();
+    			}
+
+    			destroy_component(link);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    async function submitComment() {
+    	
+    }
+
+    function instance($$self, $$props, $$invalidate) {
+    	let $previewStore;
+    	let $helperStore;
+    	component_subscribe($$self, previewStore, $$value => $$invalidate(2, $previewStore = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(6, $helperStore = $$value));
+    	let comments = [];
+    	let newComment = "";
+    	let creator_profile = null;
+
+    	onMount(async () => {
+    		await fetchData();
+    	});
+
+    	async function fetchData() {
+    		try {
+    			$$invalidate(1, creator_profile = await $helperStore.getProfile($helperStore.publicKey));
+    		} catch(error) {
+    			console.error("Error fetching idea data:", error);
+    		}
+    	}
+
+    	async function supportIdea() {
+    		await sendSatsLNurl($previewStore.lnAdress);
+    	}
+
+    	function textarea_input_handler() {
+    		newComment = this.value;
+    		$$invalidate(0, newComment);
+    	}
+
+    	return [
+    		newComment,
+    		creator_profile,
+    		$previewStore,
+    		comments,
+    		supportIdea,
+    		textarea_input_handler
+    	];
+    }
+
+    class IdeaPreview extends SvelteComponent {
+    	constructor(options) {
+    		super();
+    		init(this, options, instance, create_fragment$1, safe_not_equal, {});
     	}
     }
 
@@ -10992,6 +11632,8 @@ var app = (function () {
     	let route6;
     	let t7;
     	let route7;
+    	let t8;
+    	let route8;
     	let current;
 
     	route0 = new Route({
@@ -11003,32 +11645,36 @@ var app = (function () {
     		});
 
     	route2 = new Route({
-    			props: { path: "/test", component: TestView }
+    			props: { path: "/preview", component: IdeaPreview }
     		});
 
     	route3 = new Route({
+    			props: { path: "/test", component: TestView }
+    		});
+
+    	route4 = new Route({
     			props: {
     				path: "/overview/:category",
     				component: Overview
     			}
     		});
 
-    	route4 = new Route({
+    	route5 = new Route({
     			props: { path: "/idea/:id", component: IdeaDetail }
     		});
 
-    	route5 = new Route({
+    	route6 = new Route({
     			props: { path: "/postidea", component: PostIdea }
     		});
 
-    	route6 = new Route({
+    	route7 = new Route({
     			props: {
     				path: "/edit_profile/:profile_id",
     				component: EditProfileView
     			}
     		});
 
-    	route7 = new Route({
+    	route8 = new Route({
     			props: {
     				path: "/profile/:profile_id",
     				component: ProfileView
@@ -11056,6 +11702,8 @@ var app = (function () {
     			create_component(route6.$$.fragment);
     			t7 = space();
     			create_component(route7.$$.fragment);
+    			t8 = space();
+    			create_component(route8.$$.fragment);
     		},
     		m(target, anchor) {
     			insert(target, div, anchor);
@@ -11077,6 +11725,8 @@ var app = (function () {
     			mount_component(route6, main, null);
     			append(main, t7);
     			mount_component(route7, main, null);
+    			append(main, t8);
+    			mount_component(route8, main, null);
     			current = true;
     		},
     		p: noop,
@@ -11090,6 +11740,7 @@ var app = (function () {
     			transition_in(route5.$$.fragment, local);
     			transition_in(route6.$$.fragment, local);
     			transition_in(route7.$$.fragment, local);
+    			transition_in(route8.$$.fragment, local);
     			current = true;
     		},
     		o(local) {
@@ -11101,6 +11752,7 @@ var app = (function () {
     			transition_out(route5.$$.fragment, local);
     			transition_out(route6.$$.fragment, local);
     			transition_out(route7.$$.fragment, local);
+    			transition_out(route8.$$.fragment, local);
     			current = false;
     		},
     		d(detaching) {
@@ -11113,6 +11765,7 @@ var app = (function () {
     			destroy_component(route5);
     			destroy_component(route6);
     			destroy_component(route7);
+    			destroy_component(route8);
     		}
     	};
     }

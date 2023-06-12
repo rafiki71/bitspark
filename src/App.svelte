@@ -8,6 +8,7 @@
   import EditProfileView from "./views/EditProfileView.svelte";
   import ProfileView from "./views/ProfileView.svelte";
   import TestView from "./views/TestView.svelte";
+  import PreView from "./views/IdeaPreview.svelte";
 </script>
 
 <svelte:head>
@@ -25,6 +26,7 @@
     <main>
       <Route path="/" component={Overview} />
       <Route path="/overview" component={Overview} />
+      <Route path="/preview" component={PreView} />
       <Route path="/test" component={TestView} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
