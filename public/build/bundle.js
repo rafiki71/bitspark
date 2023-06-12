@@ -7591,7 +7591,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (149:10) {#if profile}
+    // (147:10) {#if profile}
     function create_if_block$5(ctx) {
     	let div;
     	let profileimg;
@@ -7636,7 +7636,7 @@ var app = (function () {
     	};
     }
 
-    // (167:12) {#each $verifiedCards as card (card.id)}
+    // (165:12) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7683,7 +7683,7 @@ var app = (function () {
     	};
     }
 
-    // (182:12) {#each $unverifiedCards as card (card.id)}
+    // (180:12) {#each $unverifiedCards as card (card.id)}
     function create_each_block$5(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -11157,7 +11157,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (64:12) {#if creator_profile && creator_profile.picture}
+    // (65:12) {#if creator_profile && creator_profile.picture}
     function create_if_block_1(ctx) {
     	let div;
     	let profileimg;
@@ -11202,7 +11202,7 @@ var app = (function () {
     	};
     }
 
-    // (165:16) {#if comment.picture}
+    // (166:16) {#if comment.picture}
     function create_if_block(ctx) {
     	let div;
     	let profileimg;
@@ -11243,7 +11243,7 @@ var app = (function () {
     	};
     }
 
-    // (163:12) {#each comments as comment (comment.id)}
+    // (164:12) {#each comments as comment (comment.id)}
     function create_each_block(key_1, ctx) {
     	let li;
     	let t0;
@@ -11311,7 +11311,7 @@ var app = (function () {
     	};
     }
 
-    // (199:8) <Link to="/postidea">
+    // (200:8) <Link to="/postidea">
     function create_default_slot$1(ctx) {
     	let button;
 

@@ -9,6 +9,7 @@
   import Footer from "../components/Footers/FooterBS.svelte";
 
 
+
   let comments = [];
   let newComment = "";
   let creator_profile = null;

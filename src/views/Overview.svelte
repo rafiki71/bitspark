@@ -4,9 +4,7 @@
   // Core components
   import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
-  import { Link, navigate } from "svelte-routing";
   import ProfileImg from "../components/ProfileImg.svelte";
-  import NostrHelper from "../NostrHelper.js";
   import Menu from "../components/Menu.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import "websocket-polyfill";
