@@ -73,134 +73,148 @@
     fetchIdeas();
   });
 
-  $: update(), $helperStore
-  $: fetchIdeas(), category
+  $: update(), $helperStore;
+  $: fetchIdeas(), category;
 </script>
 
 <div style="position: relative;">
   <main class="overview-page">
-    <section class="relative block h-500-px">
-      <div
-        class="absolute top-0 w-full h-full bg-center bg-cover"
-        style="
+    <div class="page-container">
+      <div class="banner-section">
+        <section class="relative block h-500-px">
+          <div
+            class="absolute top-0 w-full h-full bg-center bg-cover"
+            style="
           background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80);
         "
-      >
-        <span
-          id="blackOverlay"
-          class="w-full h-full absolute opacity-50 bg-black"
-        />
-
-        <!-- Titel und Untertitel hinzufügen -->
-        <div
-          class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-        >
-          <h1 class="text-4xl font-bold text-white">BitSpark</h1>
-          <h2 class="text-2xl font-light text-white">Idea Engine</h2>
-        </div>
-
-        <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
-        <div
-          class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px z-50"
-          style="transform: translateZ(0);"
-        >
-          <svg
-            class="absolute bottom-0 overflow-hidden"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-            version="1.1"
-            viewBox="0 0 2560 100"
-            x="0"
-            y="0"
           >
-            <polygon
-              class="text-blueGray-200 fill-current"
-              points="2560 0 2560 100 0 100"
+            <span
+              id="blackOverlay"
+              class="w-full h-full absolute opacity-50 bg-black"
             />
-          </svg>
-        </div>
-        <!-- Ende: Schräg abgeschnittener Banner -->
-        <!-- Create Idea Button hinzufügen -->
-        <div class="absolute top-4 right-4 flex justify-end w-full">
-          {#if profile}
-            <div style="margin-right: 10px;">
-              <!-- Hinzugefügt: div mit margin-right -->
-              <ProfileImg {profile} style={{ width: "40px", height: "40px" }} />
+
+            <!-- Titel und Untertitel hinzufügen -->
+            <div
+              class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
+            >
+              <h1 class="text-4xl font-bold text-white">BitSpark</h1>
+              <h2 class="text-2xl font-light text-white">Idea Engine</h2>
             </div>
-          {/if}
+
+            <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
+            <div
+              class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
+              style="transform: translateZ(0);"
+            >
+              <svg
+                class="absolute bottom-0 overflow-hidden"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+                version="1.1"
+                viewBox="0 0 2560 100"
+                x="0"
+                y="0"
+              >
+                <polygon
+                  class="text-blueGray-200 fill-current"
+                  points="2560 0 2560 100 0 100"
+                />
+              </svg>
+            </div>
+            <!-- Ende: Schräg abgeschnittener Banner -->
+            <!-- Create Idea Button hinzufügen -->
+            <div class="absolute top-4 right-4 flex justify-end w-full">
+              {#if profile}
+                <div style="margin-right: 10px;">
+                  <!-- Hinzugefügt: div mit margin-right -->
+                  <ProfileImg
+                    {profile}
+                    style={{ width: "40px", height: "40px" }}
+                  />
+                </div>
+              {/if}
+            </div>
+          </div>
+          <!-- ... -->
+        </section>
+      </div>
+
+      <div class="content-section">
+        <div class="menu-container">
+          <div class="menu-content">
+            <Menu />
+          </div>
+        </div>
+        <!-- Hauptkomponente -->
+        <div class="scrollable-content">
+          <section
+            class="content-container relative py-16 bg-blueGray-200"
+            style="display: flex;"
+          >
+            <div class="container mx-auto px-4">
+              <div class="row">
+                {#each verifiedCards as card}
+                  <div
+                    class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                    style="margin-bottom: 2rem;"
+                  >
+                    <IdeaCard {card} />
+                  </div>
+                {/each}
+              </div>
+              <!-- Divider -->
+              <div
+                style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
+                class="w-full"
+              />
+              <div class="row">
+                {#each unverifiedCards as card}
+                  <div
+                    class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                    style="margin-top: 2rem;"
+                  >
+                    <IdeaCard {card} />
+                  </div>
+                {/each}
+              </div>
+            </div>
+          </section>
         </div>
       </div>
-      <!-- ... -->
-    </section>
-
-    <div class="flex-container" style="display: flex;">
-      <div class="menu-container">
-        <div class="menu-content">
-          <Menu />
-        </div>
-      </div>
-
-      <!-- Hauptkomponente -->
-      <section class="content-container relative py-16 bg-blueGray-200">
-        <!-- <div class="content-container"> -->
-        <div class="container mx-auto px-4">
-          <div class="row">
-            {#each verifiedCards as card}
-              <div
-                class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                style="margin-bottom: 2rem;"
-              >
-                <IdeaCard {card} />
-              </div>
-            {/each}
-          </div>
-          <!-- Divider -->
-          <div
-            style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
-            class="w-full"
-          />
-          <div class="row">
-            {#each unverifiedCards as card}
-              <div
-                class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                style="margin-top: 2rem;"
-              >
-                <IdeaCard {card} />
-              </div>
-            {/each}
-          </div>
-        </div>
-        <!-- </div> -->
-      </section>
     </div>
   </main>
 </div>
 
 <style>
+  .page-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  .banner-section {
+    /* adjust height as needed */
+    height: 2560;
+  }
+
+  .content-section {
+    flex: 1; /* This will make sure the content section takes up remaining space */
+    display: flex;
+    overflow: hidden; /* To ensure scroll only happens within content area */
+    background-color: #e2e8f0 !important;
+  }
+
   .menu-container {
-    width: 300px;
-    min-width: 300px;
-    position: sticky;
-    top: 0;
-    height: calc(100vh - 500px);
-    overflow-y: auto;
-    /* background-color: #1a202c; */ /* Remove this line */
-    z-index: 1;
+    /* adjust width as needed */
+    width: 250px;
+    height: calc(100% - 50px); /* Reduce the height by the amount of top margin or padding you add */
+    margin-top: 50px; /* Add a top margin */
   }
 
-  .menu-top {
-    height: 500px; /* Same as the banner height */
-    /* background-color: #1a202c; */ /* And this line */
-    clip-path: polygon(0 0, 100% 0, 0% 100%, 0% 100%);
-  }
-
-  .menu-content {
-    height: calc(100vh - 500px);
-    overflow-y: auto;
-  }
-
-  .content-container {
-    flex-grow: 1;
-    z-index: 0;
+  .scrollable-content {
+    flex: 1; /* This will make sure the scrollable content takes up remaining space */
+    overflow-y: auto; /* Enable vertical scroll */
   }
 </style>

@@ -20,6 +20,7 @@ RUN npm install --save-dev rollup-plugin-image
 RUN npm install --save-dev rollup-plugin-url
 RUN npm install --save-dev rollup-plugin-postcss
 
+RUN apt install -y git
 
 # Port 5000 für den Entwicklungsserver verfügbar machen
 #EXPOSE 5000
