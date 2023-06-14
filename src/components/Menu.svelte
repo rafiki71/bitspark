@@ -4,6 +4,7 @@
     import { Link, navigate } from "svelte-routing";
     import NostrHelper from "../NostrHelper.js";
     import { writable } from "svelte/store";
+    import { helperStore } from "../helperStore.js"; // Import the store
 
     const menuState = writable({ logged_in: false, use_extension: false });
 
@@ -76,14 +77,13 @@
 
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
-        console.log("nostrHelper:", nostrHelper);
         const loggedIn = (await nostrHelper.publicKey) != null;
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
 
-    let linkStyle = "menu-item";
-    let loginStyle = "menu-item";
+    let linkStyle = "block menu-item";
+    let loginStyle = "block menu-item";
 
     $: {
         if (showCategories) {
@@ -116,22 +116,29 @@
             </div>
         </li>
         <li>
-            <Link to="/postidea" class={linkStyle}>Spark Idea</Link>
+            <button class={linkStyle} on:click={() => navigate("/postidea")}
+                >Spark Idea</button
+            >
         </li>
         <li>
             {#if !$menuState.use_extension}
-                <a href={link} class={linkStyle} target="_blank">{optionText}</a>
+                <a href={link} class={linkStyle} target="_blank">{optionText}</a
+                >
             {:else if $menuState.logged_in}
-                <button class={loginStyle} on:click={logout} on:keydown={logout}>Logout</button>
+                <button class={loginStyle} on:click={logout} on:keydown={logout}
+                    >Logout</button
+                >
             {:else}
-                <button class={loginStyle} on:click={login} on:keydown={login}>Login</button>
+                <button class={loginStyle} on:click={login} on:keydown={login}
+                    >Login</button
+                >
             {/if}
         </li>
     </ul>
 </div>
 
 <style>
-    a.menu-card {
+    /* a.menu-card {
         width: 200px;
         margin: 0 auto;
         border-radius: 20px;
@@ -141,25 +148,49 @@
         box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3);
         transition: box-shadow 0.5s;
         position: relative;
-    }
+    } */
 
     a.menu-item {
-        font-size: 1rem; /* adjust this value as needed */
+        font-size: 1rem;
         padding: 15px;
         cursor: pointer;
         transition: color 0.3s;
         display: block;
+        text-decoration: none;
+    }
+    a.menu-item:hover {
+        color: #007bff;
+        text-decoration: none !important;
+    }
+    .menu-item .link {
+        color: #000; /* change this to the desired color */
+        text-decoration: none !important; /* removes the underline */
+        transition: color 0.3s; /* adds a transition effect */
     }
 
+    .menu-item .link:hover {
+        color: #007bff; /* change this to the desired color on hover */
+        text-decoration: none !important; /* ensures the underline doesn't appear on hover */
+    }
+    #spark-idea-link .link {
+        color: #000 !important; /* change this to the desired color */
+        text-decoration: none !important; /* removes the underline */
+        transition: color 0.3s; /* adds a transition effect */
+    }
+
+    #spark-idea-link .link:hover {
+        color: #007bff !important; /* change this to the desired color on hover */
+        text-decoration: none !important; /* ensures the underline doesn't appear on hover */
+    }
     .menu-card {
         width: 200px;
         margin: 0 auto;
-        border-radius: 20px;
+        /* border-radius: 20px; */
         padding: 20px;
         color: #000;
-        background: #fff;
-        box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3);
-        transition: box-shadow 0.5s;
+        /* background: #fff; */
+        /* box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3); */
+        /* transition: box-shadow 0.5s; */
         position: relative;
     }
 
@@ -169,10 +200,15 @@
         cursor: pointer;
         transition: color 0.3s;
         display: block;
+        text-decoration: none;
+        color: #000;
+        outline: none; /* Add this line */
     }
 
     .menu-item:hover {
         color: #007bff;
+        text-decoration: none;
+        outline: none; /* Add this line */
     }
 
     .categories {

@@ -3,6 +3,9 @@
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
     import NostrHelper from "../NostrHelper.js";
+    import { helperStore } from "../helperStore.js"; // Import the store
+    import Footer from "../components/Footers/FooterBS.svelte";
+
 
     export let profile_id;
 
@@ -16,12 +19,10 @@
     let relays = [];
     let bitstarterHelper = null;
     let newRelay = "";
-    let nostrHelper = null
 
     onMount(async () => {
         try {
-            nostrHelper = await NostrHelper.create();
-            profile = await nostrHelper.getProfile(profile_id);
+            profile = await $helperStore.getProfile(profile_id);
 
             if (profile) {
                 name = profile.name;
@@ -32,7 +33,7 @@
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
                 git_proof = profile.githubProof || "";
-                relays = await nostrHelper.clientRelays;
+                relays = await $helperStore.clientRelays;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -60,8 +61,7 @@
                               proof: git_proof,
                           },
                       ];
-            console.log(updatedIdentities);
-            await nostrHelper.updateProfile(
+            await $helperStore.updateProfile(
                 name,
                 picture,
                 banner,
@@ -326,5 +326,6 @@
                 </div>
             </div>
         </section>
+        <Footer/>
     </main>
 </div>

@@ -2,9 +2,11 @@
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import NostrHelper from "../NostrHelper.js";
     import { sendSatsLNurl } from "../LNHelper.js";
     import Menu from "../components/Menu.svelte";
+    import { helperStore } from "../helperStore.js"; // Import the store
+    import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
+    import Footer from "../components/Footers/FooterBS.svelte";
 
     export let profile_id;
 
@@ -20,11 +22,8 @@
 
     onMount(async () => {
         try {
-            const nostrHelper = await NostrHelper.create();
-            publicKey = nostrHelper.publicKey;
-            console.log(profile_id);
-            console.log(publicKey);
-            profile = await nostrHelper.getProfile(profile_id);
+            publicKey = $helperStore.publicKey;
+            profile = await $helperStore.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
                 about = profile.dev_about;
@@ -107,9 +106,8 @@
                 <Menu />
             </div>
             <div class="container mx-auto px-4">
-                <div
-                    class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64"
-                >
+                <div class="profile-section">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
                     {#if profile_id === publicKey}
                         <button
                             class="bg-blue-500 text-white font-bold py-2 px-4 rounded absolute"
@@ -159,15 +157,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end mt-0">
-                    <button
-                        class="bg-red-500 text-white font-bold py-2 px-4 rounded mr-4"
-                        on:click={() => window.history.back()}
-                    >
+
+                <div class="ideas-section mt-4">
+                    <div class="w-full">
+                        <UserIdeas {profile_id} />
+                    </div>
+                </div>
+        
+                <div class="flex justify-end mt-0 items-center mr-0">
+                    <button class="bg-red-500 text-white font-bold py-2 px-4 rounded" on:click={() => window.history.back()}>
                         Back
                     </button>
                 </div>
             </div>
         </section>
+        <Footer/>
     </main>
 </div>

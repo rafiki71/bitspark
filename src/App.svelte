@@ -4,9 +4,10 @@
   import Overview from "./views/Overview.svelte";
   import IdeaDetail from "./views/IdeaDetail.svelte";
   import PostIdea from "./views/PostIdea.svelte";
-  import Login from "./views/Login.svelte";
+  //import Login from "./views/Login.svelte";
   import EditProfileView from "./views/EditProfileView.svelte";
   import ProfileView from "./views/ProfileView.svelte";
+  import PreView from "./views/IdeaPreview.svelte";
 </script>
 
 <svelte:head>
@@ -23,6 +24,8 @@
     </nav>
     <main>
       <Route path="/" component={Overview} />
+      <Route path="/overview" component={Overview} />
+      <Route path="/preview" component={PreView} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
       <Route path="/postidea" component={PostIdea} />

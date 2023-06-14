@@ -1,17 +1,16 @@
 <script>
-    import { Link } from "svelte-routing";
+    import { navigate } from "svelte-routing";
     import { onMount } from "svelte";
-    import NostrHelper from "../NostrHelper.js";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
+    import { helperStore } from "../helperStore.js";
+    import { previewStore } from "../previewStore.js";
+    import Footer from "../components/Footers/FooterBS.svelte";
+
+    function navigateTo(route) {
+        navigate(route);
+    }
 
     onMount(async () => {});
-    let ideaName = "";
-    let ideaSubtitle = "";
-    let ideaAbstract = "";
-    let ideaMessage = "";
-    let ideaBannerUrl = "";
-    let ideaGithubRepo = "";
-    let ideaLightningAddress = "";
     let categories = [
         "Art & Design",
         "Bitcoin & P2P",
@@ -39,7 +38,6 @@
         "Pets & Animals",
         "Parenting & Family",
     ];
-    let selectedCategories = [];
 
     function autoResizeTextarea(e) {
         e.target.style.height = "";
@@ -47,17 +45,39 @@
     }
 
     async function postIdea() {
-        const helper = await NostrHelper.create();
-        await helper.postIdea(
-            ideaName,
-            ideaSubtitle,
-            ideaAbstract,
-            ideaMessage,
-            ideaBannerUrl,
-            ideaGithubRepo,
-            ideaLightningAddress,
-            selectedCategories
+        if (
+            $previewStore.name &&
+            $previewStore.subtitle &&
+            $previewStore.abstract &&
+            $previewStore.message &&
+            $previewStore.bannerUrl &&
+            $previewStore.githubRepo &&
+            $previewStore.lightningAddress &&
+            $previewStore.categories
+        ) {
+            await $helperStore.postIdea(
+                $previewStore.name,
+                $previewStore.subtitle,
+                $previewStore.abstract,
+                $previewStore.message,
+                $previewStore.bannerUrl,
+                $previewStore.githubRepo,
+                $previewStore.lightningAddress,
+                $previewStore.categories
             );
+
+            $previewStore.name = "";
+            $previewStore.subtitle = "";
+            $previewStore.abstract = "";
+            $previewStore.message = "";
+            $previewStore.bannerUrl = "";
+            $previewStore.githubRepo = "";
+            $previewStore.lightningAddress = "";
+            $previewStore.categories = [];
+            navigate("/overview");
+        } else {
+            console.log("Please fill all fields.");
+        }
     }
 </script>
 
@@ -116,7 +136,7 @@
                             type="text"
                             placeholder="Idea Name"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            bind:value={ideaName}
+                            bind:value={$previewStore.name}
                             style="width: 90%;"
                         />
                     </div>
@@ -126,17 +146,17 @@
                             type="text"
                             placeholder="Idea Subtitle"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            bind:value={ideaSubtitle}
+                            bind:value={$previewStore.subtitle}
                             style="width: 90%;"
                         />
                     </div>
-                    
+
                     <div class="mb-4">
                         <textarea
                             rows="1"
                             placeholder="Abstract"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
-                            bind:value={ideaAbstract}
+                            bind:value={$previewStore.abstract}
                             on:input={autoResizeTextarea}
                             style="width: 90%;"
                         />
@@ -147,7 +167,7 @@
                             rows="1"
                             placeholder="Description"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
-                            bind:value={ideaMessage}
+                            bind:value={$previewStore.message}
                             on:input={autoResizeTextarea}
                             style="width: 90%;"
                         />
@@ -158,7 +178,7 @@
                             type="text"
                             placeholder="Banner URL"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            bind:value={ideaBannerUrl}
+                            bind:value={$previewStore.bannerUrl}
                             style="width: 90%;"
                         />
                     </div>
@@ -167,7 +187,7 @@
                             type="text"
                             placeholder="GitHub Repository"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            bind:value={ideaGithubRepo}
+                            bind:value={$previewStore.githubRepo}
                             style="width: 90%;"
                         />
                     </div>
@@ -176,14 +196,14 @@
                             type="text"
                             placeholder="Lightning Address"
                             class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            bind:value={ideaLightningAddress}
+                            bind:value={$previewStore.lightningAddress}
                             style="width: 90%;"
                         />
                     </div>
                     <div class="mb-4 mt-4" style="width: 90%;">
                         <MultiSelectDropdown
                             {categories}
-                            bind:selected={selectedCategories}
+                            bind:selected={$previewStore.categories}
                         />
                     </div>
                 </div>
@@ -191,18 +211,25 @@
         </div>
         <div class="container mx-auto px-4 flex justify-end">
             <button
-                class="bg-red-500 text-white font-bold py-2 px-4 rounded mt-2"
+                class="bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 mt-2 hover:shadow-xl"
+                on:click={() => navigateTo("/overview")}
+            >
+                Back to Home
+            </button>
+            <button
+                class="bg-blue-500 text-white font-bold py-2 px-4 block rounded border border-blue-500 ml-4 mt-2 hover:shadow-xl"
+                on:click={() => navigateTo("/preview")}
+            >
+                Preview
+            </button>
+            <button
+                class="bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent ml-4 mt-2 hover:shadow-xl"
                 on:click={postIdea}
             >
                 Spark Idea
             </button>
-            <Link
-                to="/overview"
-                class="bg-white text-red-500 font-bold py-2 px-4 block rounded border border-red-500 ml-4 mt-2 hover:bg-red-500 hover:text-white"
-            >
-                Back to Home
-            </Link>
         </div>
     </section>
     <section class="relative pb-16" />
+    <Footer/>
 </main>

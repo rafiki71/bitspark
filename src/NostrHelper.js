@@ -1,7 +1,7 @@
 import 'websocket-polyfill'
 //import {SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature} from 'nostr-tools'
 const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
-import ProfileBuffer from './ProfileBuffer.js';
+import EventBuffer from './EventBuffer.js';
 import { helperStore } from "./helperStore.js"; // Import the store
 
 export default class NostrHelper {
@@ -13,20 +13,20 @@ export default class NostrHelper {
     this.publicKey = null;
     this.publicRelays = [];
     this.clientRelays = [];
-    this.profileBuffer = new ProfileBuffer();
+    this.eventBuffer = new EventBuffer();
+    this.lastFetchTimeIdea = 0;
   }
 
   async getPublicRelaysString() {
     return ["wss://relay.damus.io",
-            "wss://nostr-pub.wellorder.net",
-            "wss://nostr.bitcoiner.social",
-            "wss://nostr-01.bolt.observer"];
+      "wss://nostr-pub.wellorder.net",
+      "wss://nostr.bitcoiner.social"];
 
     let usePlugin = await this.extensionAvailable();
     if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
-                                                "wss://nostr-pub.wellorder.net",
-                                                "wss://nostr.bitcoiner.social",
-                                                "wss://nostr-01.bolt.observer"];
+      "wss://nostr-pub.wellorder.net",
+      "wss://nostr.bitcoiner.social",
+      "wss://nostr-01.bolt.observer"];
 
     // Get relays from getPublicRelays function
     let relaysFromGetPublicRelays = await this.getPublicRelays();
@@ -163,7 +163,7 @@ export default class NostrHelper {
       this.publicKey = await window.nostr.getPublicKey();
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
       this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
-      console.log("used relays:", this.relays)
+      console.log("used relays:", this.relays);
     }
     else {
       this.write_mode = false;
@@ -201,6 +201,28 @@ export default class NostrHelper {
     return event;
   }
 
+  async deleteEvent(event_id) {
+    if (!this.write_mode) return; // Do nothing in read-only mode
+
+    let tags = [["e", event_id]];
+
+    const deleteEvent = this.createEvent(5, "", tags);
+    console.log("Event deleted:", event_id);
+    return await this.sendEvent(deleteEvent);
+  }
+
+  async isDeleted(event_id) {
+    let filters = [{ kinds: [5], '#s': ['bitspark'], '#e': [event_id] }]
+
+    let deleted = await this.pool.list(this.relays, filters);
+    console.log(deleted);
+  }
+
+  // Get all ideas of a user
+  async getUserIdeas(userId) {
+    return this.eventBuffer.getUserIdeas(userId);
+  }
+
   async postIdea(ideaName, ideaSubtitle, abstract, content, bannerUrl, githubRepo, lnAdress, categories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
     let tags = [
@@ -224,17 +246,26 @@ export default class NostrHelper {
   }
 
   async getIdeas(categories = []) {
-    let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }]
-
-    if (categories.length > 0) {
-      filters = []
-      categories.forEach(category => {
-          filters.push({ kinds: [this.idea_kind], '#s': ['bitspark'], '#c': [category] });
-      });
+    if (categories.length == 0) {
+      categories = undefined;
     }
 
-    console.log("Filters:", filters)
-    
+    let ret = this.eventBuffer.getCategoryIdeas(categories);
+    console.log("getIdeas:", ret)
+
+    return ret;
+  }
+
+  async fetchIdeas() {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchIdeas has been called too frequently. Please wait a bit.");
+      return;
+    }
+    let filters = [{ kinds: [this.idea_kind], '#s': ['bitspark'] }]
+
     let ideas = await this.pool.list(this.relays, filters);
 
     // Get the profiles for each idea and store them in the ideas
@@ -242,12 +273,15 @@ export default class NostrHelper {
       const profile = await this.getProfile(idea.pubkey);
       // Set githubVerified property for each idea
       idea.githubVerified = profile.githubVerified || false;
+      // Hier speichern wir die Idee in unserem EventBuffer
+      this.eventBuffer.addIdea(idea);
       return idea;
     });
 
     ideas = await Promise.all(profilePromises);
 
-    console.log("getIdeas:", ideas)
+    console.log("fetchIdeas:", ideas)
+    this.lastFetchTimeIdea = now;
     return ideas;
   }
 
@@ -273,7 +307,6 @@ export default class NostrHelper {
     console.log("getComments()")
     return comments;
   }
-
 
   async postComment(event_id, comment) {
     if (!this.write_mode) return; // Do nothing in read-only mode
@@ -347,8 +380,8 @@ export default class NostrHelper {
 
       for (const file in data.files) {
         if (data.files[file].content.includes(expectedText) &&
-            data.files[file].raw_url.includes(username)) {
-              console.log(username, "verified!")
+          data.files[file].raw_url.includes(username)) {
+          console.log(username, "verified!")
           return true;
         }
       }
@@ -364,11 +397,14 @@ export default class NostrHelper {
     console.log("getProfile:", pubkey);
 
     // Überprüfen, ob das Profil bereits im ProfileBuffer gespeichert ist
-    let profile = await this.profileBuffer.getProfile(pubkey);
+    let profile = await this.eventBuffer.getProfile(pubkey);
 
     if (profile) {
       console.log("getProfile speed up:", profile);
       return profile;
+    }
+    else {
+      console.log("buffer failed:", profile)
     }
 
     const events = await this.pool.list(this.relays, [
@@ -405,7 +441,7 @@ export default class NostrHelper {
     // Den ursprünglichen content entfernen
     delete event.content;
 
-    this.profileBuffer.addProfile(event);
+    this.eventBuffer.addProfile(event);
     console.log("getProfile done:", event);
     return event;
   }
@@ -463,33 +499,39 @@ function uniqueTags(tags) {
 
   // Convert the set back to an array of arrays.
   const uniqueTags = Array.from(tagSet).map(tagStr => JSON.parse(tagStr));
-
+  
   return uniqueTags;
 }
 
+let storedInstance = null;
+
 NostrHelper.create = async function (write_mode) {
-  // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
-  if (write_mode !== undefined) {
+  // Get stored object.
+  helperStore.subscribe(value => { storedInstance = value; })();
+  
+  // If not in storage, create one.
+  if (storedInstance === null) {
+    if(write_mode == undefined) {
+      write_mode == false;
+    }
     const instance = new NostrHelper(write_mode);
     await instance.initialize();
     helperStore.set(instance);
-    return instance;
-  }
-
-  // Wenn write_mode undefined ist, überprüfe, ob etwas im Store gespeichert ist.
-  let storedInstance = null;
-  const unsubscribe = helperStore.subscribe(value => {
-    storedInstance = value;
-  });
-
-  // Wenn der Store leer ist, setze write_mode auf false und erstelle eine neue Instanz.
-  if (storedInstance === null) {
-    const instance = new NostrHelper(false);
-    await instance.initialize();
-    helperStore.set(instance);
     storedInstance = instance;
+    return storedInstance;
   }
 
-  unsubscribe();
+  // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
+  if (write_mode !== undefined) {
+    if(storedInstance.write_mode != write_mode) {
+      storedInstance.write_mode = write_mode;
+      await storedInstance.initialize();
+      helperStore.set(storedInstance);
+    }
+  }
+
+  // Gibt die Instanz aus dem Store zurück
   return storedInstance;
 }
+
+
