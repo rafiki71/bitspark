@@ -155,9 +155,7 @@
     </section>
     <div class="content-section">
       <div class="menu-container">
-        <div class="menu-content">
           <Menu />
-        </div>
       </div>
       <!-- Hauptkomponente -->
       <section

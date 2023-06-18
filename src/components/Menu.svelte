@@ -1,6 +1,6 @@
 <!-- Menu.svelte -->
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import NostrHelper from "../NostrHelper.js";
     import { writable } from "svelte/store";
@@ -192,6 +192,9 @@
         /* box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3); */
         /* transition: box-shadow 0.5s; */
         position: relative;
+        /* border-right: 1px solid #000; */
+        padding-right: 40px;
+        /* height: 100vh; */
     }
 
     .menu-item {
