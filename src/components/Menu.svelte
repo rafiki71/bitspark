@@ -1,10 +1,16 @@
 <!-- Menu.svelte -->
 <script>
     import { onMount, onDestroy } from "svelte";
+    import { slide } from "svelte/transition";
     import { Link, navigate } from "svelte-routing";
     import NostrHelper from "../NostrHelper.js";
     import { writable } from "svelte/store";
     import { helperStore } from "../helperStore.js"; // Import the store
+    import { sidebarOpen } from "../helperStore.js";
+
+    function toggleSidebar() {
+        sidebarOpen.update((value) => !value);
+    }
 
     const menuState = writable({ logged_in: false, use_extension: false });
 
@@ -84,57 +90,72 @@
 
     let linkStyle = "block menu-item";
     let loginStyle = "block menu-item";
-
-    $: {
-        if (showCategories) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "auto";
-        }
-    }
 </script>
 
-<div class="menu-card">
-    <ul class="flex flex-col items-start">
-        <li>
-            <div
-                on:mouseover={handleMouseOver}
-                on:mouseout={handleMouseOut}
-                on:focus={handleFocus}
-                on:blur={handleBlur}
-            >
-                <span class={linkStyle}>Overview</span>
+<!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
+<div class="button-container">
+    <button on:click={toggleSidebar} class="toggle-button">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            fill="currentColor"
+            viewBox="0 2 16 14"
+        >
+            <path
+                d="M1 3h14a1 1 0 0 1 0 2H1a1 1 0 1 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2z"
+            />
+        </svg>
+    </button>
+</div>
+<div class="menu-container" class:show={$sidebarOpen}>
+    <div class="menu-card">
+        <ul class="flex flex-col items-start">
+            <li>
                 <div
-                    class={showCategories ? "categories" : "categories hidden"}
+                    on:mouseover={handleMouseOver}
+                    on:mouseout={handleMouseOut}
+                    on:focus={handleFocus}
+                    on:blur={handleBlur}
                 >
-                    {#each categories as category}
-                        <Link to={`/overview/${category}`}
-                            ><div class="category-item">{category}</div></Link
-                        >
-                    {/each}
+                    <span class={linkStyle}>Overview</span>
                 </div>
-            </div>
-        </li>
-        <li>
-            <button class={linkStyle} on:click={() => navigate("/postidea")}
-                >Spark Idea</button
-            >
-        </li>
-        <li>
-            {#if !$menuState.use_extension}
-                <a href={link} class={linkStyle} target="_blank">{optionText}</a
+            </li>
+            <li>
+                <button class={linkStyle} on:click={() => navigate("/postidea")}
+                    >Spark Idea</button
                 >
-            {:else if $menuState.logged_in}
-                <button class={loginStyle} on:click={logout} on:keydown={logout}
-                    >Logout</button
-                >
-            {:else}
-                <button class={loginStyle} on:click={login} on:keydown={login}
-                    >Login</button
-                >
-            {/if}
-        </li>
-    </ul>
+            </li>
+            <li>
+                {#if !$menuState.use_extension}
+                    <a href={link} class={linkStyle} target="_blank"
+                        >{optionText}</a
+                    >
+                {:else if $menuState.logged_in}
+                    <button
+                        class={loginStyle}
+                        on:click={logout}
+                        on:keydown={logout}>Logout</button
+                    >
+                {:else}
+                    <button
+                        class={loginStyle}
+                        on:click={login}
+                        on:keydown={login}>Login</button
+                    >
+                {/if}
+            </li>
+        </ul>
+    </div>
+</div>
+<div class={showCategories ? "categories" : "categories hidden"}>
+    {#each categories as category}
+        <Link to={`/overview/${category}`}
+            ><div class="category-item">
+                {category}
+            </div></Link
+        >
+    {/each}
 </div>
 
 <style>
@@ -149,6 +170,12 @@
         transition: box-shadow 0.5s;
         position: relative;
     } */
+    .toggle-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* other styles */
+    }
 
     a.menu-item {
         font-size: 1rem;
@@ -161,26 +188,6 @@
     a.menu-item:hover {
         color: #007bff;
         text-decoration: none !important;
-    }
-    .menu-item .link {
-        color: #000; /* change this to the desired color */
-        text-decoration: none !important; /* removes the underline */
-        transition: color 0.3s; /* adds a transition effect */
-    }
-
-    .menu-item .link:hover {
-        color: #007bff; /* change this to the desired color on hover */
-        text-decoration: none !important; /* ensures the underline doesn't appear on hover */
-    }
-    #spark-idea-link .link {
-        color: #000 !important; /* change this to the desired color */
-        text-decoration: none !important; /* removes the underline */
-        transition: color 0.3s; /* adds a transition effect */
-    }
-
-    #spark-idea-link .link:hover {
-        color: #007bff !important; /* change this to the desired color on hover */
-        text-decoration: none !important; /* ensures the underline doesn't appear on hover */
     }
     .menu-card {
         width: 200px;
@@ -204,19 +211,19 @@
         transition: color 0.3s;
         display: block;
         text-decoration: none;
-        color: #000;
+        color: #d1d1d1;
         outline: none; /* Add this line */
     }
 
     .menu-item:hover {
-        color: #007bff;
+        color: #60adff;
         text-decoration: none;
         outline: none; /* Add this line */
     }
 
     .categories {
         position: fixed; /* change this to fixed */
-        top: 50px; /* adjust this as needed */
+        /* top: 50px; adjust this as needed */
         left: 225px; /* adjust this as needed, should be the width of your side bar */
         background: #fff;
         width: 300px; /* Or whatever width you want the dropdown to be */
@@ -247,5 +254,50 @@
 
     .category-item:hover {
         color: #007bff;
+    }
+
+    .hide {
+        display: none;
+    }
+
+    .button-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 11; /* This will bring the button to the front */
+        background-color: #333333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10%;
+        padding: 5px;
+        margin: 10px;
+    }
+
+    svg path {
+        fill: #d1d1d1; /* Change this to the color you want */
+    }
+
+    .menu-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 300px;
+        min-width: 300px;
+        z-index: 10; /* This will bring the menu to the front */
+        flex-basis: 300px;
+        background-color: #494949;
+        height: 100vh; /* This will limit the height to the height of the viewport */
+        overflow-y: auto;
+        transform: translateX(-100%); /* Hide the menu off screen */
+        transition: transform 0.3s ease-in-out; /* Animate the transition */
+    }
+
+    .menu-container.show {
+        transform: translateX(0); /* Show the menu */
+    }
+
+    button:focus {
+        outline: none;
     }
 </style>
