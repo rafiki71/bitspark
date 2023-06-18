@@ -7,7 +7,11 @@
     import { helperStore } from "../helperStore.js"; // Import the store
     import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
     import Footer from "../components/Footers/FooterBS.svelte";
+    import { sidebarOpen } from "../helperStore.js";
 
+    function toggleSidebar() {
+        sidebarOpen.update((value) => !value);
+    }
     export let profile_id;
 
     let profile = null;
@@ -40,137 +44,221 @@
     async function supportIdea() {
         await sendSatsLNurl(lnAdress);
     }
+    let contentContainerClass = "content-container";
+    let titleClass = "title-class";
+
+    $: {
+        if ($sidebarOpen) {
+            contentContainerClass = "content-container sidebar-open";
+            titleClass = "title-class sidebar-open";
+        } else {
+            contentContainerClass = "content-container";
+            titleClass = "title-class";
+        }
+    }
 </script>
 
-<div>
-    <main class="profile-page">
-        <section class="relative block h-500-px">
-            <div
-                class="absolute top-0 w-full h-full bg-center bg-cover"
-                style={`background-image: url(${banner});`}
-            >
-                <span
-                    id="blackOverlay"
-                    class="w-full h-full absolute opacity-50 bg-black"
-                />
-                <div
-                    class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5"
-                >
-                    {name}
-                </div>
-                <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-                <div
-                    class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-                >
-                    <button on:click={supportIdea} style="padding: 0;">
-                        <img
-                            src="/img/lightning.png"
-                            style="height: 2.5rem; width: 2.5rem;"
-                            alt="Support via Bitcoin Lightning"
-                        />
-                    </button>
-                    <a
-                        href={"https://www.github.com/" + ghUser}
-                        target="_blank"
+<div style="position: relative;">
+    <main class="overview-page bg-blueGray-200">
+        <div class="flex">
+            <Menu />
+            <div class="flex-grow">
+                <section class="relative block h-500-px">
+                    <div
+                        class="absolute top-0 w-full h-full bg-center bg-cover"
+                        style={`background-image: url(${banner});`}
                     >
-                        <i
-                            class="fab fa-github text-white"
-                            style="font-size: 2.5rem;"
+                        <span
+                            id="blackOverlay"
+                            class="w-full h-full absolute opacity-50 bg-black"
                         />
-                    </a>
-                </div>
-            </div>
-            <div
-                class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-                style="transform: translateZ(0);"
-            >
-                <svg
-                    class="absolute bottom-0 overflow-hidden"
-                    xmlns="http://www.w3.org/2000/svg"
-                    preserveAspectRatio="none"
-                    version="1.1"
-                    viewBox="0 0 2560 100"
-                    x="0"
-                    y="0"
-                >
-                    <polygon
-                        class="text-blueGray-200 fill-current"
-                        points="2560 0 2560 100 0 100"
-                    />
-                </svg>
-            </div>
-        </section>
-
-        <section class="relative py-16 bg-blueGray-200" style="display: flex;">
-            <div class="menu-container">
-                <Menu />
-            </div>
-            <div class="container mx-auto px-4">
-                <div class="profile-section">
-                    <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
-                    {#if profile_id === publicKey}
-                        <button
-                            class="bg-blue-500 text-white font-bold py-2 px-4 rounded absolute"
-                            style="top: 10px; right: 10px; z-index: 1;"
-                            on:click={() =>
-                                navigate(`/edit_profile/${publicKey}`)}
+                        <div
+                            class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5"
                         >
-                            Edit
-                        </button>
-                    {/if}
-                    <div class="px-6">
-                        <div class="flex flex-wrap justify-center">
-                            <div
-                                class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
-                            >
-                                <div
-                                    style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
-                                >
-                                    {#if profile && profile.picture}
-                                        <ProfileImg
-                                            {profile}
-                                            style={{
-                                                position: "absolute",
-                                                width: "100%",
-                                                height: "100%",
-                                                objectFit: "cover",
-                                                top: "0",
-                                                left: "0",
-                                            }}
-                                        />
-                                    {/if}
-                                </div>
+                            <div class={titleClass}>
+                                {name}
                             </div>
                         </div>
+                        <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
                         <div
-                            class="mt-10 py-10 border-t border-blueGray-200 text-center"
+                            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
                         >
-                            <div class="flex flex-wrap justify-center">
-                                <div class="w-full lg:w-9/12 px-4">
+                            <button on:click={supportIdea} style="padding: 0;">
+                                <img
+                                    src="/img/lightning.png"
+                                    style="height: 2.5rem; width: 2.5rem;"
+                                    alt="Support via Bitcoin Lightning"
+                                />
+                            </button>
+                            <a
+                                href={"https://www.github.com/" + ghUser}
+                                target="_blank"
+                            >
+                                <i
+                                    class="fab fa-github text-white"
+                                    style="font-size: 2.5rem;"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                    <div
+                        class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
+                        style="transform: translateZ(0);"
+                    >
+                        <svg
+                            class="absolute bottom-0 overflow-hidden"
+                            xmlns="http://www.w3.org/2000/svg"
+                            preserveAspectRatio="none"
+                            version="1.1"
+                            viewBox="0 0 2560 100"
+                            x="0"
+                            y="0"
+                        >
+                            <polygon
+                                class="text-blueGray-200 fill-current"
+                                points="2560 0 2560 100 0 100"
+                            />
+                        </svg>
+                    </div>
+                </section>
+
+                <div class={contentContainerClass}>
+                    <!-- <div class="menu-container">
+              <Menu /> -->
+                    <!-- Hauptkomponente -->
+                    <section
+                        class="content-container relative py-16 bg-blueGray-200"
+                    >
+                        <div class="content-container">
+                            <div class="container mx-auto px-4">
+                                <div class="profile-section">
                                     <div
-                                        class="text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line"
+                                        class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64"
                                     >
-                                        {@html about}
+                                        {#if profile_id === publicKey}
+                                            <button
+                                                class="bg-blue-500 text-white font-bold py-2 px-4 rounded absolute"
+                                                style="top: 10px; right: 10px; z-index: 1;"
+                                                on:click={() =>
+                                                    navigate(
+                                                        `/edit_profile/${publicKey}`
+                                                    )}
+                                            >
+                                                Edit
+                                            </button>
+                                        {/if}
+                                        <div class="px-6">
+                                            <div
+                                                class="flex flex-wrap justify-center"
+                                            >
+                                                <div
+                                                    class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
+                                                >
+                                                    <div
+                                                        style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
+                                                    >
+                                                        {#if profile && profile.picture}
+                                                            <ProfileImg
+                                                                {profile}
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    width: "100%",
+                                                                    height: "100%",
+                                                                    objectFit:
+                                                                        "cover",
+                                                                    top: "0",
+                                                                    left: "0",
+                                                                }}
+                                                            />
+                                                        {/if}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="mt-10 py-10 border-t border-blueGray-200 text-center"
+                                            >
+                                                <div
+                                                    class="flex flex-wrap justify-center"
+                                                >
+                                                    <div
+                                                        class="w-full lg:w-9/12 px-4"
+                                                    >
+                                                        <div
+                                                            class="text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line"
+                                                        >
+                                                            {@html about}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ideas-section mt-4">
+                                        <div class="w-full">
+                                            <UserIdeas {profile_id} />
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex justify-end mt-0 items-center mr-0"
+                                    >
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-2 px-4 rounded"
+                                            on:click={() =>
+                                                window.history.back()}
+                                        >
+                                            Back
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="ideas-section mt-4">
-                    <div class="w-full">
-                        <UserIdeas {profile_id} />
-                    </div>
-                </div>
-        
-                <div class="flex justify-end mt-0 items-center mr-0">
-                    <button class="bg-red-500 text-white font-bold py-2 px-4 rounded" on:click={() => window.history.back()}>
-                        Back
-                    </button>
+                    </section>
+                    <Footer />
                 </div>
             </div>
-        </section>
-        <Footer/>
+        </div>
     </main>
 </div>
+
+<style>
+    .content-section {
+        display: flex;
+        background-color: #e2e8f0 !important;
+    }
+
+    .content-container {
+        flex-grow: 1;
+        z-index: 0;
+    }
+
+    .title-class {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1/2;
+        transition: left 0.3s ease-in-out;
+        left: 30px;
+    }
+
+    .title-class.sidebar-open {
+        left: 215px;
+    }
+
+    .flex-grow {
+        /* Other styles */
+        z-index: 0; /* This will keep the div behind the button */
+    }
+    .content-container {
+        margin-left: 0; /* This is the starting state */
+        transition: margin-left 0.3s ease-in-out;
+        flex-grow: 1;
+        z-index: 0; /* This will keep the div behind the button */
+    }
+
+    .content-container.sidebar-open {
+        margin-left: 200px; /* This should be equal to the width of the sidebar */
+    }
+</style>

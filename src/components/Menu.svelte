@@ -89,7 +89,7 @@
     });
 
     let linkStyle = "block menu-item";
-    let loginStyle = "block menu-item";
+    let categoryStyle = "category-style";
 </script>
 
 <!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
@@ -112,13 +112,18 @@
     <div class="menu-card">
         <ul class="flex flex-col items-start">
             <li>
+                <button class={linkStyle} on:click={() => navigate("/")}
+                    >BitSpark</button
+                >
+            </li>
+            <li>
                 <div
                     on:mouseover={handleMouseOver}
                     on:mouseout={handleMouseOut}
                     on:focus={handleFocus}
                     on:blur={handleBlur}
                 >
-                    <span class={linkStyle}>Overview</span>
+                    <span class={linkStyle}>Categories</span>
                 </div>
             </li>
             <li>
@@ -126,20 +131,42 @@
                     >Spark Idea</button
                 >
             </li>
+            {#if $menuState.logged_in}
+                <hr class="divider-line" />
+                <li>
+                    <button
+                        class={linkStyle}
+                        on:click={() =>
+                            navigate(`/profile/${nostrHelper.publicKey}`)}
+                        >Profile</button
+                    >
+                </li>
+                <li>
+                    <button
+                        class={linkStyle}
+                        on:click={() =>
+                            navigate(`/edit_profile/${nostrHelper.publicKey}`)}
+                        >Edit Profile</button
+                    >
+                </li>
+            {/if}
             <li>
+                <hr class="divider-line" />
                 {#if !$menuState.use_extension}
-                    <a href={link} class={linkStyle} target="_blank"
-                        >{optionText}</a
+                    <button
+                        class={linkStyle}
+                        on:click={() => navigate("https://getalby.com/")}
+                        >{optionText}</button
                     >
                 {:else if $menuState.logged_in}
                     <button
-                        class={loginStyle}
+                        class={linkStyle}
                         on:click={logout}
                         on:keydown={logout}>Logout</button
                     >
                 {:else}
                     <button
-                        class={loginStyle}
+                        class={linkStyle}
                         on:click={login}
                         on:keydown={login}>Login</button
                     >
@@ -148,14 +175,24 @@
         </ul>
     </div>
 </div>
-<div class={showCategories ? "categories" : "categories hidden"}>
-    {#each categories as category}
-        <Link to={`/overview/${category}`}
-            ><div class="category-item">
-                {category}
-            </div></Link
-        >
-    {/each}
+<div
+    class={showCategories ? "categories-wrapper" : "categories-wrapper hidden"}
+    on:mouseover={handleMouseOver}
+    on:mouseout={handleMouseOut}
+    on:focus={handleFocus}
+    on:blur={handleBlur}
+>
+    <div class="categories-outer">
+        <div class="categories">
+            {#each categories as category}
+                <button
+                    class={categoryStyle}
+                    on:click={() => navigate(`/overview/${category}`)}
+                    >{category}</button
+                >
+            {/each}
+        </div>
+    </div>
 </div>
 
 <style>
@@ -191,28 +228,31 @@
     }
     .menu-card {
         width: 200px;
-        margin: 0 auto;
+        margin-top: 80px;
         /* border-radius: 20px; */
-        padding: 20px;
+        /* padding: 20px; */
         color: #000;
         /* background: #fff; */
         /* box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3); */
         /* transition: box-shadow 0.5s; */
         position: relative;
         /* border-right: 1px solid #000; */
-        padding-right: 40px;
+        /* padding-right: 40px; */
         /* height: 100vh; */
     }
 
     .menu-item {
         font-size: 1rem; /* adjust this value as needed */
         padding: 15px;
+        padding-left: 30px;
         cursor: pointer;
         transition: color 0.3s;
         display: block;
         text-decoration: none;
         color: #d1d1d1;
         outline: none; /* Add this line */
+        width: 200px;
+        text-align: left;
     }
 
     .menu-item:hover {
@@ -221,23 +261,58 @@
         outline: none; /* Add this line */
     }
 
-    .categories {
-        position: fixed; /* change this to fixed */
-        /* top: 50px; adjust this as needed */
-        left: 225px; /* adjust this as needed, should be the width of your side bar */
-        background: #fff;
-        width: 300px; /* Or whatever width you want the dropdown to be */
-        max-height: calc(
-            100vh - 50px
-        ); /* adjust this as needed, subtract the top offset */
-        overflow-y: auto; /* enable vertical scroll when the height exceeds max-height */
+    .category-style {
+        font-size: 1rem; /* adjust this value as needed */
+        padding: 15px;
+        padding-left: 15px;
+        cursor: pointer;
+        transition: color 0.3s;
+        display: block;
+        text-decoration: none;
+        color: #494949;
+        outline: none; /* Add this line */
+        width: 200px;
+        text-align: left;
+    }
+
+    .category-style:hover {
+        color: #60adff;
+        text-decoration: none;
+        outline: none; /* Add this line */
+    }
+
+    .categories-wrapper {
+        position: fixed;
+        left: 180px;
+        background: #d1d1d1;
+        width: 310px; /* Adjust width to accommodate scrollbar */
+        max-height: 100vh;
+        height: 100vh; /* Add this property */
         padding: 10px 0;
         box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3);
-        border-radius: 20px; /* Update this line */
+        border-radius: 20px;
         transition: opacity 0.3s, visibility 0.3s;
         opacity: 1;
         visibility: visible;
         z-index: 50;
+        padding-top: 14px; /* Add padding to shorten scrollbar */
+        padding-bottom: 14px; /* Add padding to shorten scrollbar */
+    }
+
+    .categories-wrapper.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .categories-outer {
+        width: 100%;
+        max-height: 100%; /* Subtract double the padding */
+        overflow-y: auto; /* Move this property here */
+        border-radius: 20px; /* Add border radius here */
+    }
+
+    .categories {
+        width: 100%;
     }
 
     .categories.hidden {
@@ -282,10 +357,10 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 300px;
-        min-width: 300px;
+        width: 200px;
+        min-width: 200px;
         z-index: 10; /* This will bring the menu to the front */
-        flex-basis: 300px;
+        flex-basis: 200px;
         background-color: #494949;
         height: 100vh; /* This will limit the height to the height of the viewport */
         overflow-y: auto;
@@ -299,5 +374,50 @@
 
     button:focus {
         outline: none;
+    }
+
+    /* This will affect the scrollbar globally */
+    ::-webkit-scrollbar {
+        width: 10px; /* Adjust scrollbar width */
+        height: 10px; /* Adjust scrollbar height */
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Color of the track */
+        border-radius: 20px; /* Radius for the scroll thumb */
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #888; /* Color of the scroll thumb */
+        border-radius: 20px; /* Radius for the scroll thumb */
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color of the scroll thumb on hover */
+    }
+
+    /* This will affect the scrollbar in the categories div only */
+    .categories::-webkit-scrollbar {
+        width: 10px; /* Adjust scrollbar width */
+    }
+
+    .categories::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Color of the track */
+    }
+
+    .categories::-webkit-scrollbar-thumb {
+        background: #888; /* Color of the scroll thumb */
+        border-radius: 20px; /* Radius for the scroll thumb */
+    }
+
+    .categories::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color of the scroll thumb on hover */
+    }
+
+    .divider-line {
+        margin-left: 12%;
+        border-top: 1px solid #d1d1d1;
+        padding: 1px;
+        width: 76%;
     }
 </style>

@@ -242,22 +242,8 @@
   }
 
   .title-class.sidebar-open {
-    left: 315px;
+    left: 215px;
   }
-
-  /* .content-section.sidebar-open {
-    flex-direction: row;
-  } */
-
-  /* .menu-container.sidebar-open {
-    width: 300px;
-    transition: width 0.3s ease-in-out;
-  } */
-
-  /* .content-container.sidebar-open {
-    flex-grow: 1;
-    transition: flex-grow 0.3s ease-in-out;
-  } */
 
   .flex-grow {
     /* Other styles */
@@ -271,6 +257,6 @@
   }
 
   .content-container.sidebar-open {
-    margin-left: 300px; /* This should be equal to the width of the sidebar */
+    margin-left: 200px; /* This should be equal to the width of the sidebar */
   }
 </style>
