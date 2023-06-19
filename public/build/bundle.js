@@ -1480,7 +1480,7 @@ var app = (function () {
     const get_default_slot_context$1 = ctx => ({ params: /*routeParams*/ ctx[2] });
 
     // (44:0) {#if $activeRoute && $activeRoute.route === route}
-    function create_if_block$7(ctx) {
+    function create_if_block$6(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
@@ -1766,7 +1766,7 @@ var app = (function () {
     function create_fragment$e(ctx) {
     	let if_block_anchor;
     	let current;
-    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$7(ctx);
+    	let if_block = /*$activeRoute*/ ctx[1] && /*$activeRoute*/ ctx[1].route === /*route*/ ctx[5] && create_if_block$6(ctx);
 
     	return {
     		c() {
@@ -1787,7 +1787,7 @@ var app = (function () {
     						transition_in(if_block, 1);
     					}
     				} else {
-    					if_block = create_if_block$7(ctx);
+    					if_block = create_if_block$6(ctx);
     					if_block.c();
     					transition_in(if_block, 1);
     					if_block.m(if_block_anchor.parentNode, if_block_anchor);
@@ -7189,7 +7189,7 @@ var app = (function () {
     }
 
     // (155:16) {#if !$menuState.use_extension}
-    function create_if_block$6(ctx) {
+    function create_if_block$5(ctx) {
     	let button;
     	let t;
     	let mounted;
@@ -7291,7 +7291,7 @@ var app = (function () {
     	let if_block0 = /*$menuState*/ ctx[3].logged_in && create_if_block_2$1(ctx);
 
     	function select_block_type(ctx, dirty) {
-    		if (!/*$menuState*/ ctx[3].use_extension) return create_if_block$6;
+    		if (!/*$menuState*/ ctx[3].use_extension) return create_if_block$5;
     		if (/*$menuState*/ ctx[3].logged_in) return create_if_block_1$4;
     		return create_else_block;
     	}
@@ -7695,52 +7695,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (175:14) {#if profile}
-    function create_if_block$5(ctx) {
-    	let div;
-    	let profileimg;
-    	let current;
-
-    	profileimg = new ProfileImg({
-    			props: {
-    				profile: /*profile*/ ctx[0],
-    				style: { width: "40px", height: "40px" }
-    			}
-    		});
-
-    	return {
-    		c() {
-    			div = element("div");
-    			create_component(profileimg.$$.fragment);
-    			set_style(div, "margin-right", "10px");
-    		},
-    		m(target, anchor) {
-    			insert(target, div, anchor);
-    			mount_component(profileimg, div, null);
-    			current = true;
-    		},
-    		p(ctx, dirty) {
-    			const profileimg_changes = {};
-    			if (dirty & /*profile*/ 1) profileimg_changes.profile = /*profile*/ ctx[0];
-    			profileimg.$set(profileimg_changes);
-    		},
-    		i(local) {
-    			if (current) return;
-    			transition_in(profileimg.$$.fragment, local);
-    			current = true;
-    		},
-    		o(local) {
-    			transition_out(profileimg.$$.fragment, local);
-    			current = false;
-    		},
-    		d(detaching) {
-    			if (detaching) detach(div);
-    			destroy_component(profileimg);
-    		}
-    	};
-    }
-
-    // (197:18) {#each $verifiedCards as card (card.id)}
+    // (187:18) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7768,7 +7723,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*$verifiedCards*/ 8) ideacard_changes.card = /*card*/ ctx[16];
+    			if (dirty & /*$verifiedCards*/ 4) ideacard_changes.card = /*card*/ ctx[16];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7787,7 +7742,7 @@ var app = (function () {
     	};
     }
 
-    // (212:18) {#each $unverifiedCards as card (card.id)}
+    // (202:18) {#each $unverifiedCards as card (card.id)}
     function create_each_block$5(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7815,7 +7770,7 @@ var app = (function () {
     		p(new_ctx, dirty) {
     			ctx = new_ctx;
     			const ideacard_changes = {};
-    			if (dirty & /*$unverifiedCards*/ 4) ideacard_changes.card = /*card*/ ctx[16];
+    			if (dirty & /*$unverifiedCards*/ 2) ideacard_changes.card = /*card*/ ctx[16];
     			ideacard.$set(ideacard_changes);
     		},
     		i(local) {
@@ -7835,42 +7790,33 @@ var app = (function () {
     }
 
     function create_fragment$8(ctx) {
-    	let div15;
-    	let main;
     	let div14;
+    	let main;
+    	let div13;
     	let menu;
     	let t0;
-    	let div13;
-    	let section0;
-    	let div6;
-    	let span0;
-    	let t1;
-    	let div3;
-    	let t11;
-    	let div4;
-    	let t12;
-    	let div5;
-    	let t13;
     	let div12;
-    	let section1;
+    	let section0;
+    	let t12;
     	let div11;
+    	let section1;
     	let div10;
-    	let div7;
+    	let div9;
+    	let div6;
     	let each_blocks_1 = [];
     	let each0_lookup = new Map();
+    	let t13;
+    	let div7;
     	let t14;
     	let div8;
-    	let t15;
-    	let div9;
     	let each_blocks = [];
     	let each1_lookup = new Map();
-    	let t16;
+    	let t15;
     	let footer;
-    	let div12_class_value;
+    	let div11_class_value;
     	let current;
     	menu = new Menu({});
-    	let if_block = /*profile*/ ctx[0] && create_if_block$5(ctx);
-    	let each_value_1 = /*$verifiedCards*/ ctx[3];
+    	let each_value_1 = /*$verifiedCards*/ ctx[2];
     	const get_key = ctx => /*card*/ ctx[16].id;
 
     	for (let i = 0; i < each_value_1.length; i += 1) {
@@ -7879,7 +7825,7 @@ var app = (function () {
     		each0_lookup.set(key, each_blocks_1[i] = create_each_block_1(key, child_ctx));
     	}
 
-    	let each_value = /*$unverifiedCards*/ ctx[2];
+    	let each_value = /*$unverifiedCards*/ ctx[1];
     	const get_key_1 = ctx => /*card*/ ctx[16].id;
 
     	for (let i = 0; i < each_value.length; i += 1) {
@@ -7892,167 +7838,122 @@ var app = (function () {
 
     	return {
     		c() {
-    			div15 = element("div");
-    			main = element("main");
     			div14 = element("div");
+    			main = element("main");
+    			div13 = element("div");
     			create_component(menu.$$.fragment);
     			t0 = space();
-    			div13 = element("div");
+    			div12 = element("div");
     			section0 = element("section");
-    			div6 = element("div");
-    			span0 = element("span");
-    			t1 = space();
-    			div3 = element("div");
 
-    			div3.innerHTML = `<div class="flex flex-col items-start" style="margin-top: 10rem;"><h1 class="text-8xl font-bold text-white mr-4 mb-0; margin-left: -3.5rem">BitSpark</h1> 
+    			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(../../img/Banner1u.png); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
+
+            
+            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><div class="flex flex-col items-start" style="margin-top: 10rem;"><h1 class="text-8xl font-bold text-white mr-4 mb-0; margin-left: -3.5rem">BitSpark</h1> 
                 <h2 class="text-4xl font-light text-white mt-0" style="line-height: 0.9;"><span class="ml-2">The idea engine</span></h2></div> 
               <div class="absolute top-4 right-4 flex justify-end"><div class="text-4xl font-light text-white"><p class="text-5xl leading-tight" style="opacity: 0.3; margin-bottom: -0.4rem;">ignite ideas.</p> 
-                  <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">ignite <span class="text-orange-500">change</span>.</p></div></div>`;
+                  <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">ignite <span class="text-orange-500">change</span>.</p></div></div></div> 
 
-    			t11 = space();
-    			div4 = element("div");
-    			div4.innerHTML = `<svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg>`;
+            
+            <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div></div>`;
+
     			t12 = space();
-    			div5 = element("div");
-    			if (if_block) if_block.c();
-    			t13 = space();
-    			div12 = element("div");
-    			section1 = element("section");
     			div11 = element("div");
+    			section1 = element("section");
     			div10 = element("div");
-    			div7 = element("div");
+    			div9 = element("div");
+    			div6 = element("div");
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
+    			t13 = space();
+    			div7 = element("div");
     			t14 = space();
     			div8 = element("div");
-    			t15 = space();
-    			div9 = element("div");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t16 = space();
+    			t15 = space();
     			create_component(footer.$$.fragment);
-    			attr(span0, "id", "blackOverlay");
-    			attr(span0, "class", "w-full h-full absolute opacity-50 bg-black");
-    			attr(div3, "class", "absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full");
-    			attr(div4, "class", "top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px");
-    			set_style(div4, "transform", "translateZ(0)");
-    			attr(div5, "class", "absolute top-4 right-4 flex justify-end w-full");
-    			attr(div6, "class", "absolute top-0 w-full h-full bg-center bg-cover");
-    			set_style(div6, "background-image", "url(../../img/Banner1u.png)");
     			attr(section0, "class", "relative block h-500-px");
-    			attr(div7, "class", "row");
-    			set_style(div8, "margin-top", "2rem");
-    			set_style(div8, "margin-bottom", "2rem");
-    			set_style(div8, "height", "2px");
-    			set_style(div8, "background-color", "gray");
-    			attr(div8, "class", "w-full");
-    			attr(div9, "class", "row");
-    			attr(div10, "class", "container mx-auto px-4");
-    			attr(div11, "class", "content-container svelte-sbrvtz");
+    			attr(div6, "class", "row");
+    			set_style(div7, "margin-top", "2rem");
+    			set_style(div7, "margin-bottom", "2rem");
+    			set_style(div7, "height", "2px");
+    			set_style(div7, "background-color", "gray");
+    			attr(div7, "class", "w-full");
+    			attr(div8, "class", "row");
+    			attr(div9, "class", "container mx-auto px-4");
+    			attr(div10, "class", "content-container svelte-sbrvtz");
     			attr(section1, "class", "content-container relative py-16 bg-blueGray-200 svelte-sbrvtz");
-    			attr(div12, "class", div12_class_value = "" + (null_to_empty(/*contentContainerClass*/ ctx[1]) + " svelte-sbrvtz"));
-    			attr(div13, "class", "flex-grow svelte-sbrvtz");
-    			attr(div14, "class", "flex");
+    			attr(div11, "class", div11_class_value = "" + (null_to_empty(/*contentContainerClass*/ ctx[0]) + " svelte-sbrvtz"));
+    			attr(div12, "class", "flex-grow svelte-sbrvtz");
+    			attr(div13, "class", "flex");
     			attr(main, "class", "overview-page bg-blueGray-200");
-    			set_style(div15, "position", "relative");
+    			set_style(div14, "position", "relative");
     		},
     		m(target, anchor) {
-    			insert(target, div15, anchor);
-    			append(div15, main);
-    			append(main, div14);
-    			mount_component(menu, div14, null);
-    			append(div14, t0);
-    			append(div14, div13);
-    			append(div13, section0);
-    			append(section0, div6);
-    			append(div6, span0);
-    			append(div6, t1);
-    			append(div6, div3);
-    			append(div6, t11);
-    			append(div6, div4);
-    			append(div6, t12);
-    			append(div6, div5);
-    			if (if_block) if_block.m(div5, null);
-    			append(div13, t13);
+    			insert(target, div14, anchor);
+    			append(div14, main);
+    			append(main, div13);
+    			mount_component(menu, div13, null);
+    			append(div13, t0);
     			append(div13, div12);
-    			append(div12, section1);
-    			append(section1, div11);
-    			append(div11, div10);
-    			append(div10, div7);
+    			append(div12, section0);
+    			append(div12, t12);
+    			append(div12, div11);
+    			append(div11, section1);
+    			append(section1, div10);
+    			append(div10, div9);
+    			append(div9, div6);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				if (each_blocks_1[i]) {
-    					each_blocks_1[i].m(div7, null);
+    					each_blocks_1[i].m(div6, null);
     				}
     			}
 
-    			append(div10, t14);
-    			append(div10, div8);
-    			append(div10, t15);
-    			append(div10, div9);
+    			append(div9, t13);
+    			append(div9, div7);
+    			append(div9, t14);
+    			append(div9, div8);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				if (each_blocks[i]) {
-    					each_blocks[i].m(div9, null);
+    					each_blocks[i].m(div8, null);
     				}
     			}
 
-    			append(div12, t16);
-    			mount_component(footer, div12, null);
+    			append(div11, t15);
+    			mount_component(footer, div11, null);
     			current = true;
     		},
     		p(ctx, [dirty]) {
-    			if (/*profile*/ ctx[0]) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-
-    					if (dirty & /*profile*/ 1) {
-    						transition_in(if_block, 1);
-    					}
-    				} else {
-    					if_block = create_if_block$5(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(div5, null);
-    				}
-    			} else if (if_block) {
+    			if (dirty & /*$verifiedCards*/ 4) {
+    				each_value_1 = /*$verifiedCards*/ ctx[2];
     				group_outros();
-
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
-    				});
-
+    				each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key, 1, ctx, each_value_1, each0_lookup, div6, outro_and_destroy_block, create_each_block_1, null, get_each_context_1);
     				check_outros();
     			}
 
-    			if (dirty & /*$verifiedCards*/ 8) {
-    				each_value_1 = /*$verifiedCards*/ ctx[3];
+    			if (dirty & /*$unverifiedCards*/ 2) {
+    				each_value = /*$unverifiedCards*/ ctx[1];
     				group_outros();
-    				each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key, 1, ctx, each_value_1, each0_lookup, div7, outro_and_destroy_block, create_each_block_1, null, get_each_context_1);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div8, outro_and_destroy_block, create_each_block$5, null, get_each_context$5);
     				check_outros();
     			}
 
-    			if (dirty & /*$unverifiedCards*/ 4) {
-    				each_value = /*$unverifiedCards*/ ctx[2];
-    				group_outros();
-    				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div9, outro_and_destroy_block, create_each_block$5, null, get_each_context$5);
-    				check_outros();
-    			}
-
-    			if (!current || dirty & /*contentContainerClass*/ 2 && div12_class_value !== (div12_class_value = "" + (null_to_empty(/*contentContainerClass*/ ctx[1]) + " svelte-sbrvtz"))) {
-    				attr(div12, "class", div12_class_value);
+    			if (!current || dirty & /*contentContainerClass*/ 1 && div11_class_value !== (div11_class_value = "" + (null_to_empty(/*contentContainerClass*/ ctx[0]) + " svelte-sbrvtz"))) {
+    				attr(div11, "class", div11_class_value);
     			}
     		},
     		i(local) {
     			if (current) return;
     			transition_in(menu.$$.fragment, local);
-    			transition_in(if_block);
 
     			for (let i = 0; i < each_value_1.length; i += 1) {
     				transition_in(each_blocks_1[i]);
@@ -8067,7 +7968,6 @@ var app = (function () {
     		},
     		o(local) {
     			transition_out(menu.$$.fragment, local);
-    			transition_out(if_block);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				transition_out(each_blocks_1[i]);
@@ -8081,9 +7981,8 @@ var app = (function () {
     			current = false;
     		},
     		d(detaching) {
-    			if (detaching) detach(div15);
+    			if (detaching) detach(div14);
     			destroy_component(menu);
-    			if (if_block) if_block.d();
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].d();
@@ -8104,11 +8003,11 @@ var app = (function () {
     	let $ideas;
     	let $unverifiedCards;
     	let $verifiedCards;
-    	component_subscribe($$self, sidebarOpen, $$value => $$invalidate(5, $sidebarOpen = $$value));
-    	component_subscribe($$self, helperStore, $$value => $$invalidate(6, $helperStore = $$value));
-    	component_subscribe($$self, ideas, $$value => $$invalidate(7, $ideas = $$value));
-    	component_subscribe($$self, unverifiedCards, $$value => $$invalidate(2, $unverifiedCards = $$value));
-    	component_subscribe($$self, verifiedCards, $$value => $$invalidate(3, $verifiedCards = $$value));
+    	component_subscribe($$self, sidebarOpen, $$value => $$invalidate(4, $sidebarOpen = $$value));
+    	component_subscribe($$self, helperStore, $$value => $$invalidate(5, $helperStore = $$value));
+    	component_subscribe($$self, ideas, $$value => $$invalidate(6, $ideas = $$value));
+    	component_subscribe($$self, unverifiedCards, $$value => $$invalidate(1, $unverifiedCards = $$value));
+    	component_subscribe($$self, verifiedCards, $$value => $$invalidate(2, $verifiedCards = $$value));
 
     	let publicKey = "";
     	let profile = null;
@@ -8150,7 +8049,7 @@ var app = (function () {
     		}
 
     		publicKey = $helperStore.publicKey;
-    		$$invalidate(0, profile = await $helperStore.getProfile(publicKey));
+    		profile = await $helperStore.getProfile(publicKey);
     		profile.picture;
     	}
 
@@ -8194,43 +8093,42 @@ var app = (function () {
     	let contentContainerClass = "content-container";
 
     	$$self.$$set = $$props => {
-    		if ('category' in $$props) $$invalidate(4, category = $$props.category);
+    		if ('category' in $$props) $$invalidate(3, category = $$props.category);
     	};
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*category*/ 16) {
+    		if ($$self.$$.dirty & /*category*/ 8) {
     			(filterIdeas(), category);
     		}
 
-    		if ($$self.$$.dirty & /*$ideas*/ 128) {
+    		if ($$self.$$.dirty & /*$ideas*/ 64) {
     			(updateIdeas(), $ideas);
     		}
 
-    		if ($$self.$$.dirty & /*$helperStore*/ 64) {
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
     			(updateProfileImg(), $helperStore);
     		}
 
-    		if ($$self.$$.dirty & /*$helperStore*/ 64) {
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
     			(fetchIdeas(), $helperStore);
     		}
 
-    		if ($$self.$$.dirty & /*$helperStore*/ 64) {
+    		if ($$self.$$.dirty & /*$helperStore*/ 32) {
     			(filterIdeas(), $helperStore);
     		}
 
-    		if ($$self.$$.dirty & /*$sidebarOpen*/ 32) {
+    		if ($$self.$$.dirty & /*$sidebarOpen*/ 16) {
     			{
     				if ($sidebarOpen) {
-    					$$invalidate(1, contentContainerClass = "content-container sidebar-open");
+    					$$invalidate(0, contentContainerClass = "content-container sidebar-open");
     				} else {
-    					$$invalidate(1, contentContainerClass = "content-container");
+    					$$invalidate(0, contentContainerClass = "content-container");
     				}
     			}
     		}
     	};
 
     	return [
-    		profile,
     		contentContainerClass,
     		$unverifiedCards,
     		$verifiedCards,
@@ -8244,7 +8142,7 @@ var app = (function () {
     class Overview extends SvelteComponent {
     	constructor(options) {
     		super();
-    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { category: 4 });
+    		init(this, options, instance$7, create_fragment$8, safe_not_equal, { category: 3 });
     	}
     }
 

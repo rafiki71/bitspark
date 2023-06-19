@@ -171,17 +171,7 @@
             </div>
             <!-- Ende: Schräg abgeschnittener Banner -->
             <!-- Create Idea Button hinzufügen -->
-            <div class="absolute top-4 right-4 flex justify-end w-full">
-              {#if profile}
-                <div style="margin-right: 10px;">
-                  <!-- Hinzugefügt: div mit margin-right -->
-                  <ProfileImg
-                    {profile}
-                    style={{ width: "40px", height: "40px" }}
-                  />
-                </div>
-              {/if}
-            </div>
+           
           </div>
           <!-- ... -->
         </section>
