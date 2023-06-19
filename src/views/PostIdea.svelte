@@ -108,7 +108,7 @@
                     <div
                         class="absolute top-0 w-full h-full bg-center bg-cover"
                         style="
-          background-image: url(https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80);
+          background-image: url(../../img/Banner1u.png);
         "
                     >
                         <span
@@ -119,37 +119,65 @@
                         <div
                             class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
                         >
-                            <div class={titleClass}>
-                                <h1 class="text-4xl font-bold text-white">
+                            <div
+                                class="flex flex-col items-start"
+                                style="margin-top: 10rem;"
+                            >
+                                <h1
+                                    class="text-8xl font-bold text-white mr-4 mb-0; margin-left: -3.5rem"
+                                >
                                     BitSpark
                                 </h1>
-                                <h2 class="text-2xl font-light text-white">
-                                    Spark Idea
+                                <h2
+                                    class="text-4xl font-light text-white mt-0"
+                                    style="line-height: 0.9;"
+                                >
+                                    <span class="ml-2">Spark Idea</span>
                                 </h2>
                             </div>
+                            <div
+                                class="absolute top-4 right-4 flex justify-end"
+                            >
+                                <div class="text-4xl font-light text-white">
+                                    <p
+                                        class="text-5xl leading-tight"
+                                        style="opacity: 0.3; margin-bottom: -0.4rem;"
+                                    >
+                                        ignite ideas.
+                                    </p>
+                                    <p
+                                        class="text-5xl leading-tight"
+                                        style="opacity: 1; margin-left: -2.8rem;"
+                                    >
+                                        ignite <span class="text-orange-500"
+                                            >change</span
+                                        >.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
-                    <div
-                        class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-                        style="transform: translateZ(0);"
-                    >
-                        <svg
-                            class="absolute bottom-0 overflow-hidden"
-                            xmlns="http://www.w3.org/2000/svg"
-                            preserveAspectRatio="none"
-                            version="1.1"
-                            viewBox="0 0 2560 100"
-                            x="0"
-                            y="0"
+                        <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
+                        <div
+                            class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
+                            style="transform: translateZ(0);"
                         >
-                            <polygon
-                                class="text-blueGray-200 fill-current"
-                                points="2560 0 2560 100 0 100"
-                            />
-                        </svg>
+                            <svg
+                                class="absolute bottom-0 overflow-hidden"
+                                xmlns="http://www.w3.org/2000/svg"
+                                preserveAspectRatio="none"
+                                version="1.1"
+                                viewBox="0 0 2560 100"
+                                x="0"
+                                y="0"
+                            >
+                                <polygon
+                                    class="text-blueGray-200 fill-current"
+                                    points="2560 0 2560 100 0 100"
+                                />
+                            </svg>
+                        </div>
+                        <!-- Ende: Schräg abgeschnittener Banner -->
                     </div>
-                    <!-- Ende: Schräg abgeschnittener Banner -->
                 </section>
                 <div class={contentContainerClass}>
                     <section
