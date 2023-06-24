@@ -7043,7 +7043,7 @@ var app = (function () {
       }
     }
 
-    var css_248z$6 = ".toggle-button.svelte-1bu8gu0.svelte-1bu8gu0{display:flex;justify-content:center;align-items:center}.menu-card.svelte-1bu8gu0.svelte-1bu8gu0{width:200px;margin-top:80px;color:#000;position:relative}.menu-item.svelte-1bu8gu0.svelte-1bu8gu0{font-size:1rem;padding:15px;padding-left:30px;cursor:pointer;transition:color 0.3s;display:block;text-decoration:none;color:#d1d1d1;outline:none;width:200px;text-align:left}.menu-item.svelte-1bu8gu0.svelte-1bu8gu0:hover{color:#60adff;text-decoration:none;outline:none}.category-style.svelte-1bu8gu0.svelte-1bu8gu0{font-size:1rem;padding:15px;padding-left:15px;cursor:pointer;transition:color 0.3s;display:block;text-decoration:none;color:#494949;outline:none;width:200px;text-align:left}.category-style.svelte-1bu8gu0.svelte-1bu8gu0:hover{color:#60adff;text-decoration:none;outline:none}.categories-wrapper.svelte-1bu8gu0.svelte-1bu8gu0{position:fixed;left:180px;background:#d1d1d1;width:310px;max-height:100vh;height:100vh;padding:10px 0;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);border-radius:20px;transition:opacity 0.3s, visibility 0.3s;opacity:1;visibility:visible;z-index:50;padding-top:14px;padding-bottom:14px}.categories-wrapper.hidden.svelte-1bu8gu0.svelte-1bu8gu0{opacity:0;visibility:hidden}.categories-outer.svelte-1bu8gu0.svelte-1bu8gu0{width:100%;max-height:100%;overflow-y:auto;border-radius:20px}.categories.svelte-1bu8gu0.svelte-1bu8gu0{width:100%}.categories.hidden.svelte-1bu8gu0.svelte-1bu8gu0{opacity:0;visibility:hidden}.category-item.svelte-1bu8gu0.svelte-1bu8gu0{color:#000;padding:10px 15px;cursor:pointer;transition:color 0.3s}.category-item.svelte-1bu8gu0.svelte-1bu8gu0:hover{color:#007bff}.hide.svelte-1bu8gu0.svelte-1bu8gu0{display:none}.button-container.svelte-1bu8gu0.svelte-1bu8gu0{position:fixed;top:0;left:0;z-index:11;background-color:#333333;display:flex;justify-content:center;align-items:center;border-radius:10%;padding:5px;margin:10px}svg.svelte-1bu8gu0 path.svelte-1bu8gu0{fill:#d1d1d1}.menu-container.svelte-1bu8gu0.svelte-1bu8gu0{position:fixed;top:0;left:0;width:200px;min-width:200px;z-index:10;flex-basis:200px;background-color:#494949;height:100vh;overflow-y:auto;transform:translateX(-100%);transition:transform 0.3s ease-in-out}.menu-container.show.svelte-1bu8gu0.svelte-1bu8gu0{transform:translateX(0)}button.svelte-1bu8gu0.svelte-1bu8gu0:focus{outline:none}.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar{width:10px;height:10px}.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-track{background:#f1f1f1;border-radius:20px}.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-thumb{background:#888;border-radius:20px}.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-thumb:hover{background:#555}.categories.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar{width:10px}.categories.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-track{background:#f1f1f1}.categories.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-thumb{background:#888;border-radius:20px}.categories.svelte-1bu8gu0.svelte-1bu8gu0::-webkit-scrollbar-thumb:hover{background:#555}.divider-line.svelte-1bu8gu0.svelte-1bu8gu0{margin-left:12%;border-top:1px solid #d1d1d1;padding:1px;width:76%}";
+    var css_248z$6 = ".toggle-button.svelte-1e4y9sx.svelte-1e4y9sx{display:flex;justify-content:center;align-items:center}.menu-card.svelte-1e4y9sx.svelte-1e4y9sx{width:200px;margin-top:80px;color:#000;position:relative}.menu-item.svelte-1e4y9sx.svelte-1e4y9sx{color:#103f70;font-size:1rem;padding:15px;padding-left:30px;cursor:pointer;transition:color 0.3s;display:block;text-decoration:none;outline:none;width:200px;text-align:left}.menu-item.svelte-1e4y9sx.svelte-1e4y9sx:hover{color:#EB6F1A;text-decoration:none;outline:none}.category-style.svelte-1e4y9sx.svelte-1e4y9sx{font-size:1rem;padding:15px;padding-left:15px;cursor:pointer;transition:color 0.3s;display:block;text-decoration:none;color:#494949;outline:none;width:200px;text-align:left}.category-style.svelte-1e4y9sx.svelte-1e4y9sx:hover{color:#60adff;text-decoration:none;outline:none}.categories-wrapper.svelte-1e4y9sx.svelte-1e4y9sx{position:fixed;left:180px;background:#d1d1d1;width:310px;max-height:100vh;height:100vh;padding:10px 0;box-shadow:0px 10px 30px -5px rgba(0, 0, 0, 0.3);border-radius:20px;transition:opacity 0.3s, visibility 0.3s;opacity:1;visibility:visible;z-index:50;padding-top:14px;padding-bottom:14px}.categories-wrapper.hidden.svelte-1e4y9sx.svelte-1e4y9sx{opacity:0;visibility:hidden}.categories-outer.svelte-1e4y9sx.svelte-1e4y9sx{width:100%;max-height:100%;overflow-y:auto;border-radius:20px}.categories.svelte-1e4y9sx.svelte-1e4y9sx{width:100%}.categories.hidden.svelte-1e4y9sx.svelte-1e4y9sx{opacity:0;visibility:hidden}.category-item.svelte-1e4y9sx.svelte-1e4y9sx{color:#000;padding:10px 15px;cursor:pointer;transition:color 0.3s}.category-item.svelte-1e4y9sx.svelte-1e4y9sx:hover{color:#007bff}.hide.svelte-1e4y9sx.svelte-1e4y9sx{display:none}.button-container.svelte-1e4y9sx.svelte-1e4y9sx{position:fixed;top:0;left:0;z-index:11;background-color:#333333;display:flex;justify-content:center;align-items:center;border-radius:10%;padding:5px;margin:10px}svg.svelte-1e4y9sx path.svelte-1e4y9sx{fill:#d1d1d1}.menu-container.svelte-1e4y9sx.svelte-1e4y9sx{position:fixed;top:0;left:0;width:200px;min-width:200px;z-index:10;flex-basis:200px;background-color:rgba(255, 255, 255, 0.5);opacity:3.7;height:100vh;overflow-y:auto;transform:translateX(-100%);transition:transform 0.3s ease-in-out}.menu-container.show.svelte-1e4y9sx.svelte-1e4y9sx{transform:translateX(0)}button.svelte-1e4y9sx.svelte-1e4y9sx:focus{outline:none}.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar{width:10px;height:10px}.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-track{background:#f1f1f1;border-radius:20px}.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-thumb{background:#888;border-radius:20px}.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-thumb:hover{background:#555}.categories.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar{width:10px}.categories.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-track{background:#f1f1f1}.categories.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-thumb{background:#888;border-radius:20px}.categories.svelte-1e4y9sx.svelte-1e4y9sx::-webkit-scrollbar-thumb:hover{background:#555}.divider-line.svelte-1e4y9sx.svelte-1e4y9sx{margin-left:12%;border-top:1px solid #d1d1d1;padding:1px;width:76%}";
     styleInject(css_248z$6);
 
     /* src/components/Menu.svelte generated by Svelte v3.59.1 */
@@ -7079,11 +7079,11 @@ var app = (function () {
     			li1 = element("li");
     			button1 = element("button");
     			t3 = text("Edit Profile");
-    			attr(hr, "class", "divider-line svelte-1bu8gu0");
-    			attr(button0, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
-    			attr(li0, "class", "svelte-1bu8gu0");
-    			attr(button1, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
-    			attr(li1, "class", "svelte-1bu8gu0");
+    			attr(hr, "class", "divider-line svelte-1e4y9sx");
+    			attr(button0, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
+    			attr(li0, "class", "svelte-1e4y9sx");
+    			attr(button1, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
+    			attr(li1, "class", "svelte-1e4y9sx");
     		},
     		m(target, anchor) {
     			insert(target, hr, anchor);
@@ -7129,7 +7129,7 @@ var app = (function () {
     		c() {
     			button = element("button");
     			t = text("Login");
-    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
+    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
     		},
     		m(target, anchor) {
     			insert(target, button, anchor);
@@ -7164,7 +7164,7 @@ var app = (function () {
     		c() {
     			button = element("button");
     			t = text("Logout");
-    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
+    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
     		},
     		m(target, anchor) {
     			insert(target, button, anchor);
@@ -7199,7 +7199,7 @@ var app = (function () {
     		c() {
     			button = element("button");
     			t = text(optionText);
-    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
+    			attr(button, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
     		},
     		m(target, anchor) {
     			insert(target, button, anchor);
@@ -7235,7 +7235,7 @@ var app = (function () {
     		c() {
     			button = element("button");
     			t = text(t_value);
-    			attr(button, "class", "" + (null_to_empty(categoryStyle) + " svelte-1bu8gu0"));
+    			attr(button, "class", "" + (null_to_empty(categoryStyle) + " svelte-1e4y9sx"));
     		},
     		m(target, anchor) {
     			insert(target, button, anchor);
@@ -7309,7 +7309,7 @@ var app = (function () {
     		c() {
     			div0 = element("div");
     			button0 = element("button");
-    			button0.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 2 16 14" class="svelte-1bu8gu0"><path d="M1 3h14a1 1 0 0 1 0 2H1a1 1 0 1 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2z" class="svelte-1bu8gu0"></path></svg>`;
+    			button0.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 2 16 14" class="svelte-1e4y9sx"><path d="M1 3h14a1 1 0 0 1 0 2H1a1 1 0 1 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2zm0 5h14a1 1 0 0 1 0 2H1a1 1 0 0 1 0-2z" class="svelte-1e4y9sx"></path></svg>`;
     			t0 = space();
     			div3 = element("div");
     			div2 = element("div");
@@ -7342,27 +7342,27 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr(button0, "class", "toggle-button svelte-1bu8gu0");
-    			attr(div0, "class", "button-container svelte-1bu8gu0");
-    			attr(button1, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
-    			attr(li0, "class", "svelte-1bu8gu0");
-    			attr(span, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
-    			attr(div1, "class", "svelte-1bu8gu0");
-    			attr(li1, "class", "svelte-1bu8gu0");
-    			attr(button2, "class", "" + (null_to_empty(linkStyle) + " svelte-1bu8gu0"));
-    			attr(li2, "class", "svelte-1bu8gu0");
-    			attr(hr, "class", "divider-line svelte-1bu8gu0");
-    			attr(li3, "class", "svelte-1bu8gu0");
-    			attr(ul, "class", "flex flex-col items-start svelte-1bu8gu0");
-    			attr(div2, "class", "menu-card svelte-1bu8gu0");
-    			attr(div3, "class", "menu-container svelte-1bu8gu0");
+    			attr(button0, "class", "toggle-button svelte-1e4y9sx");
+    			attr(div0, "class", "button-container svelte-1e4y9sx");
+    			attr(button1, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
+    			attr(li0, "class", "svelte-1e4y9sx");
+    			attr(span, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
+    			attr(div1, "class", "svelte-1e4y9sx");
+    			attr(li1, "class", "svelte-1e4y9sx");
+    			attr(button2, "class", "" + (null_to_empty(linkStyle) + " svelte-1e4y9sx"));
+    			attr(li2, "class", "svelte-1e4y9sx");
+    			attr(hr, "class", "divider-line svelte-1e4y9sx");
+    			attr(li3, "class", "svelte-1e4y9sx");
+    			attr(ul, "class", "flex flex-col items-start svelte-1e4y9sx");
+    			attr(div2, "class", "menu-card svelte-1e4y9sx");
+    			attr(div3, "class", "menu-container svelte-1e4y9sx");
     			toggle_class(div3, "show", /*$sidebarOpen*/ ctx[2]);
-    			attr(div4, "class", "categories svelte-1bu8gu0");
-    			attr(div5, "class", "categories-outer svelte-1bu8gu0");
+    			attr(div4, "class", "categories svelte-1e4y9sx");
+    			attr(div5, "class", "categories-outer svelte-1e4y9sx");
 
     			attr(div6, "class", div6_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
     			? "categories-wrapper"
-    			: "categories-wrapper hidden") + " svelte-1bu8gu0"));
+    			: "categories-wrapper hidden") + " svelte-1e4y9sx"));
     		},
     		m(target, anchor) {
     			insert(target, div0, anchor);
@@ -7474,7 +7474,7 @@ var app = (function () {
 
     			if (dirty & /*showCategories*/ 2 && div6_class_value !== (div6_class_value = "" + (null_to_empty(/*showCategories*/ ctx[1]
     			? "categories-wrapper"
-    			: "categories-wrapper hidden") + " svelte-1bu8gu0"))) {
+    			: "categories-wrapper hidden") + " svelte-1e4y9sx"))) {
     				attr(div6, "class", div6_class_value);
     			}
     		},
@@ -7695,7 +7695,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (187:18) {#each $verifiedCards as card (card.id)}
+    // (186:18) {#each $verifiedCards as card (card.id)}
     function create_each_block_1(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7742,7 +7742,7 @@ var app = (function () {
     	};
     }
 
-    // (202:18) {#each $unverifiedCards as card (card.id)}
+    // (201:18) {#each $unverifiedCards as card (card.id)}
     function create_each_block$5(key_1, ctx) {
     	let div;
     	let ideacard;
@@ -7849,11 +7849,10 @@ var app = (function () {
     			section0.innerHTML = `<div class="absolute top-0 w-full h-full bg-center bg-cover" style="background-image: url(../../img/Banner1u.png); "><span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span> 
 
             
-            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><div class="flex flex-col items-start" style="margin-top: 10rem;"><h1 class="text-8xl font-bold text-white mr-4 mb-0; margin-left: -3.5rem">BitSpark</h1> 
-                <h2 class="text-4xl font-light text-white mt-0" style="line-height: 0.9;"><span class="ml-2">The idea engine</span></h2></div> 
+            <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"><div class="flex flex-col items-start" style="margin-top: 10rem; margin-left: 10rem;"><h1 class="text-8xl font-bold text-white mr-4 mb-0;">BitSpark</h1> 
+                  <h2 class="text-4xl font-light text-white mt-0" style="line-height: 0.9;"><span class="ml-2">The idea engine</span></h2></div> 
               <div class="absolute top-4 right-4 flex justify-end"><div class="text-4xl font-light text-white"><p class="text-5xl leading-tight" style="opacity: 0.3; margin-bottom: -0.4rem;">ignite ideas.</p> 
-                  <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">ignite <span class="text-orange-500">change</span>.</p></div></div></div> 
-
+                      <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">ignite <span class="text-orange-500">change</span>.</p></div></div></div> 
             
             <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0);"><svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0"><polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon></svg></div></div>`;
 
@@ -10541,7 +10540,7 @@ var app = (function () {
     	};
     }
 
-    // (47:28) <Link                                 to={`/idea/${idea.id}`}                                 class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"                             >
+    // (47:28) <Link                                  to={`/idea/${idea.id}`}                                  class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"                              >
     function create_default_slot$2(ctx) {
     	let div1;
     	let div0;

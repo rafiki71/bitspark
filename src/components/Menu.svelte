@@ -215,18 +215,6 @@
         /* other styles */
     }
 
-    a.menu-item {
-        font-size: 1rem;
-        padding: 15px;
-        cursor: pointer;
-        transition: color 0.3s;
-        display: block;
-        text-decoration: none;
-    }
-    a.menu-item:hover {
-        color: #007bff;
-        text-decoration: none !important;
-    }
     .menu-card {
         width: 200px;
         margin-top: 80px;
@@ -243,6 +231,7 @@
     }
 
     .menu-item {
+        color: #103f70;
         font-size: 1rem; /* adjust this value as needed */
         padding: 15px;
         padding-left: 30px;
@@ -250,14 +239,13 @@
         transition: color 0.3s;
         display: block;
         text-decoration: none;
-        color: #d1d1d1;
         outline: none; /* Add this line */
         width: 200px;
         text-align: left;
     }
 
     .menu-item:hover {
-        color: #60adff;
+        color: #EB6F1A;
         text-decoration: none;
         outline: none; /* Add this line */
     }
@@ -362,7 +350,8 @@
         min-width: 200px;
         z-index: 10; /* This will bring the menu to the front */
         flex-basis: 200px;
-        background-color: #494949;
+        background-color: rgba(255, 255, 255, 0.5);
+        opacity: 3.7;
         height: 100vh; /* This will limit the height to the height of the viewport */
         overflow-y: auto;
         transform: translateX(-100%); /* Hide the menu off screen */
