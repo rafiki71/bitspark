@@ -133,24 +133,26 @@
                 >
             </li>
             {#if $menuState.logged_in}
-                <hr class="divider-line" />
-                <li>
-                    <button
-                        class={linkStyle}
-                        on:click={() =>
-                            navigate(`/profile/${nostrHelper.publicKey}`)}
-                        >Profile</button
+            <hr class="divider-line" />
+            <li>
+                <button
+                    class={linkStyle}
+                    on:click={() =>
+                        navigate(`/profile/${nostrHelper.publicKey}`)}
                     >
-                </li>
-                <li>
-                    <button
-                        class={linkStyle}
-                        on:click={() =>
-                            navigate(`/edit_profile/${nostrHelper.publicKey}`)}
-                        >Edit Profile</button
-                    >
-                </li>
-            {/if}
+                    <i class="fas fa-user" style="color: #223d6d;"></i> Profile
+                </button>
+            </li>
+            
+            <li>
+                <button
+                    class={linkStyle}
+                    on:click={() =>
+                        navigate(`/edit_profile/${nostrHelper.publicKey}`)}
+                    >Edit Profile</button
+                >
+            </li>
+        {/if}        
             <li>
                 <hr class="divider-line" />
                 {#if !$menuState.use_extension}
