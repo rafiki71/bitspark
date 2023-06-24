@@ -134,15 +134,18 @@
             <!-- Titel und Untertitel hinzufügen -->
             <div class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full">
               <div class="flex flex-col items-start" style="margin-top: 10rem; margin-left: 10rem;">
+                
+                <div class={titleClass}>
                   <h1 class="text-8xl font-bold text-white mr-4 mb-0;">BitSpark</h1>
                   <h2 class="text-4xl font-light text-white mt-0" style="line-height: 0.9;">
                       <span class="ml-2">The idea engine</span>
                   </h2>
               </div>
+            </div>
               <div class="absolute top-4 right-4 flex justify-end">
                   <div class="text-4xl font-light text-white">
                       <p class="text-5xl leading-tight" style="opacity: 0.3; margin-bottom: -0.4rem;">ignite ideas.</p>
-                      <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">
+                      <p class="txt-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">
                           ignite <span class="text-orange-500">change</span>.
                       </p>
                   </div>
@@ -170,7 +173,6 @@
             </div>
             <!-- Ende: Schräg abgeschnittener Banner -->
             <!-- Create Idea Button hinzufügen -->
-           
           </div>
           <!-- ... -->
         </section>

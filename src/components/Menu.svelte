@@ -126,6 +126,7 @@
                     <span class={linkStyle}>Categories</span>
                 </div>
             </li>
+            <hr class="divider-line" />
             <li>
                 <button class={linkStyle} on:click={() => navigate("/postidea")}
                     >Spark Idea</button
