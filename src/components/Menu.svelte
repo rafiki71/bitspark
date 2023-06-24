@@ -85,7 +85,7 @@
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
         const loggedIn = (await nostrHelper.publicKey) != null;
-        console.log('nostrhelper pk',loggedIn);
+        console.log("nostrhelper pk", loggedIn);
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
@@ -97,8 +97,8 @@
         console.log($menuState);
     }
 
-    $: $menuState
-    $: print_menu_state(), $menuState
+    $: $menuState;
+    $: print_menu_state(), $menuState;
 </script>
 
 <!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
@@ -122,7 +122,7 @@
         <ul class="flex flex-col items-start">
             <li>
                 <button class={linkStyle} on:click={() => navigate("/")}
-                    >BitSpark</button
+                    >Home</button
                 >
             </li>
             <li>
@@ -132,36 +132,54 @@
                     on:focus={handleFocus}
                     on:blur={handleBlur}
                 >
-                    <span class={linkStyle}>Categories</span>
+                    <span class={linkStyle}>
+                        <i
+                            class="fas fa-user"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Categories
+                    </span>
                 </div>
             </li>
             <hr class="divider-line" />
             <li>
-                <button class={linkStyle} on:click={() => navigate("/postidea")}
-                    >Spark Idea</button
-                >
-            </li>
-            {#if $menuState.logged_in}
-            <hr class="divider-line" />
-            <li>
                 <button
                     class={linkStyle}
-                    on:click={() =>
-                        navigate(`/profile/${nostrHelper.publicKey}`)}
-                    >
-                    <i class="fas fa-user" style="color: #223d6d;"></i> Profile
+                    on:click={() => navigate("/postidea")}
+                >
+                    <i
+                        class="fas fa-user"
+                        style="color: #223d6d; margin-right: 10px;"
+                    /> Spark Idea
                 </button>
             </li>
-            
-            <li>
-                <button
-                    class={linkStyle}
-                    on:click={() =>
-                        navigate(`/edit_profile/${nostrHelper.publicKey}`)}
-                    >Edit Profile</button
-                >
-            </li>
-        {/if}        
+            {#if $menuState.logged_in}
+                <hr class="divider-line" />
+                <li>
+                    <button
+                        class={linkStyle}
+                        on:click={() =>
+                            navigate(`/profile/${nostrHelper.publicKey}`)}
+                    >
+                        <i
+                            class="fas fa-user"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Profile
+                    </button>
+                </li>
+
+                <li>
+                    <button
+                        class={linkStyle}
+                        on:click={() =>
+                            navigate(`/edit_profile/${nostrHelper.publicKey}`)}
+                    >
+                        <i
+                            class="fas fa-cog"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Edit Profile
+                    </button>
+                </li>
+            {/if}
             <li>
                 <hr class="divider-line" />
                 {#if !$menuState.use_extension}
@@ -174,14 +192,24 @@
                     <button
                         class={linkStyle}
                         on:click={logout}
-                        on:keydown={logout}>Logout</button
+                        on:keydown={logout}
                     >
+                        <i
+                            class="fas fa-user"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Logout
+                    </button>
                 {:else}
                     <button
                         class={linkStyle}
                         on:click={login}
-                        on:keydown={login}>Login</button
+                        on:keydown={login}
                     >
+                        <i
+                            class="fas fa-user"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Login
+                    </button>
                 {/if}
             </li>
         </ul>
@@ -256,7 +284,7 @@
     }
 
     .menu-item:hover {
-        color: #EB6F1A;
+        color: #eb6f1a;
         text-decoration: none;
         outline: none; /* Add this line */
     }
