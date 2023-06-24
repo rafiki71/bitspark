@@ -122,6 +122,8 @@
       titleClass = "title-class";
     }
   }
+  $: fetchData(), $helperStore 
+  $: fetchComments(), $helperStore
 </script>
 
 <div style="position: relative;">
