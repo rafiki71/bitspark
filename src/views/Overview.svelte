@@ -145,7 +145,7 @@
               <div class="absolute top-4 right-4 flex justify-end">
                   <div class="text-4xl font-light text-white">
                       <p class="text-5xl leading-tight" style="opacity: 0.3; margin-bottom: -0.4rem;">ignite ideas.</p>
-                      <p class="txt-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">
+                      <p class="text-5xl leading-tight" style="opacity: 1; margin-left: -2.8rem;">
                           ignite <span class="text-orange-500">change</span>.
                       </p>
                   </div>
