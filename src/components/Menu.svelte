@@ -7,6 +7,7 @@
     import { writable } from "svelte/store";
     import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
+    import { construct_svelte_component } from "svelte/internal";
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -16,7 +17,7 @@
 
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
-    let nostrHelper = null;
+    export let nostrHelper = null;
 
     let categories = [
         "Art & Design",
@@ -84,12 +85,20 @@
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
         const loggedIn = (await nostrHelper.publicKey) != null;
+        console.log('nostrhelper pk',loggedIn);
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
 
     let linkStyle = "block menu-item";
     let categoryStyle = "category-style";
+
+    function print_menu_state() {
+        console.log($menuState);
+    }
+
+    $: $menuState
+    $: print_menu_state(), $menuState
 </script>
 
 <!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
