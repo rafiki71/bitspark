@@ -168,6 +168,7 @@ export default class NostrHelper {
     }
     else {
       this.write_mode = false;
+      this.publicKey = null;
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
     }
   }
