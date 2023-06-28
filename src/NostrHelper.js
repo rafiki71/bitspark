@@ -222,6 +222,9 @@ export default class NostrHelper {
 
   // Get all ideas of a user
   async getUserIdeas(userId) {
+    if (this.eventBuffer.ideasEmpty()) {
+      await this.fetchIdeas();
+    }
     return this.eventBuffer.getUserIdeas(userId);
   }
 
@@ -501,7 +504,7 @@ function uniqueTags(tags) {
 
   // Convert the set back to an array of arrays.
   const uniqueTags = Array.from(tagSet).map(tagStr => JSON.parse(tagStr));
-  
+
   return uniqueTags;
 }
 
@@ -510,10 +513,10 @@ let storedInstance = null;
 NostrHelper.create = async function (write_mode) {
   // Get stored object.
   helperStore.subscribe(value => { storedInstance = value; })();
-  
+
   // If not in storage, create one.
   if (storedInstance === null) {
-    if(write_mode == undefined) {
+    if (write_mode == undefined) {
       write_mode == false;
     }
     const instance = new NostrHelper(write_mode);
@@ -525,7 +528,7 @@ NostrHelper.create = async function (write_mode) {
 
   // Wenn write_mode definiert ist, erstelle eine neue Instanz und speichere sie im Store.
   if (write_mode !== undefined) {
-    if(storedInstance.write_mode != write_mode) {
+    if (storedInstance.write_mode != write_mode) {
       storedInstance.write_mode = write_mode;
       await storedInstance.initialize();
       helperStore.set(storedInstance);
