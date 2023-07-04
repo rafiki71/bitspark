@@ -8,14 +8,22 @@
     let profile = null;
 
     onMount(async () => {
+        fetch_ideas();
+    });
+
+    async function fetch_ideas() {
+        console.log("fetchd user ideas:");
         try {
             profile = await $helperStore.getProfile(profile_id);
             const ideas_ = await $helperStore.getUserIdeas(profile_id);
+            console.log(profile);
+            console.log(ideas_);
             ideas = ideas_.map((idea) => {
                 const tags = idea.tags.reduce(
                     (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
                     {}
                 );
+
                 return {
                     id: idea.id,
                     name: tags.iName,
@@ -25,10 +33,19 @@
                     abstract: tags.abstract,
                 };
             });
+            console.log(ideas);
         } catch (error) {
             console.error("Error fetching user ideas:", error);
         }
-    });
+    }
+
+    function test () {
+        console.log("Profile id changed");
+    }
+    // $: fetch_ideas(), $helperStore;
+    // $: ideas;
+    $: fetch_ideas(), profile_id;
+    // $: profile;
 </script>
 
 <div style="width: 100%;">
@@ -40,7 +57,11 @@
             >
                 <div class="px-6 py-6">
                     {#if profile}
-                    <h1 class="relative flex text-4xl font-bold text-black ml-6 mb-6">{profile.name}'s Ideas</h1>
+                        <h1
+                            class="relative flex text-4xl font-bold text-black ml-6 mb-6"
+                        >
+                            {profile.name}'s Ideas
+                        </h1>
                     {/if}
                     <div class="flex flex-wrap justify-between">
                         {#each ideas as idea (idea.id)}

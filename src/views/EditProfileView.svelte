@@ -7,10 +7,7 @@
     import Footer from "../components/Footers/FooterBS.svelte";
     import Menu from "../components/Menu.svelte";
     import { sidebarOpen } from "../helperStore.js";
-
-    function toggleSidebar() {
-        sidebarOpen.update((value) => !value);
-    }
+    import Banner from "../components/Banner.svelte";
 
     export let profile_id;
 
@@ -127,53 +124,19 @@
         <div class="flex">
             <Menu />
             <div class="flex-grow">
-                <section class="relative block h-500-px">
-                    <div
-                        class="absolute top-0 w-full h-full bg-center bg-cover"
-                        style={`background-image: url(${banner});`}
-                    >
-                        <span
-                            id="blackOverlay"
-                            class="w-full h-full absolute opacity-50 bg-black"
-                        />
-                        <div
-                            class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-                        >
-                            <div class={titleClass}>
-                                <h1 class="text-4xl font-bold text-white">
-                                    {name}
-                                </h1>
-                            </div>
-                        </div>
-                    </div>
-                    <div
-                        class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-                        style="transform: translateZ(0);"
-                    >
-                        <svg
-                            class="absolute bottom-0 overflow-hidden"
-                            xmlns="http://www.w3.org/2000/svg"
-                            preserveAspectRatio="none"
-                            version="1.1"
-                            viewBox="0 0 2560 100"
-                            x="0"
-                            y="0"
-                        >
-                            <polygon
-                                class="text-blueGray-200 fill-current"
-                                points="2560 0 2560 100 0 100"
-                            />
-                        </svg>
-                    </div>
-                </section>
-
+                <Banner
+                    bannerImage={banner}
+                    title={name}
+                    subtitle={""}
+                    showSubtitles={false}
+                />
                 <div class={contentContainerClass}>
                     <section class="relative py-16 bg-blueGray-200">
                         <div class="container mx-auto px-4">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64"
-                            >
-                                <div class="px-6">
+                            <div class="profile-section">
+                                <div
+                                    class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
+                                >
                                     <div class="flex flex-wrap justify-center">
                                         <div
                                             class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
@@ -421,5 +384,8 @@
 
     .content-container.sidebar-open {
         margin-left: 200px; /* This should be equal to the width of the sidebar */
+    }
+    .profile-section {
+        margin-top: -2rem;
     }
 </style>

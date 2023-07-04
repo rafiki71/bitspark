@@ -8,10 +8,8 @@
   import Footer from "../components/Footers/FooterBS.svelte";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { sidebarOpen } from "../helperStore.js";
+  import Banner from "../components/Banner.svelte";
 
-  function toggleSidebar() {
-    sidebarOpen.update((value) => !value);
-  }
   export let id;
 
   let idea = {
@@ -122,8 +120,8 @@
       titleClass = "title-class";
     }
   }
-  $: fetchData(), $helperStore 
-  $: fetchComments(), $helperStore
+  $: fetchData(), $helperStore;
+  $: fetchComments(), $helperStore;
 </script>
 
 <div style="position: relative;">
@@ -131,72 +129,38 @@
     <div class="flex">
       <Menu />
       <div class="flex-grow">
-        <section class="relative block h-500-px">
+        <Banner
+          bannerImage={idea.bannerImage}
+          title={idea.name}
+          subtitle={idea.subtitle}
+          showSubtitles={false}
+        />
+        <div
+          class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
+        >
           <div
-            class="absolute top-0 w-full h-full bg-center bg-cover"
-            style="background-image: url({idea.bannerImage});"
+            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
           >
-            <span
-              id="blackOverlay"
-              class="w-full h-full absolute opacity-50 bg-black"
-            />
-            <div
-              class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-            >
-              <div class={titleClass}>
-                <h1 class="text-4xl font-bold text-white">{idea.name}</h1>
-                <h2 class="text-2xl font-light text-white">{idea.subtitle}</h2>
-              </div>
-              <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-              <div
-                class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-              >
-                <button on:click={supportIdea} style="padding: 0;">
-                  <img
-                    src="../../img/lightning.png"
-                    style="height: 2.5rem; width: 2.5rem;"
-                    alt="Support via Bitcoin Lightning"
-                  />
-                </button>
-                {#if creator_profile && creator_profile.picture}
-                  <div style="margin-right: 10px;">
-                    <ProfileImg
-                      profile={creator_profile}
-                      style={{ width: "40px", height: "40px" }}
-                    />
-                  </div>
-                {/if}
-                <a href={idea.githubRepo} target="_blank">
-                  <i
-                    class="fab fa-github text-white"
-                    style="font-size: 2.5rem;"
-                  />
-                </a>
-              </div>
-            </div>
-          </div>
-          <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
-          <div
-            class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-            style="transform: translateZ(0);"
-          >
-            <svg
-              class="absolute bottom-0 overflow-hidden"
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="none"
-              version="1.1"
-              viewBox="0 0 2560 100"
-              x="0"
-              y="0"
-            >
-              <polygon
-                class="text-blueGray-200 fill-current"
-                points="2560 0 2560 100 0 100"
+            <button on:click={supportIdea} style="padding: 0;">
+              <img
+                src="../../img/lightning.png"
+                style="height: 2.5rem; width: 2.5rem;"
+                alt="Support via Bitcoin Lightning"
               />
-            </svg>
+            </button>
+            {#if creator_profile && creator_profile.picture}
+              <div style="margin-right: 10px;">
+                <ProfileImg
+                  profile={creator_profile}
+                  style={{ width: "40px", height: "40px" }}
+                />
+              </div>
+            {/if}
+            <a href={idea.githubRepo} target="_blank">
+              <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
+            </a>
           </div>
-          <!-- Ende: Schräg abgeschnittener Banner -->
-        </section>
+        </div>
         <div class={contentContainerClass}>
           <section class="relative py-16 bg-blueGray-200">
             <div class="container mx-auto px-4">

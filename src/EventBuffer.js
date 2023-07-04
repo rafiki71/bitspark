@@ -6,6 +6,22 @@ class EventBuffer {
         this.ideas = new Map();
     }
 
+    profilesEmpty() {
+        return this.profiles.size == 0;
+    }
+
+    userIdeasEmpty() {
+        return this.userIdeas.size == 0;
+    }
+
+    categoryIdeasEmpty() {
+        return this.categoryIdeas.size == 0;
+    }
+
+    ideasEmpty() {
+        return this.ideas.size == 0;
+    }
+
     // Hinzufügen eines Profils zur Map
     addProfile(profile) {
         if (!profile) {
