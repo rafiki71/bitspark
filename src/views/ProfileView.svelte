@@ -68,7 +68,7 @@
                     bannerImage={banner}
                     title={name}
                     subtitle={""}
-                    showSubtitles={false}
+                    show_right_text={false}
                 />
                 <div
                     class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"

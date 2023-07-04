@@ -57,7 +57,7 @@
           bannerImage={$previewStore.bannerUrl}
           title={$previewStore.name}
           subtitle={$previewStore.subtitle}
-          showSubtitles={false}
+          show_right_text={false}
         />
         <div
           class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"

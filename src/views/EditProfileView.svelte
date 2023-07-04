@@ -128,7 +128,7 @@
                     bannerImage={banner}
                     title={name}
                     subtitle={""}
-                    showSubtitles={false}
+                    show_right_text={false}
                 />
                 <div class={contentContainerClass}>
                     <section class="relative py-16 bg-blueGray-200">

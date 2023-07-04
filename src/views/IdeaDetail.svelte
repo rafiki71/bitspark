@@ -133,7 +133,7 @@
           bannerImage={idea.bannerImage}
           title={idea.name}
           subtitle={idea.subtitle}
-          showSubtitles={false}
+          show_right_text={false}
         />
         <div
           class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
