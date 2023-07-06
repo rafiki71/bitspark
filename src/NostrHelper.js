@@ -464,22 +464,30 @@ export default class NostrHelper {
     return events[0];
   }
 
-  async updateProfile(name, picture, banner, dev_about, lnurl, identities = []) {
+  async updateProfile(name, picture, banner, dev_about, lud16, identities = []) {
     console.log("updateProfile");
     if (!this.write_mode) return; // Do nothing in read-only mode
 
     // Get the original profile event
     const originalEvent = await this.getOriginalProfile();
+    console.log("originalEvent:", originalEvent)
 
     // Parse the content and merge it with the new data
-    const originalContent = JSON.parse(originalEvent.content);
+    let originalContent = null;
+    try {
+      originalContent = JSON.parse(originalEvent.content);
+    }
+    catch {
+      originalContent = {};
+    }
+
     const newContent = {
       ...originalContent,
       name,
       picture,
       banner,
       dev_about,
-      lnurl,
+      lud16,
     };
 
     // Convert the updated content back to a JSON string

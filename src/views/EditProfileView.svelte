@@ -14,6 +14,7 @@
     let profile = null;
     let name = "";
     let dev_about = "";
+    let lud16 = "";
     let picture = "";
     let banner = "";
     let git_username = "";
@@ -31,6 +32,7 @@
                 dev_about = profile.dev_about;
                 picture = profile.picture;
                 banner = profile.banner;
+                lud16 = profile.lud16;
 
                 // Get GitHub username and proof from profile
                 git_username = profile.githubUsername || "";
@@ -68,7 +70,7 @@
                 picture,
                 banner,
                 dev_about,
-                profile.lnurl,
+                lud16,
                 updatedIdentities
             );
             await navigate("/overview"); // navigate back to home page after saving
@@ -188,6 +190,18 @@
                                                     id="about"
                                                     bind:value={dev_about}
                                                     on:input={autoResizeTextarea}
+                                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
+                                                />
+
+                                                <label
+                                                    for="lnurl"
+                                                    class="text-lg text-blueGray-400"
+                                                >
+                                                    LNUrl
+                                                </label>
+                                                <input
+                                                    id="lud16"
+                                                    bind:value={lud16}
                                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
                                                 />
 
