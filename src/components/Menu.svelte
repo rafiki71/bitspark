@@ -46,27 +46,54 @@
         "Pets & Animals",
         "Parenting & Family",
     ];
+
+    let tutorials = [
+        "What is Nostr?",
+        "How can I use Nostr?",
+        "How can I verify my Account?"
+    ];
+
     let showCategories = false;
+    let showTutorials = false;
 
     let timeoutId;
 
-    function handleMouseOver() {
+    function handleCatMouseOver() {
         clearTimeout(timeoutId);
         showCategories = true;
     }
 
-    function handleMouseOut() {
+    function handleTutMouseOver() {
+        clearTimeout(timeoutId);
+        showTutorials = true;
+    }
+
+    function handleCatMouseOut() {
         timeoutId = setTimeout(() => {
             showCategories = false;
         }, 200); // 200ms delay before hiding categories
     }
 
-    function handleFocus() {
+    function handleTutMouseOut() {
+        timeoutId = setTimeout(() => {
+            showTutorials = false;
+        }, 200); // 200ms delay before hiding categories
+    }
+
+    function handleCatFocus() {
         showCategories = true;
     }
 
-    function handleBlur() {
+    function handleTutFocus() {
+        showTutorials = true;
+    }
+
+    function handleCatBlur() {
         showCategories = false;
+    }
+
+    function handleTutBlur() {
+        showTutorials = false;
     }
 
     async function login() {
@@ -85,7 +112,7 @@
     onMount(async () => {
         nostrHelper = await NostrHelper.create();
         const loggedIn = (await nostrHelper.publicKey) != null;
-        console.log('nostrhelper pk',loggedIn);
+        console.log("nostrhelper pk", loggedIn);
         const usingExtension = await nostrHelper.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
@@ -97,8 +124,8 @@
         console.log($menuState);
     }
 
-    $: $menuState
-    $: print_menu_state(), $menuState
+    $: $menuState;
+    $: print_menu_state(), $menuState;
 </script>
 
 <!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
@@ -127,10 +154,10 @@
             </li>
             <li>
                 <div
-                    on:mouseover={handleMouseOver}
-                    on:mouseout={handleMouseOut}
-                    on:focus={handleFocus}
-                    on:blur={handleBlur}
+                    on:mouseover={handleCatMouseOver}
+                    on:mouseout={handleCatMouseOut}
+                    on:focus={handleCatFocus}
+                    on:blur={handleCatBlur}
                 >
                     <span class={linkStyle}>Categories</span>
                 </div>
@@ -182,15 +209,26 @@
                     >
                 {/if}
             </li>
+            <li>
+                <hr class="divider-line" />
+                <div
+                    on:mouseover={handleTutMouseOver}
+                    on:mouseout={handleTutMouseOut}
+                    on:focus={handleTutFocus}
+                    on:blur={handleTutBlur}
+                >
+                    <span class={linkStyle}>Tutorials</span>
+                </div>
+            </li>
         </ul>
     </div>
 </div>
 <div
     class={showCategories ? "categories-wrapper" : "categories-wrapper hidden"}
-    on:mouseover={handleMouseOver}
-    on:mouseout={handleMouseOut}
-    on:focus={handleFocus}
-    on:blur={handleBlur}
+    on:mouseover={handleCatMouseOver}
+    on:mouseout={handleCatMouseOut}
+    on:focus={handleCatFocus}
+    on:blur={handleCatBlur}
 >
     <div class="categories-outer">
         <div class="categories">
@@ -204,6 +242,27 @@
         </div>
     </div>
 </div>
+
+<div
+    class={showTutorials ? "categories-wrapper" : "categories-wrapper hidden"}
+    on:mouseover={handleTutMouseOver}
+    on:mouseout={handleTutMouseOut}
+    on:focus={handleTutFocus}
+    on:blur={handleTutBlur}
+>
+    <div class="categories-outer">
+        <div class="categories">
+            {#each tutorials as tutorial, index}
+                <button
+                    class={categoryStyle}
+                    on:click={() => navigate(`/tutorial/${index}`)}
+                    >{tutorial}</button
+                >
+            {/each}
+        </div>
+    </div>
+</div>
+
 
 <style>
     /* a.menu-card {
@@ -254,7 +313,7 @@
     }
 
     .menu-item:hover {
-        color: #EB6F1A;
+        color: #eb6f1a;
         text-decoration: none;
         outline: none; /* Add this line */
     }
