@@ -2,42 +2,18 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
-  import { sendSatsLNurl } from "../LNHelper.js";
   import Menu from "../components/Menu.svelte";
-  import ProfileImg from "../components/ProfileImg.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
-  import { helperStore } from "../helperStore.js"; // Import the store
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
+  import tutorials from "../Tutorials.js"
 
   export let id;
-
-  let idea = {
-    bannerImage:
-      "https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80",
-    id: 0,
-    message: "Eine innovative App, die das Leben der Menschen verbessert.",
-    name: "Innovative App",
-    subtitle: "Idea Engine",
-  };
-
-  let comments = [];
-  let newComment = "";
-  let profiles = {};
-  let creator_profile = null;
-
-  async function deleteIdea() {
-    const confirmDelete = confirm("Do you really want to delete this idea?");
-    if (confirmDelete) {
-      try {
-        await $helperStore.deleteEvent(id);
-      } catch (error) {
-        console.error("Error deleting idea:", error);
-      }
-    }
-  }
+  let tutorial = null;
 
   onMount(async () => {
+    tutorial = tutorials[Number(id)];
+    console.log("done");
   });
 
   let contentContainerClass = "content-container";
@@ -52,9 +28,9 @@
       titleClass = "title-class";
     }
   }
-  let bannerImage = "../../img/Banner1u.png";
-  let title = "BitSpark";
-  let subtitle = "The idea engine";
+  $: {
+    tutorial = tutorials[id];
+  }
 </script>
 
 <div style="position: relative;">
@@ -62,7 +38,12 @@
     <div class="flex">
       <Menu />
       <div class="flex-grow">
-        <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+        {#if tutorial}
+        <Banner 
+        bannerImage={tutorial.bannerImage} 
+        title={tutorial.title} 
+        subtitle={tutorial.subtitle} 
+        show_right_text={false} />
         <div class={contentContainerClass}>
           <section class="relative py-16 bg-blueGray-200">
             <div class="container mx-auto px-4">
@@ -74,31 +55,15 @@
                     <h3
                       class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700"
                     >
-                      {idea.name}
+                      {tutorial.title}
                     </h3>
-                    <h2
-                      class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
-                    >
-                      {"Abstract"}
-                    </h2>
-                    <p
-                      class="message-text"
-                      style="width: 70%; margin: 2rem auto; text-align: justify; font-size: 1.2em; line-height: 1.6em;"
-                    >
-                      {idea.abstract}
-                    </p>
                     <hr class="my-6" />
                     <!-- Strich -->
-                    <h2
-                      class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
-                    >
-                      {idea.name}
-                    </h2>
                     <p
                       class="message-text"
                       style="width: 70%; margin: 0 auto; text-align: justify;"
                     >
-                      {@html idea.message}
+                      {@html tutorial.content}
                     </p>
 
                     <hr class="my-4" />
@@ -119,6 +84,9 @@
           </section>
           <Footer />
         </div>
+        {:else}
+        <div>Loading...</div>
+        {/if}
       </div>
     </div>
   </main>

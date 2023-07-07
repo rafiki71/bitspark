@@ -8,6 +8,8 @@
     import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
     import { construct_svelte_component } from "svelte/internal";
+    import tutorials from "../Tutorials.js"
+
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -47,11 +49,7 @@
         "Parenting & Family",
     ];
 
-    let tutorials = [
-        "What is Nostr?",
-        "How can I use Nostr?",
-        "How can I verify my Account?"
-    ];
+    let tutorial_titles = tutorials.map(tutorial => tutorial.title);
 
     let showCategories = false;
     let showTutorials = false;
@@ -252,7 +250,7 @@
 >
     <div class="categories-outer">
         <div class="categories">
-            {#each tutorials as tutorial, index}
+            {#each tutorial_titles as tutorial, index}
                 <button
                     class={categoryStyle}
                     on:click={() => navigate(`/tutorial/${index}`)}
