@@ -3,6 +3,7 @@
   import { Router, Route, Link } from "svelte-routing";
   import Overview from "./views/Overview.svelte";
   import IdeaDetail from "./views/IdeaDetail.svelte";
+  import TutorialView from "./views/TutorialView.svelte";
   import PostIdea from "./views/PostIdea.svelte";
   //import Login from "./views/Login.svelte";
   import EditProfileView from "./views/EditProfileView.svelte";
@@ -28,6 +29,7 @@
       <Route path="/preview" component={PreView} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
+      <Route path="/tutorial/:id" component={TutorialView} />
       <Route path="/postidea" component={PostIdea} />
       <Route path="/edit_profile/:profile_id" let:params component={EditProfileView} />
       <Route path="/profile/:profile_id" let:params component={ProfileView} />

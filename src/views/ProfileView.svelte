@@ -8,10 +8,8 @@
     import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
+    import Banner from "../components/Banner.svelte";
 
-    function toggleSidebar() {
-        sidebarOpen.update((value) => !value);
-    }
     export let profile_id;
 
     let profile = null;
@@ -25,6 +23,10 @@
     let publicKey = "";
 
     onMount(async () => {
+        fetchData();
+    });
+
+    async function fetchData() {
         try {
             publicKey = $helperStore.publicKey;
             profile = await $helperStore.getProfile(profile_id);
@@ -39,23 +41,22 @@
         } catch (error) {
             console.error("Error fetching profile:", error);
         }
-    });
+    }
 
     async function supportIdea() {
         await sendSatsLNurl(lnAdress);
     }
     let contentContainerClass = "content-container";
-    let titleClass = "title-class";
 
     $: {
         if ($sidebarOpen) {
             contentContainerClass = "content-container sidebar-open";
-            titleClass = "title-class sidebar-open";
         } else {
             contentContainerClass = "content-container";
-            titleClass = "title-class";
         }
     }
+    $: fetchData(), $helperStore;
+    $: fetchData(), profile_id;
 </script>
 
 <div style="position: relative;">
@@ -63,69 +64,34 @@
         <div class="flex">
             <Menu />
             <div class="flex-grow">
-                <section class="relative block h-500-px">
-                    <div
-                        class="absolute top-0 w-full h-full bg-center bg-cover"
-                        style={`background-image: url(${banner});`}
-                    >
-                        <span
-                            id="blackOverlay"
-                            class="w-full h-full absolute opacity-50 bg-black"
+                <Banner
+                    bannerImage={banner}
+                    title={name}
+                    subtitle={""}
+                    show_right_text={false}
+                />
+                <div
+                    class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
+                >
+                    <button on:click={supportIdea} style="padding: 0;">
+                        <img
+                            src="/img/lightning.png"
+                            style="height: 2.5rem; width: 2.5rem;"
+                            alt="Support via Bitcoin Lightning"
                         />
-                        <div
-                            class="absolute left-0 top-1/2 transform -translate-y-1/2 text-white text-4xl font-bold p-5"
-                        >
-                            <div class={titleClass}>
-                                {name}
-                            </div>
-                        </div>
-                        <!-- Hinzugefügt: GitHub-Icon in der oberen rechten Ecke -->
-                        <div
-                            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-                        >
-                            <button on:click={supportIdea} style="padding: 0;">
-                                <img
-                                    src="/img/lightning.png"
-                                    style="height: 2.5rem; width: 2.5rem;"
-                                    alt="Support via Bitcoin Lightning"
-                                />
-                            </button>
-                            <a
-                                href={"https://www.github.com/" + ghUser}
-                                target="_blank"
-                            >
-                                <i
-                                    class="fab fa-github text-white"
-                                    style="font-size: 2.5rem;"
-                                />
-                            </a>
-                        </div>
-                    </div>
-                    <div
-                        class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-                        style="transform: translateZ(0);"
+                    </button>
+                    <a
+                        href={"https://www.github.com/" + ghUser}
+                        target="_blank"
                     >
-                        <svg
-                            class="absolute bottom-0 overflow-hidden"
-                            xmlns="http://www.w3.org/2000/svg"
-                            preserveAspectRatio="none"
-                            version="1.1"
-                            viewBox="0 0 2560 100"
-                            x="0"
-                            y="0"
-                        >
-                            <polygon
-                                class="text-blueGray-200 fill-current"
-                                points="2560 0 2560 100 0 100"
-                            />
-                        </svg>
-                    </div>
-                </section>
+                        <i
+                            class="fab fa-github text-white"
+                            style="font-size: 2.5rem;"
+                        />
+                    </a>
+                </div>
 
                 <div class={contentContainerClass}>
-                    <!-- <div class="menu-container">
-              <Menu /> -->
-                    <!-- Hauptkomponente -->
                     <section
                         class="content-container relative py-16 bg-blueGray-200"
                     >
@@ -133,7 +99,7 @@
                             <div class="container mx-auto px-4">
                                 <div class="profile-section">
                                     <div
-                                        class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64"
+                                        class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
                                     >
                                         {#if profile_id === publicKey}
                                             <button
@@ -234,19 +200,6 @@
         z-index: 0;
     }
 
-    .title-class {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 1/2;
-        transition: left 0.3s ease-in-out;
-        left: 30px;
-    }
-
-    .title-class.sidebar-open {
-        left: 215px;
-    }
-
     .flex-grow {
         /* Other styles */
         z-index: 0; /* This will keep the div behind the button */
@@ -260,5 +213,8 @@
 
     .content-container.sidebar-open {
         margin-left: 200px; /* This should be equal to the width of the sidebar */
+    }
+    .profile-section {
+        margin-top: -2rem;
     }
 </style>

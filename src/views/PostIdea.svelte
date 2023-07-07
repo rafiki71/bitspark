@@ -7,10 +7,8 @@
     import { previewStore } from "../previewStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
+    import Banner from "../components/Banner.svelte";
 
-    function toggleSidebar() {
-        sidebarOpen.update((value) => !value);
-    }
     function navigateTo(route) {
         navigate(route);
     }
@@ -97,6 +95,10 @@
             titleClass = "title-class";
         }
     }
+
+    let bannerImage = "../../img/Banner1u.png";
+    let title = "BitSpark";
+    let subtitle = "Spark idea";
 </script>
 
 <div style="position: relative;">
@@ -104,81 +106,7 @@
         <div class="flex">
             <Menu />
             <div class="flex-grow">
-                <section class="relative block h-500-px">
-                    <div
-                        class="absolute top-0 w-full h-full bg-center bg-cover"
-                        style="
-          background-image: url(../../img/Banner1u.png);
-        "
-                    >
-                        <span
-                            id="blackOverlay"
-                            class="w-full h-full absolute opacity-50 bg-black"
-                        />
-
-                        <div
-                            class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-                        >
-                            <div
-                                class="flex flex-col items-start"
-                                style="margin-top: 10rem;"
-                            >
-                                <h1
-                                    class="text-8xl font-bold text-white mr-4 mb-0; margin-left: -3.5rem"
-                                >
-                                    BitSpark
-                                </h1>
-                                <h2
-                                    class="text-4xl font-light text-white mt-0"
-                                    style="line-height: 0.9;"
-                                >
-                                    <span class="ml-2">Spark Idea</span>
-                                </h2>
-                            </div>
-                            <div
-                                class="absolute top-4 right-4 flex justify-end"
-                            >
-                                <div class="text-4xl font-light text-white">
-                                    <p
-                                        class="text-5xl leading-tight"
-                                        style="opacity: 0.3; margin-bottom: -0.4rem;"
-                                    >
-                                        ignite ideas.
-                                    </p>
-                                    <p
-                                        class="text-5xl leading-tight"
-                                        style="opacity: 1; margin-left: -2.8rem;"
-                                    >
-                                        ignite <span class="text-orange-500"
-                                            >change</span
-                                        >.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
-                        <div
-                            class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-                            style="transform: translateZ(0);"
-                        >
-                            <svg
-                                class="absolute bottom-0 overflow-hidden"
-                                xmlns="http://www.w3.org/2000/svg"
-                                preserveAspectRatio="none"
-                                version="1.1"
-                                viewBox="0 0 2560 100"
-                                x="0"
-                                y="0"
-                            >
-                                <polygon
-                                    class="text-blueGray-200 fill-current"
-                                    points="2560 0 2560 100 0 100"
-                                />
-                            </svg>
-                        </div>
-                        <!-- Ende: Schräg abgeschnittener Banner -->
-                    </div>
-                </section>
+                <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
                 <div class={contentContainerClass}>
                     <section
                         class="content-container relative py-16 bg-blueGray-200"

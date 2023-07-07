@@ -8,6 +8,8 @@
     import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
     import { construct_svelte_component } from "svelte/internal";
+    import tutorials from "../Tutorials.js"
+
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -46,27 +48,50 @@
         "Pets & Animals",
         "Parenting & Family",
     ];
+
+    let tutorial_titles = tutorials.map(tutorial => tutorial.title);
+
     let showCategories = false;
+    let showTutorials = false;
 
     let timeoutId;
 
-    function handleMouseOver() {
+    function handleCatMouseOver() {
         clearTimeout(timeoutId);
         showCategories = true;
     }
 
-    function handleMouseOut() {
+    function handleTutMouseOver() {
+        clearTimeout(timeoutId);
+        showTutorials = true;
+    }
+
+    function handleCatMouseOut() {
         timeoutId = setTimeout(() => {
             showCategories = false;
         }, 200); // 200ms delay before hiding categories
     }
 
-    function handleFocus() {
+    function handleTutMouseOut() {
+        timeoutId = setTimeout(() => {
+            showTutorials = false;
+        }, 200); // 200ms delay before hiding categories
+    }
+
+    function handleCatFocus() {
         showCategories = true;
     }
 
-    function handleBlur() {
+    function handleTutFocus() {
+        showTutorials = true;
+    }
+
+    function handleCatBlur() {
         showCategories = false;
+    }
+
+    function handleTutBlur() {
+        showTutorials = false;
     }
 
     async function login() {
@@ -127,10 +152,10 @@
             </li>
             <li>
                 <div
-                    on:mouseover={handleMouseOver}
-                    on:mouseout={handleMouseOut}
-                    on:focus={handleFocus}
-                    on:blur={handleBlur}
+                    on:mouseover={handleCatMouseOver}
+                    on:mouseout={handleCatMouseOut}
+                    on:focus={handleCatFocus}
+                    on:blur={handleCatBlur}
                 >
                     <span class={linkStyle}>
                         <i
@@ -212,15 +237,26 @@
                     </button>
                 {/if}
             </li>
+            <li>
+                <hr class="divider-line" />
+                <div
+                    on:mouseover={handleTutMouseOver}
+                    on:mouseout={handleTutMouseOut}
+                    on:focus={handleTutFocus}
+                    on:blur={handleTutBlur}
+                >
+                    <span class={linkStyle}>Tutorials</span>
+                </div>
+            </li>
         </ul>
     </div>
 </div>
 <div
     class={showCategories ? "categories-wrapper" : "categories-wrapper hidden"}
-    on:mouseover={handleMouseOver}
-    on:mouseout={handleMouseOut}
-    on:focus={handleFocus}
-    on:blur={handleBlur}
+    on:mouseover={handleCatMouseOver}
+    on:mouseout={handleCatMouseOut}
+    on:focus={handleCatFocus}
+    on:blur={handleCatBlur}
 >
     <div class="categories-outer">
         <div class="categories">
@@ -234,6 +270,27 @@
         </div>
     </div>
 </div>
+
+<div
+    class={showTutorials ? "categories-wrapper" : "categories-wrapper hidden"}
+    on:mouseover={handleTutMouseOver}
+    on:mouseout={handleTutMouseOut}
+    on:focus={handleTutFocus}
+    on:blur={handleTutBlur}
+>
+    <div class="categories-outer">
+        <div class="categories">
+            {#each tutorial_titles as tutorial, index}
+                <button
+                    class={categoryStyle}
+                    on:click={() => navigate(`/tutorial/${index}`)}
+                    >{tutorial}</button
+                >
+            {/each}
+        </div>
+    </div>
+</div>
+
 
 <style>
     /* a.menu-card {
