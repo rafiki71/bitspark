@@ -27,9 +27,43 @@ const tutorials = [
     },
     {
         bannerImage: "../../img/Banner1u.png",
-        title: "How can I use Nostr?",
-        subtitle: "This is a subtitle for tutorial 2",
-        content: "This is the content for tutorial 2."
+        title: "How can I use Nostr with GetAlby?",
+        subtitle: "Embrace the Future of Communication with GetAlby",
+        content: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h1>Welcome, future Nostronaut!</h1>
+            <p>Welcome to a revolutionary change in communication! We're here to guide you through the world of Nostr, a vast decentralized network. And the best part? You can navigate this new world with GetAlby - your trusty companion on this journey. Let's dive in!</p>
+            <img src="../../img/tutorial/alby_0.png" alt="Introduction">
+    
+            <h2>Step 1: Meet GetAlby, your New Ally</h2>
+            <p>GetAlby is a browser extension for Chrome or Firefox, designed to make your journey through Nostr simple and effortless. Go to <a href="https://getalby.com/">https://getalby.com/</a>, click "add browser extension" and set the pace for your Nostr adventure.</p>
+            <img src="../../img/tutorial/alby_1.png" alt="GetAlby">
+    
+            <h2>Step 2: Set Up Your Account</h2>
+            <p>After you've added GetAlby to your browser, it's time to create your account. Click the "Create Account" button. Follow the prompts in GetAlby to create your account. Remember, one account can have multiple identities - each for a different adventure!</p>
+            <img src="../../img/tutorial/alby_2.png" alt="Create Account">
+    
+            <h2>Step 3: Crafting Your Unique Identity</h2>
+            <p>Now that your account is set up, it's time to create your unique identity in Nostr. Click on the GetAlby icon in your browser to open the extension. From there, click on the menu button and select "settings". Scroll down to the Nostr section and click "go to accounts". Select your account and click on "generate new key". Congratulations! You've just created your unique identity on Nostr.</p>
+            <img src="../../img/tutorial/alby_3.png" alt="Craft Identity">
+    
+            <h2>Step 4: Discover, Engage, and Express Freely</h2>
+            <p>With your unique identity and GetAlby at your fingertips, you're ready to explore the limitless possibilities of Nostr. Engage with the community, publish your thoughts, subscribe to other explorers, and carve out your unique space in this decentralized network.</p>
+            <img src="../../img/tutorial/alby_4.png" alt="Discover, Engage, Express">
+    
+            <h2>Step 5: Navigate the Ocean of Opportunities</h2>
+            <p>Nostr is an ocean of diverse events and experiences. Using GetAlby's intuitive interface, you can chart your course and navigate to the areas that interest you most. Set your filters, find your points of interest, and tailor your journey to your liking.</p>
+            <img src="../../img/tutorial/alby_5.png" alt="Navigate">
+    
+            <h2>The GetAlby Experience</h2>
+            <p>GetAlby is more than just a Nostr client - it's a gateway to a world where you're in control. With Nostr and GetAlby, you have the freedom and the tools to shape your communication in a way that suits you best. Embrace the thrill, the pace, and the unbound possibilities of Nostr with GetAlby.</p>
+            <img src="../../img/tutorial/alby_6.png" alt="Experience">
+    
+            <h2>Ready to take the Leap?</h2>
+            <p>The future of communication is here, and it's exciting, fast, and liberating. With Nostr and GetAlby, you're embarking on a journey that puts you at the helm. So, what are you waiting for, future Nostronaut? Let's dive into the ocean of possibilities!</p>
+            <img src="../../img/tutorial/alby_7.png" alt="Ready">
+        </div>
+        `
     },
     {
         bannerImage: "../../img/Banner1u.png",
