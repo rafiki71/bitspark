@@ -146,25 +146,32 @@
     <div class="menu-card">
         <ul class="flex flex-col items-start">
             <li>
-                <button class={linkStyle} on:click={() => navigate("/")}
-                    >BitSpark</button
-                >
-            </li>
-            <li>
+                <button class={linkStyle} on:click={() => navigate("/")}>
+                    <i class="fas fa-home" style="color: #223d6d; margin-right: 10px;"></i>
+                    Home
+                </button>
                 <div
                     on:mouseover={handleCatMouseOver}
                     on:mouseout={handleCatMouseOut}
                     on:focus={handleCatFocus}
                     on:blur={handleCatBlur}
                 >
-                    <span class={linkStyle}>Categories</span>
+                <button class={linkStyle}>
+                    <i class="fas fa-list" style="color: #223d6d; margin-right: 11px;"></i> Categories
+                </button>                                                                 
                 </div>
             </li>
             <hr class="divider-line" />
             <li>
-                <button class={linkStyle} on:click={() => navigate("/postidea")}
-                    >Spark Idea</button
+                <button
+                    class={linkStyle}
+                    on:click={() => navigate("/postidea")}
                 >
+                    <i
+                        class="fas fa-fire"
+                        style="color: #223d6d; margin-right: 12px;"
+                    /> Spark Idea
+                </button>
             </li>
             {#if $menuState.logged_in}
                 <hr class="divider-line" />
@@ -173,38 +180,68 @@
                         class={linkStyle}
                         on:click={() =>
                             navigate(`/profile/${nostrHelper.publicKey}`)}
-                        >Profile</button
                     >
+                        <i
+                            class="fas fa-user"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Profile
+                    </button>
                 </li>
+
                 <li>
                     <button
                         class={linkStyle}
                         on:click={() =>
                             navigate(`/edit_profile/${nostrHelper.publicKey}`)}
-                        >Edit Profile</button
                     >
+                        <i
+                            class="fas fa-cog"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Edit Profile
+                    </button>
                 </li>
             {/if}
             <li>
                 <hr class="divider-line" />
                 {#if !$menuState.use_extension}
-                    <button
-                        class={linkStyle}
-                        on:click={() => navigate("https://getalby.com/")}
-                        >{optionText}</button
-                    >
+                <button class={linkStyle} on:click={() => navigate("https://getalby.com/")}>
+                    <i class="fas fa-puzzle-piece" style="color: #223d6d; margin-right: 10px;"></i> {optionText}
+                </button>
                 {:else if $menuState.logged_in}
                     <button
                         class={linkStyle}
                         on:click={logout}
-                        on:keydown={logout}>Logout</button
+                        on:keydown={logout}
                     >
+                        <i
+                            class="fas fa-arrow-left"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Logout
+                    </button>
                 {:else}
                     <button
                         class={linkStyle}
                         on:click={login}
-                        on:keydown={login}>Login</button
+                        on:keydown={login}
                     >
+                        <i
+                            class="fas fa-arrow-right"
+                            style="color: #223d6d; margin-right: 10px;"
+                        /> Login
+                    </button>
+                    <style>
+                        /* Füge den rechten Rand zum Pfeilsymbol hinzu */
+                        .arrow-right-border::after {
+                            content: "";
+                            display: block;
+                            width: 10px; /* Passe die Breite des Randes an */
+                            height: 24px; /* Passe die Höhe des Randes an */
+                            background-color: #223d6d; /* Passe die Farbe des Randes an */
+                            position: absolute;
+                            right: -10px; /* Ändere den Abstand zum Pfeilsymbol */
+                            top: 0;
+                        }
+                    </style>
                 {/if}
             </li>
             <li>
@@ -215,7 +252,9 @@
                     on:focus={handleTutFocus}
                     on:blur={handleTutBlur}
                 >
-                    <span class={linkStyle}>Tutorials</span>
+                    <span class={linkStyle}>
+                        <i class="fas fa-graduation-cap" style="color: #223d6d; margin-right: 8px;"></i> Tutorials
+                    </span>
                 </div>
             </li>
         </ul>
