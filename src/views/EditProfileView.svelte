@@ -134,7 +134,7 @@
                 />
                 <div class={contentContainerClass}>
                     <section class="relative py-16 bg-blueGray-200">
-                        <div class="container mx-auto px-4">
+                        <div class="container mx-auto">
                             <div class="profile-section">
                                 <div
                                     class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
@@ -322,7 +322,7 @@
                                                                             placeholder="Enter relay URL..."
                                                                         />
                                                                         <button
-                                                                            class="bg-green-500 text-white font-bold py-2 px-4 rounded ml-2"
+                                                                            class="bg-orange-500 text-white font-bold py-2 px-4 rounded ml-2"
                                                                             on:click={addRelay}
                                                                         >
                                                                             Add
@@ -338,15 +338,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex justify-end mt-4 px-10">
+                            <div class="flex justify-end mt-4">
                                 <button
-                                    class="bg-red-500 text-white font-bold py-2 px-4 rounded mr-4"
-                                    on:click={() => navigate(`/overview`)}
-                                >
-                                    Back
-                                </button>
-                                <button
-                                    class="bg-green-500 text-white font-bold py-2 px-4 rounded"
+                                    class="bg-orange-500 text-white font-bold py-2 px-4 rounded"
                                     on:click={updateProfile}
                                 >
                                     Update Profile

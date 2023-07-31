@@ -26,9 +26,9 @@
       {truncateMessage(card.abstract, 1000)}
     </p>
   </div>
-  <div class="px-6 py-4 flex items-center justify-start">
+  <div class="px-6 py-4 flex items-center justify-end">
     <Link
-      class="bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+      class="bg-orange-500 active:bg-orange-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
       to={`/idea/${card.id}`}
     >
       Show Idea

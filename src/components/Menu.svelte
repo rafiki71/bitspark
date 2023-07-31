@@ -434,7 +434,7 @@
         top: 0;
         left: 0;
         z-index: 11; /* This will bring the button to the front */
-        background-color: #333333;
+        background-color: #33333300;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -444,7 +444,7 @@
     }
 
     svg path {
-        fill: #d1d1d1; /* Change this to the color you want */
+        fill: #F97316; /* Change this to the color you want */
     }
 
     .menu-container {
@@ -455,7 +455,7 @@
         min-width: 200px;
         z-index: 10; /* This will bring the menu to the front */
         flex-basis: 200px;
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.7);
         opacity: 3.7;
         height: 100vh; /* This will limit the height to the height of the viewport */
         overflow-y: auto;

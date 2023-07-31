@@ -200,19 +200,13 @@
                         </div>
                         <div class="container mx-auto px-4 flex justify-end">
                             <button
-                                class="bg-red-500 text-white font-bold py-2 px-4 block rounded border border-red-500 mt-2 hover:shadow-xl"
-                                on:click={() => navigateTo("/overview")}
-                            >
-                                Back to Home
-                            </button>
-                            <button
-                                class="bg-blue-500 text-white font-bold py-2 px-4 block rounded border border-blue-500 ml-4 mt-2 hover:shadow-xl"
+                                class="prevButton text-white font-bold py-2 px-4 block rounded border ml-4 mt-2 hover:shadow-xl"
                                 on:click={() => navigateTo("/preview")}
                             >
                                 Preview
                             </button>
                             <button
-                                class="bg-green-500 text-white font-bold py-2 px-4 block rounded border-transparent ml-4 mt-2 hover:shadow-xl"
+                                class="bg-orange-500 active:bg-orange-600 text-white font-bold py-2 px-4 block rounded border ml-4 mt-2 hover:shadow-xl"
                                 on:click={postIdea}
                             >
                                 Spark Idea
@@ -227,6 +221,14 @@
 </div>
 
 <style>
+        .prevButton {
+    background-color: #223D6D;
+    }
+
+    .prevButton:active {
+    background-color: #182c4e;
+    }
+
     .content-section {
         display: flex;
         background-color: #e2e8f0 !important;

@@ -11,7 +11,6 @@
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
 
-
   let comments = [];
   let newComment = "";
   let creator_profile = null;
@@ -176,23 +175,17 @@
                     bind:value={newComment}
                     placeholder="Schreibe hier deinen Kommentar..."
                   />
-                  <button
-                    class="bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150"
-                    type="button"
-                    on:click={submitComment}
-                  >
-                    Send
-                  </button>
+                  <div style="text-align: right;">
+                    <button
+                      class="bg-orange-500 active:bg-orange-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150"
+                      type="button"
+                      on:click={submitComment}
+                    >
+                      Send
+                    </button>
+                  </div>
                 </div>
               </div>
-              <Link to="/postidea">
-                <button
-                  class="bg-red-400 active:bg-red-500 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mb-1 ease-linear transition-all duration-150"
-                  type="button"
-                >
-                  Back
-                </button>
-              </Link>
             </div>
           </section>
           <Footer />

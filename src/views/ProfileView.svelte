@@ -101,18 +101,6 @@
                                     <div
                                         class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
                                     >
-                                        {#if profile_id === publicKey}
-                                            <button
-                                                class="bg-blue-500 text-white font-bold py-2 px-4 rounded absolute"
-                                                style="top: 10px; right: 10px; z-index: 1;"
-                                                on:click={() =>
-                                                    navigate(
-                                                        `/edit_profile/${publicKey}`
-                                                    )}
-                                            >
-                                                Edit
-                                            </button>
-                                        {/if}
                                         <div class="px-6">
                                             <div
                                                 class="flex flex-wrap justify-center"
@@ -165,18 +153,6 @@
                                         <div class="w-full">
                                             <UserIdeas {profile_id} />
                                         </div>
-                                    </div>
-
-                                    <div
-                                        class="flex justify-end mt-0 items-center mr-0"
-                                    >
-                                        <button
-                                            class="bg-red-500 text-white font-bold py-2 px-4 rounded"
-                                            on:click={() =>
-                                                window.history.back()}
-                                        >
-                                            Back
-                                        </button>
                                     </div>
                                 </div>
                             </div>
