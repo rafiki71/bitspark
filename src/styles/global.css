@@ -1,0 +1,172 @@
+.content-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    /* Equivalent to top-1/2 */
+    transform: translateY(-50%);
+    /* Equivalent to -translate-y-1/2 */
+    padding: 0 1rem;
+    /* Equivalent to px-4 */
+    display: flex;
+    flex-direction: column;
+    /* Equivalent to flex-col */
+    align-items: flex-start;
+    /* Equivalent to items-start */
+    justify-content: center;
+    /* Equivalent to justify-center */
+    height: 100%;
+    /* Equivalent to h-full */
+}
+
+.content-icons {
+    position: absolute;
+    top: 1rem;
+    /* Equivalent to top-4 */
+    right: 1rem;
+    /* Equivalent to right-4 */
+    font-size: 1.875rem;
+    /* Equivalent to text-3xl */
+    color: white;
+    /* Equivalent to text-white */
+    display: flex;
+    justify-content: flex-end;
+    /* Equivalent to justify-end */
+    align-items: center;
+    /* Equivalent to items-center */
+    gap: 1.5rem;
+    /* Equivalent to gap-6 */
+}
+
+.support-button {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+
+    /* Add a hover effect for better user feedback */
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+.support-button img {
+    height: 2.5rem;
+    width: 2.5rem;
+}
+
+
+.bg-card {
+    background-color: white;
+    width: 100%;
+    margin-bottom: 6rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 1.25rem;
+}
+
+/* Base class for h2 */
+.base-h2 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #4a5568;
+    /* blueGray-700 */
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    /* Equivalent to mt-6 */
+}
+
+/* Base class for h3 */
+.base-h3 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #4a5568;
+    /* blueGray-700 */
+    margin-bottom: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+/* Base class for h4 */
+.base-h4 {
+    font-size: 2rem;
+    font-weight: 500;
+    color: #4a5568;
+    /* blueGray-700 */
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
+.flex-grow {
+    /* Other styles */
+    z-index: 0;
+    /* This will keep the div behind the button */
+}
+
+.content-section {
+    display: flex;
+    background-color: #e2e8f0 !important;
+}
+
+.content-container {
+    margin-left: 0;
+    /* This is the starting state */
+    transition: margin-left 0.3s ease-in-out;
+    flex-grow: 1;
+    z-index: 0;
+    /* This will keep the div behind the button */
+}
+
+.content-container.sidebar-open {
+    margin-left: 200px;
+    /* This should be equal to the width of the sidebar */
+}
+
+.combined-content-container {
+    /* From .content-container */
+    margin-left: 0;
+    transition: margin-left 0.3s ease-in-out;
+    flex-grow: 1;
+    z-index: 0;
+
+    /* From .relative (assuming it sets position: relative) */
+    position: relative;
+
+    /* From .py-16 (assuming it sets padding-top and padding-bottom to 4rem) */
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+
+    /* From .bg-blueGray-200 */
+    background-color: #e2e8f0;
+    /* This is a guess based on the name. Replace with the actual color if different. */
+
+    /* From .container (assuming it centers content with max-width and auto margins) */
+    max-width: 100%;
+    /* Adjust this value based on your design */
+    /* margin-right: auto;
+    margin-left: auto; */
+
+    /* From .mx-auto */
+    /* Already covered by the .container styles above */
+
+    /* From .px-4 (assuming it sets padding-left and padding-right to 1rem) */
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.combined-content-container.sidebar-open {
+    margin-left: 200px;
+}
+
+/* Layout */
+.overview-page {
+    background-color: var(--primary-bg-color);
+}
+
+.html-content {
+    width: 70%;
+    margin: 0 auto;
+    text-align: justify;
+}

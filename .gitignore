@@ -3,5 +3,4 @@ public/build/bundle.js
 public/build/bundle.js.map
 package-lock.json
 package.json
-public/assets/styles.tailwind.css
-
+public/assets/styles/tailwind.css
