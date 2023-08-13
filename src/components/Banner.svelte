@@ -104,7 +104,7 @@
         right: 0;
         top: 1/2;
         transition: left 0.3s ease-in-out;
-        left: 30px;
+        left: 55px;
     }
 
     .title-class.sidebar-open {
