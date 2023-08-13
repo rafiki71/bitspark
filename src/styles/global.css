@@ -162,7 +162,9 @@
 
 /* Layout */
 .overview-page {
-    background-color: var(--primary-bg-color);
+    position: relative;
+    display: flex;
+    background-color: #E2E8F0; /* Assuming you have this variable defined */
 }
 
 .html-content {

@@ -114,50 +114,46 @@
   let subtitle = "The idea engine";
 </script>
 
-<div style="position: relative;">
-  <main class="overview-page bg-blueGray-200">
-    <div class="flex">
-      <Menu />
-      <div class="flex-grow">
-        <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
-        <div class={contentContainerClass}>
-          <section class="content-container relative py-16 bg-blueGray-200">
-            <div class="content-container">
-              <div class="container mx-auto px-4">
-                <div class="row">
-                  {#each $verifiedCards as card (card.id)}
-                    <div
-                      class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                      style="margin-bottom: 2rem;"
-                    >
-                      <IdeaCard {card} />
-                    </div>
-                  {/each}
-                </div>
-                <!-- Divider -->
+<main class="overview-page">
+  <Menu />
+  <div class="flex-grow">
+    <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+    <div class={contentContainerClass}>
+      <section class="content-container relative py-16 bg-blueGray-200">
+        <div class="content-container">
+          <div class="container mx-auto px-4">
+            <div class="row">
+              {#each $verifiedCards as card (card.id)}
                 <div
-                  style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
-                  class="w-full"
-                />
-                <div class="row">
-                  {#each $unverifiedCards as card (card.id)}
-                    <div
-                      class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                      style="margin-top: 2rem;"
-                    >
-                      <IdeaCard {card} />
-                    </div>
-                  {/each}
+                  class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                  style="margin-bottom: 2rem;"
+                >
+                  <IdeaCard {card} />
                 </div>
-              </div>
+              {/each}
             </div>
-          </section>
-          <Footer />
+            <!-- Divider -->
+            <div
+              style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
+              class="w-full"
+            />
+            <div class="row">
+              {#each $unverifiedCards as card (card.id)}
+                <div
+                  class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
+                  style="margin-top: 2rem;"
+                >
+                  <IdeaCard {card} />
+                </div>
+              {/each}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+      <Footer />
     </div>
-  </main>
-</div>
+  </div>
+</main>
 
 <style>
   .content-section {

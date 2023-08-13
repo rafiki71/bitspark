@@ -8,8 +8,8 @@
     import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
     import { construct_svelte_component } from "svelte/internal";
-    import tutorials from "../Tutorials.js"
-
+    import tutorials from "../Tutorials.js";
+    import "../styles/global.css";
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -49,7 +49,7 @@
         "Parenting & Family",
     ];
 
-    let tutorial_titles = tutorials.map(tutorial => tutorial.title);
+    let tutorial_titles = tutorials.map((tutorial) => tutorial.title);
 
     let showCategories = false;
     let showTutorials = false;
@@ -147,7 +147,10 @@
         <ul class="flex flex-col items-start">
             <li>
                 <button class={linkStyle} on:click={() => navigate("/")}>
-                    <i class="fas fa-home" style="color: #223d6d; margin-right: 10px;"></i>
+                    <i
+                        class="fas fa-home"
+                        style="color: #223d6d; margin-right: 10px;"
+                    />
                     Home
                 </button>
                 <div
@@ -156,9 +159,12 @@
                     on:focus={handleCatFocus}
                     on:blur={handleCatBlur}
                 >
-                <button class={linkStyle}>
-                    <i class="fas fa-list" style="color: #223d6d; margin-right: 11px;"></i> Categories
-                </button>                                                                 
+                    <button class={linkStyle}>
+                        <i
+                            class="fas fa-list"
+                            style="color: #223d6d; margin-right: 11px;"
+                        /> Categories
+                    </button>
                 </div>
             </li>
             <hr class="divider-line" />
@@ -204,9 +210,16 @@
             <li>
                 <hr class="divider-line" />
                 {#if !$menuState.use_extension}
-                <button class={linkStyle} on:click={() => navigate("https://getalby.com/")}>
-                    <i class="fas fa-puzzle-piece" style="color: #223d6d; margin-right: 10px;"></i> {optionText}
-                </button>
+                    <button
+                        class={linkStyle}
+                        on:click={() => navigate("https://getalby.com/")}
+                    >
+                        <i
+                            class="fas fa-puzzle-piece"
+                            style="color: #223d6d; margin-right: 10px;"
+                        />
+                        {optionText}
+                    </button>
                 {:else if $menuState.logged_in}
                     <button
                         class={linkStyle}
@@ -253,7 +266,10 @@
                     on:blur={handleTutBlur}
                 >
                     <span class={linkStyle}>
-                        <i class="fas fa-graduation-cap" style="color: #223d6d; margin-right: 8px;"></i> Tutorials
+                        <i
+                            class="fas fa-graduation-cap"
+                            style="color: #223d6d; margin-right: 8px;"
+                        /> Tutorials
                     </span>
                 </div>
             </li>
@@ -299,7 +315,6 @@
         </div>
     </div>
 </div>
-
 
 <style>
     /* a.menu-card {
@@ -444,7 +459,7 @@
     }
 
     svg path {
-        fill: #F97316; /* Change this to the color you want */
+        fill: #f97316; /* Change this to the color you want */
     }
 
     .menu-container {

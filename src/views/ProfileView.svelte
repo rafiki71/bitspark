@@ -60,83 +60,76 @@
     $: fetchData(), profile_id;
 </script>
 
-<div style="position: relative;">
-    <main class="overview-page bg-blueGray-200">
-        <div class="flex">
-            <Menu />
-            <div class="flex-grow">
-                <Banner
-                    bannerImage={banner}
-                    title={name}
-                    subtitle={""}
-                    show_right_text={false}
-                />
+<main class="overview-page">
+    <Menu />
+    <div class="flex-grow">
+        <Banner
+            bannerImage={banner}
+            title={name}
+            subtitle={""}
+            show_right_text={false}
+        />
 
-                <div class="content-overlay">
-                    <div class="content-icons">
-                        <button
-                            on:click={supportProfile}
-                            class="support-button"
-                        >
-                            <img
-                                src="../../img/lightning.png"
-                                alt="Support via Bitcoin Lightning"
-                            />
-                        </button>
-                        <a
-                            href={"https://www.github.com/" + ghUser}
-                            target="_blank"
-                            class="github-icon"
-                        >
-                            <i
-                                class="fab fa-github text-white"
-                                style="font-size: 2.5rem;"
-                            />
-                        </a>
-                    </div>
-                </div>
-
-                <div class={contentContainerClass}>
-                    <div
-                        class="container bg-card relative flex flex-col min-w-0 break-words"
-                    >
-                        <div class="flex flex-wrap justify-center">
-                            <div
-                                class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
-                            >
-                                <div
-                                    style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
-                                >
-                                    {#if profile && profile.picture}
-                                        <ProfileImg
-                                            {profile}
-                                            style={{
-                                                position: "absolute",
-                                                width: "100%",
-                                                height: "100%",
-                                                objectFit: "cover",
-                                                top: "0",
-                                                left: "0",
-                                            }}
-                                        />
-                                    {/if}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="profile-content">
-                            {@html about}
-                        </div>
-                    </div>
-
-                    <div class="container bg-card">
-                        <UserIdeas {profile_id} />
-                    </div>
-                </div>
-                <Footer />
+        <div class="content-overlay">
+            <div class="content-icons">
+                <button on:click={supportProfile} class="support-button">
+                    <img
+                        src="../../img/lightning.png"
+                        alt="Support via Bitcoin Lightning"
+                    />
+                </button>
+                <a
+                    href={"https://www.github.com/" + ghUser}
+                    target="_blank"
+                    class="github-icon"
+                >
+                    <i
+                        class="fab fa-github text-white"
+                        style="font-size: 2.5rem;"
+                    />
+                </a>
             </div>
         </div>
-    </main>
-</div>
+
+        <div class={contentContainerClass}>
+            <div
+                class="container bg-card relative flex flex-col min-w-0 break-words"
+            >
+                <div class="flex flex-wrap justify-center">
+                    <div
+                        class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
+                    >
+                        <div
+                            style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
+                        >
+                            {#if profile && profile.picture}
+                                <ProfileImg
+                                    {profile}
+                                    style={{
+                                        position: "absolute",
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        top: "0",
+                                        left: "0",
+                                    }}
+                                />
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    {@html about}
+                </div>
+            </div>
+
+            <div class="container bg-card">
+                <UserIdeas {profile_id} />
+            </div>
+        </div>
+        <Footer />
+    </div>
+</main>
 
 <style>
     .profile-content {
