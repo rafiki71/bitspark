@@ -108,214 +108,155 @@
       console.error("Error submitting comment:", error);
     }
   }
-  let contentContainerClass = "content-container";
-  let titleClass = "title-class";
+  let contentContainerClass = "combined-content-container";
 
   $: {
     if ($sidebarOpen) {
-      contentContainerClass = "content-container sidebar-open";
-      titleClass = "title-class sidebar-open";
+      contentContainerClass = "combined-content-container sidebar-open";
     } else {
-      contentContainerClass = "content-container";
-      titleClass = "title-class";
+      contentContainerClass = "combined-content-container";
     }
   }
   $: fetchData(), $helperStore;
   $: fetchComments(), $helperStore;
 </script>
 
-<div style="position: relative;">
-  <main class="overview-page bg-blueGray-200">
-    <div class="flex">
-      <Menu />
-      <div class="flex-grow">
-        <Banner
-          bannerImage={idea.bannerImage}
-          title={idea.name}
-          subtitle={idea.subtitle}
-          show_right_text={false}
-        />
-        <div
-          class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-        >
-          <div
-            class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
+<main class="overview-page">
+  <Menu />
+  <div class="flex-grow">
+    <Banner
+      bannerImage={idea.bannerImage}
+      title={idea.name}
+      subtitle={idea.subtitle}
+      show_right_text={false}
+    />
+
+    <div class="content-overlay">
+      <div class="content-icons">
+        <button on:click={supportIdea} class="support-button">
+          <img
+            src="../../img/lightning.png"
+            alt="Support via Bitcoin Lightning"
+          />
+        </button>
+        {#if creator_profile && creator_profile.picture}
+          <ProfileImg
+            profile={creator_profile}
+            style={{ width: "40px", height: "40px" }}
+          />
+        {/if}
+        <a href={idea.githubRepo} target="_blank" class="github-icon">
+          <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
+        </a>
+      </div>
+    </div>
+
+    <div class={contentContainerClass}>
+      <div class="container bg-card relative flex flex-col min-w-0 break-words">
+        {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+          <button
+            on:click={deleteIdea}
+            class="absolute top-4 right-4 text-gray-400"
           >
-            <button on:click={supportIdea} style="padding: 0;">
-              <img
-                src="../../img/lightning.png"
-                style="height: 2.5rem; width: 2.5rem;"
-                alt="Support via Bitcoin Lightning"
-              />
-            </button>
-            {#if creator_profile && creator_profile.picture}
-              <div style="margin-right: 10px;">
-                <ProfileImg
-                  profile={creator_profile}
-                  style={{ width: "40px", height: "40px" }}
-                />
-              </div>
-            {/if}
-            <a href={idea.githubRepo} target="_blank">
-              <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
-            </a>
+            <i class="fas fa-times-circle" />
+          </button>
+        {/if}
+
+        <div class="px-6">
+          <div class="text-center mt-6">
+            <h2 class="base-h2">
+              {idea.name}
+            </h2>
+            <h4 class="base-h4">
+              {"Abstract"}
+            </h4>
+            <p class="abstract-text">
+              {idea.abstract}
+            </p>
+            <hr class="my-6" />
+            <p class="html-content">
+              {@html idea.message}
+            </p>
           </div>
         </div>
-        <div class={contentContainerClass}>
-          <section class="relative py-16 bg-blueGray-200">
-            <div class="container mx-auto px-4">
-              <div
-                class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
-              >
-                {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
-                  <button
-                    on:click={deleteIdea}
-                    class="absolute top-4 right-4 text-gray-400"
-                  >
-                    <i class="fas fa-times-circle" />
-                  </button>
-                {/if}
-                <div class="px-6">
-                  <div class="text-center mt-6">
-                    <h3
-                      class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700"
-                    >
-                      {idea.name}
-                    </h3>
-                    <h2
-                      class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
-                    >
-                      {"Abstract"}
-                    </h2>
-                    <p
-                      class="message-text"
-                      style="width: 70%; margin: 2rem auto; text-align: justify; font-size: 1.2em; line-height: 1.6em;"
-                    >
-                      {idea.abstract}
-                    </p>
-                    <hr class="my-6" />
-                    <!-- Strich -->
-                    <h2
-                      class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mt-6"
-                    >
-                      {idea.name}
-                    </h2>
-                    <p
-                      class="message-text"
-                      style="width: 70%; margin: 0 auto; text-align: justify;"
-                    >
-                      {@html idea.message}
-                    </p>
+      </div>
 
-                    <hr class="my-4" />
-                    <!-- Strich -->
-                    <div class="flex items-center justify-center gap-4 mb-4">
-                      <!-- Hinzufügen von justify-center zum Zentrieren entlang der Hauptachse -->
-                      <p class="mb-0">Support via</p>
-                      <!-- Entfernen Sie margin-bottom -->
-                      <button
-                        on:click={supportIdea}
-                        style="padding: 0; display: flex; align-items: center;"
-                      >
-                        <img
-                          src="/img/lightning.png"
-                          style="height: 2.5rem; width: 2.5rem;"
-                          alt="Support via Bitcoin Lightning"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!--Comments-->
-              <div class="bg-white w-full mb-6 shadow-xl rounded-lg p-4">
-                <h4 class="text-2xl font-semibold text-blueGray-700 mb-4">
-                  Comments
-                </h4>
-                <ul>
-                  {#each comments as comment (comment.id)}
-                    <li class="flex items-center gap-4 my-2">
-                      {#if comment.picture}
-                        <div style="margin-right: 10px;">
-                          <ProfileImg
-                            profile={comment}
-                            style={{ width: "40px", height: "40px" }}
-                          />
-                        </div>
-                      {/if}
-                      <div>
-                        <h3 class="font-bold text-sm">{comment.name}</h3>
-                        <p class="text-m">{comment.comment}</p>
-                      </div>
-                    </li>
-                  {/each}
-                </ul>
-                <div class="mt-6">
-                  <label for="newComment" class="text-lg text-blueGray-600"
-                    >Your Comment:</label
-                  >
-                  <textarea
-                    id="newComment"
-                    class="w-full h-24 p-2 mt-2 rounded-md border-2 border-blueGray-200"
-                    bind:value={newComment}
-                    placeholder="Schreibe hier deinen Kommentar..."
+      <div class="container bg-card p-4">
+        <h4 class="base-h4">Comments</h4>
+        <ul>
+          {#each comments as comment (comment.id)}
+            <li class="flex items-center gap-4 my-2">
+              {#if comment.picture}
+                <div style="margin-right: 10px;">
+                  <ProfileImg
+                    profile={comment}
+                    style={{ width: "40px", height: "40px" }}
                   />
-                  <div style="text-align: right;">
-                    <button
-                      class="bg-orange-500 active:bg-orange-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150"
-                      type="button"
-                      on:click={submitComment}
-                    >
-                      Send
-                    </button>
-                  </div>
                 </div>
+              {/if}
+              <div>
+                <h3 class="font-bold text-sm">{comment.name}</h3>
+                <p class="text-m">{comment.comment}</p>
               </div>
-            </div>
-          </section>
-          <Footer />
+            </li>
+          {/each}
+        </ul>
+        <div class="mt-6">
+          <label for="newComment" class="text-lg text-blueGray-600"
+            >Your Comment:</label
+          >
+          <textarea
+            id="newComment"
+            class="w-full h-24 p-2 mt-2 rounded-md border-2 border-blueGray-200"
+            bind:value={newComment}
+            placeholder="Schreibe hier deinen Kommentar..."
+          />
+          <div style="text-align: right;">
+            <button
+              class="bg-orange-500 active:bg-orange-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none mt-4 mb-1 ease-linear transition-all duration-150"
+              type="button"
+              on:click={submitComment}
+            >
+              Send
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </main>
-</div>
+    <Footer />
+  </div>
+</main>
 
 <style>
-  .content-section {
-    display: flex;
-    background-color: #e2e8f0 !important;
+  /* Variables */
+  :root {
+    --primary-bg-color: #e2e8f0;
+    --primary-text-color: #4a5568; /* blueGray-700 */
+    --primary-font-size: 1.2em;
+    --primary-line-height: 1.6em;
   }
 
-  .content-container {
-    flex-grow: 1;
-    z-index: 0;
+  /* Typography */
+  .idea-title {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin-bottom: 1rem;
   }
 
-  .title-class {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 1/2;
-    transition: left 0.3s ease-in-out;
-    left: 30px;
+  .idea-description {
+    width: 70%;
+    margin: 2rem auto;
+    text-align: justify;
+    font-size: var(--primary-font-size);
+    line-height: var(--primary-line-height);
   }
 
-  .title-class.sidebar-open {
-    left: 215px;
-  }
-
-  .flex-grow {
-    /* Other styles */
-    z-index: 0; /* This will keep the div behind the button */
-  }
-  .content-container {
-    margin-left: 0; /* This is the starting state */
-    transition: margin-left 0.3s ease-in-out;
-    flex-grow: 1;
-    z-index: 0; /* This will keep the div behind the button */
-  }
-
-  .content-container.sidebar-open {
-    margin-left: 200px; /* This should be equal to the width of the sidebar */
+  .abstract-text {
+    width: 50%;
+    margin: 2rem auto;
+    text-align: justify;
+    font-size: 1.1em;
+    line-height: 1.6em;
   }
 </style>

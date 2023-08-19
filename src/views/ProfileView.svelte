@@ -9,6 +9,7 @@
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
+    import "../styles/global.css";
 
     export let profile_id;
 
@@ -43,154 +44,110 @@
         }
     }
 
-    async function supportIdea() {
+    async function supportProfile() {
         await sendSatsLNurl(lnAdress);
     }
-    let contentContainerClass = "content-container";
+    let contentContainerClass = "combined-content-container";
 
     $: {
         if ($sidebarOpen) {
-            contentContainerClass = "content-container sidebar-open";
+            contentContainerClass = "combined-content-container sidebar-open";
         } else {
-            contentContainerClass = "content-container";
+            contentContainerClass = "combined-content-container";
         }
     }
     $: fetchData(), $helperStore;
     $: fetchData(), profile_id;
 </script>
 
-<div style="position: relative;">
-    <main class="overview-page bg-blueGray-200">
-        <div class="flex">
-            <Menu />
-            <div class="flex-grow">
-                <Banner
-                    bannerImage={banner}
-                    title={name}
-                    subtitle={""}
-                    show_right_text={false}
-                />
-                <div
-                    class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
+<main class="overview-page">
+    <Menu />
+    <div class="flex-grow">
+        <Banner
+            bannerImage={banner}
+            title={name}
+            subtitle={""}
+            show_right_text={false}
+        />
+
+        <div class="content-overlay">
+            <div class="content-icons">
+                <button on:click={supportProfile} class="support-button">
+                    <img
+                        src="../../img/lightning.png"
+                        alt="Support via Bitcoin Lightning"
+                    />
+                </button>
+                <a
+                    href={"https://www.github.com/" + ghUser}
+                    target="_blank"
+                    class="github-icon"
                 >
-                    <button on:click={supportIdea} style="padding: 0;">
-                        <img
-                            src="/img/lightning.png"
-                            style="height: 2.5rem; width: 2.5rem;"
-                            alt="Support via Bitcoin Lightning"
-                        />
-                    </button>
-                    <a
-                        href={"https://www.github.com/" + ghUser}
-                        target="_blank"
-                    >
-                        <i
-                            class="fab fa-github text-white"
-                            style="font-size: 2.5rem;"
-                        />
-                    </a>
-                </div>
-
-                <div class={contentContainerClass}>
-                    <section
-                        class="content-container relative py-16 bg-blueGray-200"
-                    >
-                        <div class="content-container">
-                            <div class="container mx-auto px-4">
-                                <div class="profile-section">
-                                    <div
-                                        class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg"
-                                    >
-                                        <div class="px-6">
-                                            <div
-                                                class="flex flex-wrap justify-center"
-                                            >
-                                                <div
-                                                    class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
-                                                >
-                                                    <div
-                                                        style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
-                                                    >
-                                                        {#if profile && profile.picture}
-                                                            <ProfileImg
-                                                                {profile}
-                                                                style={{
-                                                                    position:
-                                                                        "absolute",
-                                                                    width: "100%",
-                                                                    height: "100%",
-                                                                    objectFit:
-                                                                        "cover",
-                                                                    top: "0",
-                                                                    left: "0",
-                                                                }}
-                                                            />
-                                                        {/if}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="mt-10 py-10 border-t border-blueGray-200 text-center"
-                                            >
-                                                <div
-                                                    class="flex flex-wrap justify-center"
-                                                >
-                                                    <div
-                                                        class="w-full lg:w-9/12 px-4"
-                                                    >
-                                                        <div
-                                                            class="text-lg leading-relaxed mt-4 mb-20 text-blueGray-700 whitespace-pre-line"
-                                                        >
-                                                            {@html about}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="ideas-section mt-4">
-                                        <div class="w-full">
-                                            <UserIdeas {profile_id} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    <Footer />
-                </div>
+                    <i
+                        class="fab fa-github text-white"
+                        style="font-size: 2.5rem;"
+                    />
+                </a>
             </div>
         </div>
-    </main>
-</div>
+
+        <div class={contentContainerClass}>
+            <div
+                class="container bg-card relative flex flex-col min-w-0 break-words"
+            >
+                <div class="flex flex-wrap justify-center">
+                    <div
+                        class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
+                    >
+                        <div
+                            style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
+                        >
+                            {#if profile && profile.picture}
+                                <ProfileImg
+                                    {profile}
+                                    style={{
+                                        position: "absolute",
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        top: "0",
+                                        left: "0",
+                                    }}
+                                />
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    {@html about}
+                </div>
+            </div>
+
+            <div class="container bg-card">
+                <UserIdeas {profile_id} />
+            </div>
+        </div>
+        <Footer />
+    </div>
+</main>
 
 <style>
-    .content-section {
+    .profile-content {
+        margin-top: 10px;
+        padding: 10px 0;
+        border-top: 1px solid #a0aec0; /* blueGray-200 */
+        text-align: center;
         display: flex;
-        background-color: #e2e8f0 !important;
-    }
-
-    .content-container {
-        flex-grow: 1;
-        z-index: 0;
-    }
-
-    .flex-grow {
-        /* Other styles */
-        z-index: 0; /* This will keep the div behind the button */
-    }
-    .content-container {
-        margin-left: 0; /* This is the starting state */
-        transition: margin-left 0.3s ease-in-out;
-        flex-grow: 1;
-        z-index: 0; /* This will keep the div behind the button */
-    }
-
-    .content-container.sidebar-open {
-        margin-left: 200px; /* This should be equal to the width of the sidebar */
-    }
-    .profile-section {
-        margin-top: -2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        max-width: 75%; /* equivalent to lg:w-9/12 */
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 1.2em;
+        line-height: 1.6;
+        color: #4a5568; /* blueGray-700 */
+        white-space: pre-line;
+        margin-bottom: 2.5em;
     }
 </style>
