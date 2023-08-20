@@ -47,7 +47,7 @@
     "classnames": "^2.3.2",
     "flowbite": "^1.6.5",
     "flowbite-svelte": "^0.37.2",
-    "nostr-tools": "^1.13.1",
+    "nostr-tools": "^1.14.0",
     "sirv-cli": "1.0.11",
     "svelte-spa-router": "^3.3.0",
     "tailwindcss": "2.0.4",

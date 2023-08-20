@@ -2,7 +2,6 @@
     import { onMount } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import NostrHelper from "../NostrHelper.js";
     import { helperStore } from "../helperStore.js"; // Import the store
     import Footer from "../components/Footers/FooterBS.svelte";
     import Menu from "../components/Menu.svelte";
@@ -20,7 +19,6 @@
     let git_username = "";
     let git_proof = "";
     let relays = [];
-    let bitstarterHelper = null;
     let newRelay = "";
 
     onMount(async () => {
@@ -86,7 +84,7 @@
 
     const deleteRelay = async (relay) => {
         try {
-            await bitstarterHelper.deleteRelay(relay);
+            await $helperStore.deleteRelay(relay);
             relays = relays.filter((r) => r !== relay);
             // Remove relay from relays array
         } catch (error) {
@@ -97,9 +95,9 @@
     const addRelay = async () => {
         try {
             if (newRelay.trim()) {
-                await bitstarterHelper.addRelay(newRelay);
+                await $helperStore.addRelay(newRelay);
                 // Add the new relay to the local list
-                relays = [...bitstarterHelper.clientRelays];
+                relays = [...$helperStore.clientRelays];
                 newRelay = "";
             }
         } catch (error) {
