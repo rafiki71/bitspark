@@ -9,6 +9,7 @@
   import { helperStore } from "../helperStore.js"; // Import the store
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
+  import ToolBar from "../components/ToolBar.svelte";
 
   export let id;
 
@@ -130,26 +131,11 @@
       subtitle={idea.subtitle}
       show_right_text={false}
     />
-
-    <div class="content-overlay">
-      <div class="content-icons">
-        <button on:click={supportIdea} class="support-button">
-          <img
-            src="../../img/lightning.png"
-            alt="Support via Bitcoin Lightning"
-          />
-        </button>
-        {#if creator_profile && creator_profile.picture}
-          <ProfileImg
-            profile={creator_profile}
-            style={{ width: "40px", height: "40px" }}
-          />
-        {/if}
-        <a href={idea.githubRepo} target="_blank" class="github-icon">
-          <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
-        </a>
-      </div>
-    </div>
+    <ToolBar
+      lnAddress={idea.lnAdress}
+      pubkey={idea.pubkey}
+      githubRepo={idea.githubRepo}
+    />
 
     <div class={contentContainerClass}>
       <div class="container bg-card relative flex flex-col min-w-0 break-words">
