@@ -10,6 +10,7 @@
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
     import "../styles/global.css";
+    import ToolBar from "../components/ToolBar.svelte";
 
     export let profile_id;
 
@@ -19,7 +20,7 @@
     let picture = "";
     let banner = "";
     let ghUser = "";
-    let lnAdress = "";
+    let lnAddress = "";
 
     let publicKey = "";
 
@@ -37,15 +38,16 @@
                 picture = profile.picture;
                 banner = profile.banner;
                 ghUser = profile.githubUsername;
-                lnAdress = profile.lud16;
+                lnAddress = profile.lud16;
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
         }
+        console.log("lnAddress changed:", lnAddress);
     }
 
     async function supportProfile() {
-        await sendSatsLNurl(lnAdress);
+        await sendSatsLNurl(lnAddress);
     }
     let contentContainerClass = "combined-content-container";
 
@@ -58,6 +60,7 @@
     }
     $: fetchData(), $helperStore;
     $: fetchData(), profile_id;
+    $: lnAddress;
 </script>
 
 <main class="overview-page">
@@ -70,26 +73,7 @@
             show_right_text={false}
         />
 
-        <div class="content-overlay">
-            <div class="content-icons">
-                <button on:click={supportProfile} class="support-button">
-                    <img
-                        src="../../img/lightning.png"
-                        alt="Support via Bitcoin Lightning"
-                    />
-                </button>
-                <a
-                    href={"https://www.github.com/" + ghUser}
-                    target="_blank"
-                    class="github-icon"
-                >
-                    <i
-                        class="fab fa-github text-white"
-                        style="font-size: 2.5rem;"
-                    />
-                </a>
-            </div>
-        </div>
+        <ToolBar bind:lnAddress githubRepo={"https://www.github.com/" + ghUser} />
 
         <div class={contentContainerClass}>
             <div
