@@ -5,7 +5,6 @@
 
 <footer class="block py-4 footer" id="myFooter">
   <div class="container mx-auto px-4">
-    <hr class="mb-4 border-b-1 border-blueGray-200" />
     <div class="flex flex-wrap items-center md:justify-between justify-center">
       <div class="w-full px-4">
         <ul class="flex flex-wrap list-none md:justify-center justify-center">
@@ -54,11 +53,3 @@
     </div>
   </div>
 </footer>
-
-<style>
-  footer {
-    position: relative;
-    z-index: 10;
-    background-color: white;
-  }
-</style>

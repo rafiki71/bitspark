@@ -20,7 +20,7 @@
 
 <Link to={`/profile/${pubkey}`}>
   <img
-    class="profile-image {githubVerified ? '' : 'grayscale'}"
+    class="profile-image object-cover {githubVerified ? '' : 'grayscale'}"
     src={picture}
     alt="Profile Img"
     style={styleString}

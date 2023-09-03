@@ -1,3 +1,24 @@
+.color-for-bg {
+    color: rgb(71 85 105)
+}
+
+/* Layout */
+.overview-page {
+    position: relative;
+    display: flex;
+    background-color: rgb(71 85 105)
+    /* background-color: #E2E8F0; Assuming you have this variable defined */
+}
+footer {
+  position: relative;
+  z-index: 10;
+  background-color: rgb(12, 12, 12);
+}
+
+.move-up {
+    transform: translateY(-2px);
+}
+
 .content-overlay {
     position: absolute;
     left: 0;
@@ -107,7 +128,7 @@
 
 .content-section {
     display: flex;
-    background-color: #e2e8f0 !important;
+    /* background-color: #e2e8f0 !important;*/
 }
 
 .content-container {
@@ -139,7 +160,7 @@
     padding-bottom: 4rem;
 
     /* From .bg-blueGray-200 */
-    background-color: #e2e8f0;
+    /* background-color: #e2e8f0; */
     /* This is a guess based on the name. Replace with the actual color if different. */
 
     /* From .container (assuming it centers content with max-width and auto margins) */
@@ -160,13 +181,6 @@
     margin-left: 200px;
 }
 
-/* Layout */
-.overview-page {
-    position: relative;
-    display: flex;
-    background-color: #E2E8F0; /* Assuming you have this variable defined */
-}
-
 .html-content {
     width: 70%;
     margin: 0 auto;
@@ -174,7 +188,8 @@
 }
 
 .github-icon-size {
-    font-size: 2.5rem; /* This is equivalent to 40px for most browsers */
+    font-size: 2.5rem;
+    /* This is equivalent to 40px for most browsers */
     width: 40px;
     height: 40px;
     display: inline-flex;
