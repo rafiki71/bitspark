@@ -4,6 +4,8 @@ class EventBuffer {
         this.userIdeas = new Map();  // to store idea ids by user
         this.categoryIdeas = new Map();  // to store idea ids by category
         this.ideas = new Map();
+        this.jobs = new Map();  // to store jobs
+        this.ideaJobs = new Map();
     }
 
     profilesEmpty() {
@@ -20,6 +22,12 @@ class EventBuffer {
 
     ideasEmpty() {
         return this.ideas.size == 0;
+    }
+
+    jobsEmpty(idea_id) {
+        // Check if there are any jobs for the given idea_id
+        const jobsForIdea = this.ideaJobs.get(idea_id);
+        return !jobsForIdea || jobsForIdea.length == 0;
     }
 
     // Hinzufügen eines Profils zur Map
@@ -88,6 +96,29 @@ class EventBuffer {
             const categoryIdeaIds = this.categoryIdeas.get(category[0]);
             return Array.from(categoryIdeaIds || []).map(id => this.ideas.get(id));
         }
+    }
+
+    addJob(job, ideaId) {
+        if (!job || !this.ideas.has(ideaId)) {
+            return;
+        }
+        // If the job is already in the map, don't add it again
+        if (this.jobs.has(job.id)) {
+            return;
+        }
+        console.log("addJob:", job)
+        this.jobs.set(job.id, job);
+
+        // Associate job with the given idea
+        const jobSetForIdea = this.ideaJobs.get(ideaId) || new Set();
+        jobSetForIdea.add(job.id);
+        this.ideaJobs.set(ideaId, jobSetForIdea);
+    }
+
+    // Get all jobs associated with an idea
+    getJobsForIdea(ideaId) {
+        const jobIds = this.ideaJobs.get(ideaId);
+        return Array.from(jobIds || []).map(id => this.jobs.get(id));
     }
 }
 
