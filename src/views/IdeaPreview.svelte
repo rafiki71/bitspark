@@ -56,32 +56,27 @@
       subtitle={$previewStore.subtitle}
       show_right_text={false}
     />
-    <div
-      class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
-    >
-      <div
-        class="absolute top-4 right-4 text-3xl text-white flex justify-end items-center gap-6"
-      >
-        <button on:click={supportIdea} style="padding: 0;">
+
+    <div class="content-overlay">
+      <div class="content-icons">
+        <button on:click={supportIdea} class="support-button">
           <img
             src="../../img/lightning.png"
-            style="height: 2.5rem; width: 2.5rem;"
             alt="Support via Bitcoin Lightning"
           />
         </button>
         {#if creator_profile && creator_profile.picture}
-          <div style="margin-right: 10px;">
             <ProfileImg
               profile={creator_profile}
               style={{ width: "40px", height: "40px" }}
             />
-          </div>
         {/if}
         <a href={$previewStore.githubRepo} target="_blank">
           <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
         </a>
       </div>
     </div>
+    
     <div class={contentContainerClass}>
       <div class="container bg-card relative flex flex-col min-w-0 break-words">
         <div class="px-6">
