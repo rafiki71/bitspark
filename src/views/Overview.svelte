@@ -119,7 +119,7 @@
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
     <div class={contentContainerClass}>
-      <section class="content-container relative py-16 bg-blueGray-200">
+      <section class="content-container relative py-16">
         <div class="content-container">
           <div class="container mx-auto px-4">
             <div class="row">
