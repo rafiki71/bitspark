@@ -9,6 +9,7 @@ export default class NostrHelper {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
     this.idea_kind = 1339;
+    this.job_kind = 1340;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -323,6 +324,63 @@ export default class NostrHelper {
     const commentEvent = this.createEvent(1, comment, tags);
     console.log("postComment()")
     return await this.sendEvent(commentEvent);
+  }
+
+  async postJob(ideaId, jobTitle, jBannerUrl, jobDescription, jobCategories) {
+    if (!this.write_mode) return; // Do nothing in read-only mode
+
+    const tags = [
+      ["e", ideaId],
+      ["jTitle", jobTitle]
+      ["jbUrl", jBannerUrl],
+    ];
+
+    // Add each category to the tags
+    jobCategories.forEach(category => {
+      tags.push(["c", category]);
+    });
+
+    const jobEvent = this.createEvent(this.job_kind, jobDescription, tags);
+    console.log("Job Posted");
+    return await this.sendEvent(jobEvent);
+  }
+
+  async getJobs(ideaId) {
+    if (this.eventBuffer.jobsEmpty(ideaId)) {
+      await this.fetchJobs(ideaId);
+    }
+
+    return this.eventBuffer.getJobsForIdea(ideaId);
+  }
+
+  async fetchJobs(idea_id) {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchJobs has been called too frequently. Please wait a bit.");
+      return;
+    }
+
+    // Add idea_id to the filter
+    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id] }];
+    let jobs = await this.pool.list(this.relays, filters);
+
+    // Filter out jobs where job creator is not idea creator
+    jobs = jobs.filter(job => {
+      if (job.tags.some(tag => tag[0] === "e" && tag[1] === idea_id) && job.pubkey === this.publicKey) {
+        return job;
+      }
+    });
+
+    // Add each valid job to the associated idea in the eventBuffer
+    jobs.forEach(job => {
+      this.eventBuffer.addJob(job, idea_id);
+    });
+
+    console.log("fetchJobs:", jobs);
+    this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
+    return jobs;
   }
 
   async likeEvent(event_id) {
