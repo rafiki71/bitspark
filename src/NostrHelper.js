@@ -372,10 +372,10 @@ export default class NostrHelper {
     if (!this.write_mode) return; // Do nothing in read-only mode
 
     const tags = [
+      ["t", "job"],
       ["e", ideaId],
-      ["jTitle", jobTitle]
-      ["jbUrl", jBannerUrl],
-      ["t", "job"]
+      ["jTitle", jobTitle],
+      ["jbUrl", jBannerUrl]
     ];
 
     // Add each category to the tags
@@ -431,11 +431,11 @@ export default class NostrHelper {
     if (!this.write_mode) return;
 
     const tags = [
+      ["t", "offer"],
       ["e", jobId],  // Job ID
-      ["intro", developerIntro],
-      ["bid", developerBid],
       ["p", jobProfile],  // Profile of the developer
-      ["t", "offer"]
+      ["intro", developerIntro],
+      ["bid", developerBid]
     ];
 
     const offerEvent = this.createEvent(this.job_kind, "Developer Offer", tags);
@@ -453,13 +453,13 @@ export default class NostrHelper {
 
   // 5. Angebot annehmen oder ablehnen:
   async acceptOffer(offerId, offerProfile) {
-    const tags = [["e", offerId], ["p", offerProfile], ["status", "accepted"]];
+    const tags = [["t", "ao"],["e", offerId], ["p", offerProfile], ["status", "accepted"]];
     const acceptEvent = this.createEvent(this.job_kind, "Offer Accepted", tags);
     return await this.sendEvent(acceptEvent);
   }
 
   async declineOffer(offerId, offerProfile, reason) {
-    const tags = [["e", offerId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
+    const tags = [["t", "do"],["e", offerId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
     const declineEvent = this.createEvent(this.job_kind, "Offer Declined", tags);
     return await this.sendEvent(declineEvent);
   }
@@ -469,10 +469,10 @@ export default class NostrHelper {
     if (!this.write_mode) return;
 
     const tags = [
+      ["t", "pr"],
       ["e", offerId],  // Job ID
       ["pr", pullRequestId],
-      ["p", jobProfile],  // Profile of the developer
-      ["t", "pr"]
+      ["p", jobProfile]
     ];
 
     const prEvent = this.createEvent(this.job_kind, "Pull Request", tags);
@@ -482,13 +482,13 @@ export default class NostrHelper {
 
   // 7. Pull Request annehmen oder ablehnen:
   async acceptPullRequest(pullRequestId, offerProfile) {
-    const tags = [["e", pullRequestId], ["p", offerProfile], ["status", "accepted"]];
+    const tags = [["t", "apr"],["e", pullRequestId], ["p", offerProfile], ["status", "accepted"]];
     const acceptEvent = this.createEvent(this.job_kind, "PR Accepted", tags);
     return await this.sendEvent(acceptEvent);
   }
 
-  async declinePullRequest(pullRequestId, reason) {
-    const tags = [["e", pullRequestId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
+  async declinePullRequest(pullRequestId, offerProfile, reason) {
+    const tags = [["t", "dpr"], ["e", pullRequestId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
     const declineEvent = this.createEvent(this.job_kind, "PR Declined", tags);
     return await this.sendEvent(declineEvent);
   }
@@ -496,11 +496,11 @@ export default class NostrHelper {
   // 9. Bewertungen:
   async postReview(offerId, reviewContent, rating, profileRef) {
     const tags = [
+      ["t", "review"],
       ["e", offerId],  // Offer ID
       ["p", profileRef],  // Profile of the developer
       ["review", reviewContent],
-      ["rating", rating],
-      ["t", "review"]
+      ["rating", rating]
     ];
 
     const reviewEvent = this.createEvent(this.job_kind, "Review Posted", tags);
