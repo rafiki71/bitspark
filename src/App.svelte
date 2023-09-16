@@ -9,6 +9,7 @@
   import EditProfileView from "./views/EditProfileView.svelte";
   import ProfileView from "./views/ProfileView.svelte";
   import PreView from "./views/IdeaPreview.svelte";
+  import PostJob from "./views/PostJob.svelte";
 </script>
 
 <svelte:head>
@@ -33,6 +34,7 @@
       <Route path="/postidea" component={PostIdea} />
       <Route path="/edit_profile/:profile_id" let:params component={EditProfileView} />
       <Route path="/profile/:profile_id" let:params component={ProfileView} />
+      <Route path="/postjob/:ideaID" let:params component={PostJob} />
     </main>
   </div>
 </Router>
