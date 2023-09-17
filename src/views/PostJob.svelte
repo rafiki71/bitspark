@@ -9,10 +9,6 @@
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
 
-    function navigateTo(route) {
-        navigate(route);
-    }
-    
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
 
@@ -35,13 +31,13 @@
             $previewJobStore.jobDescription &&
             $previewJobStore.jobCategories.length
         ) {
-            await helperStore.postJob(
+            await $helperStore.postJob(
                 $previewJobStore.ideaId,
                 $previewJobStore.jobTitle,
                 $previewJobStore.jBannerUrl,
                 $previewJobStore.jobDescription,
                 $previewJobStore.jobCategories
-            );
+                );
 
             // Zurücksetzen des Zustands
             for (let key in $previewJobStore) {
@@ -51,7 +47,7 @@
                     previewJobStore[key] = "";
                 }
             }
-            navigate("/overview");
+            navigate(`/idea/${ideaID}`);
         } else {
             console.log("Bitte füllen Sie alle Felder aus.");
         }

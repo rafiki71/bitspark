@@ -11,6 +11,10 @@
   let profiles = {};
 
   async function fetchComments() {
+    if(!$helperStore) {
+      return;
+    }
+    
     try {
       const fetchedComments = await $helperStore.getComments(id);
       comments = await Promise.all(

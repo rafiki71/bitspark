@@ -384,13 +384,13 @@ export default class NostrHelper {
     });
 
     const jobEvent = this.createEvent(this.job_kind, jobDescription, tags);
-    console.log("Job Posted");
+    console.log("Job Posted:", jobEvent);
     return await this.sendEvent(jobEvent);
   }
 
   async getJobs(ideaId) {
     if (this.eventBuffer.jobsEmpty(ideaId)) {
-      await this.fetchJobs(ideaId);
+      return await this.fetchJobs(ideaId);
     }
 
     return this.eventBuffer.getJobsForIdea(ideaId);
@@ -408,12 +408,9 @@ export default class NostrHelper {
     // Add idea_id to the filter
     let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id] }];
     let jobs = await this.pool.list(this.relays, filters);
-
     // Filter out jobs where job creator is not idea creator
     jobs = jobs.filter(job => {
-      if (job.tags.some(tag => tag[0] === "e" && tag[1] === idea_id) && job.pubkey === this.publicKey) {
         return job;
-      }
     });
 
     // Add each valid job to the associated idea in the eventBuffer
@@ -421,7 +418,6 @@ export default class NostrHelper {
       this.eventBuffer.addJob(job, idea_id);
     });
 
-    console.log("fetchJobs:", jobs);
     this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
     return jobs;
   }

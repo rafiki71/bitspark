@@ -6,6 +6,7 @@
   import Menu from "../components/Menu.svelte";
   import ProfileImg from "../components/ProfileImg.svelte";
   import CommentWidget from "../components/CommentWidget.svelte";
+  import JobWidget from "../components/JobWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { sidebarOpen } from "../helperStore.js";
@@ -42,6 +43,10 @@
   });
 
   async function fetchData() {
+    if(!$helperStore) {
+      return;
+    }
+    
     try {
       const fetchedIdea = await $helperStore.getEvent(id);
 
@@ -130,6 +135,7 @@
           </div>
         </div>
       </div>
+      <JobWidget ideaID={id} />
       <CommentWidget id={id} />
     </div>
     <Footer />
