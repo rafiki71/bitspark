@@ -43,10 +43,10 @@
   });
 
   async function fetchData() {
-    if(!$helperStore) {
+    if (!$helperStore) {
       return;
     }
-    
+
     try {
       const fetchedIdea = await $helperStore.getEvent(id);
 
@@ -107,7 +107,7 @@
     />
 
     <div class={contentContainerClass}>
-      <div class="container bg-card relative flex flex-col min-w-0 break-words">
+      <div class="single-card container">
         {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
           <button
             on:click={deleteIdea}
@@ -117,61 +117,25 @@
           </button>
         {/if}
 
-        <div class="px-6">
-          <div class="text-center mt-6">
-            <h2 class="base-h2">
-              {idea.name}
-            </h2>
-            <h4 class="base-h4">
-              {"Abstract"}
-            </h4>
-            <p class="abstract-text">
-              {idea.abstract}
-            </p>
-            <hr class="my-6" />
-            <p class="html-content">
-              {@html idea.message}
-            </p>
+        <div class="text-center mt-6 px-6">
+          <h2 class="base-h2 text-color-df">
+            {idea.name}
+          </h2>
+          <h4 class="base-h4 text-color-df">
+            {"Abstract"}
+          </h4>
+          <p class="abstract-text text-color-df">
+            {idea.abstract}
+          </p>
+          <hr style="width: 65%; margin: auto;" />
+          <div class="single-card-content text-color-df">
+            {@html idea.message}
           </div>
         </div>
       </div>
       <JobWidget ideaID={id} />
-      <CommentWidget id={id} />
+      <CommentWidget {id} />
     </div>
     <Footer />
   </div>
 </main>
-
-<style>
-  /* Variables */
-  :root {
-    --primary-bg-color: #e2e8f0;
-    --primary-text-color: #4a5568; /* blueGray-700 */
-    --primary-font-size: 1.2em;
-    --primary-line-height: 1.6em;
-  }
-
-  /* Typography */
-  .idea-title {
-    font-size: 4rem;
-    font-weight: 700;
-    color: var(--primary-text-color);
-    margin-bottom: 1rem;
-  }
-
-  .idea-description {
-    width: 70%;
-    margin: 2rem auto;
-    text-align: justify;
-    font-size: var(--primary-font-size);
-    line-height: var(--primary-line-height);
-  }
-
-  .abstract-text {
-    width: 50%;
-    margin: 2rem auto;
-    text-align: justify;
-    font-size: 1.1em;
-    line-height: 1.6em;
-  }
-</style>

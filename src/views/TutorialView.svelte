@@ -41,24 +41,13 @@
         show_right_text={false}
       />
       <div class={contentContainerClass}>
-        <div
-          class="container bg-card relative flex flex-col min-w-0 break-words"
-        >
-          <div class="px-6">
-            <div class="text-center mt-6">
-              <h3
-                class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700"
-              >
-                {tutorial.title}
-              </h3>
-              <hr class="my-6" />
-              <!-- Strich -->
-              <p
-                class="message-text"
-                style="width: 70%; margin: 0 auto; text-align: justify;"
-              >
-                {@html tutorial.content}
-              </p>
+        <div class="single-card container">
+          <div class="text-center mt-6 px-6">
+            <h2 class="base-h2 text-color-df">
+              {tutorial.title}
+            </h2>
+            <div class="single-card-content text-color-df">
+              {@html tutorial.content}
             </div>
           </div>
         </div>
