@@ -116,7 +116,9 @@
           </div>
         </div>
       </div>
-      <CommentWidget {id} />
+      <div class="single-card container">
+        <CommentWidget {id} />
+      </div>
     </div>
     <Footer />
   </div>

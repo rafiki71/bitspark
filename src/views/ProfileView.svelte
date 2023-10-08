@@ -73,65 +73,46 @@
             show_right_text={false}
         />
 
-        <ToolBar bind:lnAddress githubRepo={"https://www.github.com/" + ghUser} />
+        <ToolBar
+            bind:lnAddress
+            githubRepo={"https://www.github.com/" + ghUser}
+        />
 
         <div class={contentContainerClass}>
-            <div
-                class="container bg-card relative flex flex-col min-w-0 break-words"
-            >
-                <div class="flex flex-wrap justify-center">
-                    <div
-                        class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
-                    >
-                        <div
-                            style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
-                        >
-                            {#if profile && profile.picture}
-                                <ProfileImg
-                                    {profile}
-                                    style={{
-                                        position: "absolute",
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                        top: "0",
-                                        left: "0",
-                                    }}
-                                />
-                            {/if}
-                        </div>
+            <div class="single-card container">
+                <div class="flex justify-center">
+                    <div class="single-card-profile-img">
+                        {#if profile && profile.picture}
+                            <ProfileImg
+                                {profile}
+                                style={{
+                                    position: "absolute",
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    top: "0",
+                                    left: "0",
+                                }}
+                            />
+                        {/if}
                     </div>
                 </div>
-                <div class="profile-content">
-                    {@html about}
+                <div class="text-center mt-6 px-6">
+                    <div style="top: -50px; position: relative">
+                        <h2 class="base-h2 text-color-df">
+                            {name}
+                        </h2>
+                    </div>
+                    <div class="single-card-content text-color-df">
+                        {@html about}
+                    </div>
                 </div>
             </div>
 
-            <div class="container bg-card">
+            <div class="single-card container">
                 <UserIdeas {profile_id} />
             </div>
         </div>
         <Footer />
     </div>
 </main>
-
-<style>
-    .profile-content {
-        margin-top: 10px;
-        padding: 10px 0;
-        border-top: 1px solid #a0aec0; /* blueGray-200 */
-        text-align: center;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%;
-        max-width: 75%; /* equivalent to lg:w-9/12 */
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 1.2em;
-        line-height: 1.6;
-        color: #4a5568; /* blueGray-700 */
-        white-space: pre-line;
-        margin-bottom: 2.5em;
-    }
-</style>

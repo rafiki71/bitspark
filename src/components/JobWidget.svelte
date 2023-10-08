@@ -12,7 +12,7 @@
 
   function postJob() {
     navigate(`/postjob/${ideaID}`);
-}
+  }
 
   async function fetchJobs() {
     if (!$helperStore) {
@@ -50,28 +50,24 @@
   }
 </script>
 
-<div class="container bg-card p-4">
-  <div class="header">
-    <h4 class="base-h4">Jobs</h4>
-    {#if $helperStore?.publicKey && $helperStore?.publicKey === creatorPubKey}
-      <button on:click={postJob} class="add-job-icon">
-    <i class="fa fa-plus-circle" aria-hidden="true"></i>
-</button>
-
-
-    {/if}
-  </div>
-  <ul class="job-list">
-    {#each jobs as job (job.id)}
-      <li class="job-item">
-        <a href={`/job/${job.id}`} class="invisible-link">
-          <div class="job-image" style="background-image: url({job.url})"></div>
-          <div class="job-title">{job.title}</div>
-        </a>
-      </li>
-    {/each}
-  </ul>
+<div class="header">
+  <h4 class="base-h4">Jobs</h4>
+  {#if $helperStore?.publicKey && $helperStore?.publicKey === creatorPubKey}
+    <button on:click={postJob} class="add-job-icon">
+      <i class="fa fa-plus-circle" aria-hidden="true" />
+    </button>
+  {/if}
 </div>
+<ul class="job-list">
+  {#each jobs as job (job.id)}
+    <li class="job-item">
+      <a href={`/job/${job.id}`} class="invisible-link">
+        <div class="job-image" style="background-image: url({job.url})" />
+        <div class="job-title">{job.title}</div>
+      </a>
+    </li>
+  {/each}
+</ul>
 
 <style>
   .add-job-icon {
@@ -87,20 +83,30 @@
     border-radius: 50%; /* Runder Button */
     padding: 0; /* Entfernen Sie jeglichen Abstand */
     transition: color 0.5s, background-color 0.5s; /* Langsamere Übergänge */
-    outline: none; 
-    cursor: pointer; 
-}
+    outline: none;
+    cursor: pointer;
+  }
 
-.add-job-icon:hover {
-    background-color: rgba(249, 115, 22, 0.2); /* Dezentes Orange mit 20% Deckkraft für den Hintergrund */
-    color: rgba(249, 115, 22, 0.7); /* Dezentes Orange mit 70% Deckkraft für das Symbol */
+  .add-job-icon:hover {
+    background-color: rgba(
+      249,
+      115,
+      22,
+      0.2
+    ); /* Dezentes Orange mit 20% Deckkraft für den Hintergrund */
+    color: rgba(
+      249,
+      115,
+      22,
+      0.7
+    ); /* Dezentes Orange mit 70% Deckkraft für das Symbol */
     text-decoration: none;
-}
+  }
 
-.add-job-icon:focus {
-  outline: none; /* Entfernen Sie den Fokus */
-  box-shadow: none; /* Entfernen Sie jeglichen Schatten, der durch den Fokus entsteht */
-}
+  .add-job-icon:focus {
+    outline: none; /* Entfernen Sie den Fokus */
+    box-shadow: none; /* Entfernen Sie jeglichen Schatten, der durch den Fokus entsteht */
+  }
 
   .header {
     display: flex;

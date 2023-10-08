@@ -4,7 +4,7 @@ const tutorials = [
         title: "What is Nostr?",
         subtitle: "Nostr - The decentralized State",
         content: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="font-family: Arial, sans-serif; padding-top: 20px;">
             <h1>Welcome to the world of Nostr!</h1>
             <p>Perhaps you've heard about Nostr, the protocol that's sparking conversations and stretching imaginations all across the digital world. Well, we're here to guide you through it and make understanding and using Nostr as easy as possible. Let's dive in!</p>
     
@@ -30,7 +30,7 @@ const tutorials = [
         title: "How can I use Nostr with GetAlby?",
         subtitle: "Embrace the Future of Communication with GetAlby",
         content: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="font-family: Arial, sans-serif; padding-top: 20px;">
             <h1>Welcome, future Nostronaut!</h1>
             <p>Welcome to a revolutionary change in communication! We're here to guide you through the world of Nostr, a vast decentralized network. And the best part? You can navigate this new world with GetAlby - your trusty companion on this journey. Let's dive in!</p>
             <img src="../../img/tutorial/alby_0.png" alt="Introduction">
