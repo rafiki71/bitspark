@@ -49,7 +49,7 @@
                     previewJobStore[key] = "";
                 }
             }
-            //navigate(`/idea/${ideaID}`);
+            navigate(`/idea/${ideaID}`);
         } else {
             console.log("Bitte füllen Sie alle Felder aus.");
         }
