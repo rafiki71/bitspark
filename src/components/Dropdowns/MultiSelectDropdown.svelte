@@ -20,9 +20,9 @@
   }
 </script>
 
-<div class="block rounded-md border-1 border-gray-200 relative w-full">
+<div class="input-style">
   <button 
-    class="w-full bg-white px-4 py-2 text-left border-2 border-gray-200 rounded-md" 
+    class="w-full bg-white px-4 py-2 text-left rounded-md" 
     on:click={() => dropdownOpen = !dropdownOpen}>
     Select Categories
   </button>

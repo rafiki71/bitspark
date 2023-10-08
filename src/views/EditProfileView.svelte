@@ -126,30 +126,22 @@
             show_right_text={false}
         />
         <div class={contentContainerClass}>
-            <div
-                class="container bg-card relative flex flex-col min-w-0 break-words"
-            >
-                <div class="flex flex-wrap justify-center">
-                    <div
-                        class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center"
-                    >
-                        <div
-                            style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; position: relative; top: -75px;"
-                        >
-                            {#if profile && profile.picture}
-                                <ProfileImg
-                                    {profile}
-                                    style={{
-                                        position: "absolute",
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                        top: "0",
-                                        left: "0",
-                                    }}
-                                />
-                            {/if}
-                        </div>
+            <div class="single-card container">
+                <div class="flex justify-center">
+                    <div class="single-card-profile-img">
+                        {#if profile && profile.picture}
+                            <ProfileImg
+                                {profile}
+                                style={{
+                                    position: "absolute",
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    top: "0",
+                                    left: "0",
+                                }}
+                            />
+                        {/if}
                     </div>
                 </div>
                 <div class="mt-10 px-10">
