@@ -368,13 +368,14 @@ export default class NostrHelper {
 ##    ## ##     ## ##     ## ##     ## ##     ## ##    ##  ##   ##  ##          ##    
  ######   #######  ########  ##     ## ##     ## ##     ## ##    ## ########    ##                
   */
-  async postJob(ideaId, jobTitle, jBannerUrl, jobDescription, jobCategories) {
+  async postJob(ideaId, sats, jobTitle, jBannerUrl, jobDescription, jobCategories) {
     if (!this.write_mode) return; // Do nothing in read-only mode
 
     const tags = [
       ["t", "job"],
       ["e", ideaId],
       ["jTitle", jobTitle],
+      ["sats", sats],
       ["jbUrl", jBannerUrl]
     ];
 

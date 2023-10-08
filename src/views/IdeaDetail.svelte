@@ -135,7 +135,7 @@
           </div>
         </div>
       </div>
-      <JobWidget ideaID={id} />
+      <JobWidget ideaID={id} creatorPubKey={idea.pubkey} />
       <CommentWidget id={id} />
     </div>
     <Footer />

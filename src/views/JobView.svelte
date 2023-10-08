@@ -41,10 +41,10 @@
   });
 
   async function fetchData() {
-    if(!$helperStore) {
+    if (!$helperStore) {
       return;
     }
-    
+
     try {
       const fetchedJob = await $helperStore.getEvent(id);
       console.log("Fetched Job:", fetchedJob);
@@ -56,6 +56,7 @@
       job = {
         id: fetchedJob.id,
         title: tags.jTitle,
+        sats: tags.sats,
         company: tags.jCompany,
         bannerImage: tags.jbUrl,
         description: fetchedJob.content,
@@ -86,9 +87,10 @@
     <Banner
       bannerImage={job.bannerImage}
       title={job.title}
-      subtitle={job.company}
+      subtitle={`${job.sats} Sats`}
       show_right_text={false}
     />
+
     <ToolBar />
 
     <div class={contentContainerClass}>
@@ -114,7 +116,7 @@
           </div>
         </div>
       </div>
-      <CommentWidget id={id} />
+      <CommentWidget {id} />
     </div>
     <Footer />
   </div>
