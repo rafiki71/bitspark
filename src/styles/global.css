@@ -183,6 +183,20 @@ footer {
     margin-left: 200px;
 }
 
+
+.title-class {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 1/2;
+    transition: left 0.3s ease-in-out;
+    left: 55px;
+}
+
+.title-class.sidebar-open {
+    left: 215px;
+}
+
 .html-content {
     width: 70%;
     margin: 0 auto;
@@ -243,4 +257,10 @@ footer {
 .single-card-content h6 {
     margin-top: 1.5em;
     /* Adjust as needed */
+}
+
+.diagonal-cut {
+    bottom: -1px;
+    width: 100%;
+    position: inherit;
 }

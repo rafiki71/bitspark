@@ -32,7 +32,6 @@
             class="w-full h-full absolute opacity-50 bg-black"
         />
 
-        <!-- Titel und Untertitel hinzufügen -->
         <div
             class="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4 flex flex-col items-start justify-center h-full"
         >
@@ -71,43 +70,19 @@
                 </div>
             </div>
         </div>
-        <!-- Hinzugefügt: Schräg abgeschnittener Banner -->
-        <div
-            class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px"
-            style="transform: translateZ(0);"
-        >
             <svg
-                class="absolute bottom-0 overflow-hidden"
+                class="diagonal-cut"
                 xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
+                preserveAspectRatio="xMinYMin meet"
                 version="1.1"
-                viewBox="0 0 2560 100"
+                viewBox="0 0 2560 80"
                 x="0"
                 y="0"
             >
                 <polygon
-                    class="color-for-bg fill-current"
-                    points="2560 0 2560 100 0 100"
+                    class="color-for-bg fill-current diagonal-cut"
+                    points="2560 0 2560 80 0 80"
                 />
             </svg>
-        </div>
-        <!-- Ende: Schräg abgeschnittener Banner -->
-        <!-- Create Idea Button hinzufügen -->
     </div>
-    <!-- ... -->
 </section>
-
-<style>
-    .title-class {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 1/2;
-        transition: left 0.3s ease-in-out;
-        left: 55px;
-    }
-
-    .title-class.sidebar-open {
-        left: 215px;
-    }
-</style>
