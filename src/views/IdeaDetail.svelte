@@ -133,8 +133,12 @@
           </div>
         </div>
       </div>
-      <JobWidget ideaID={id} />
-      <CommentWidget {id} />
+      <div class="single-card container">
+        <JobWidget ideaID={id} />
+      </div>
+      <div class="container bg-card p-4">
+        <CommentWidget {id} />
+      </div>
     </div>
     <Footer />
   </div>

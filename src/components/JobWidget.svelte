@@ -38,17 +38,15 @@
   }
 </script>
 
-<div class="container bg-card p-4">
-  <h4 class="base-h4">Jobs</h4>
-  <ul class="job-list">
-    {#each jobs as job (job.id)}
-      <li class="job-item">
-        <div class="job-image" style="background-image: url({job.url})"></div>
-        <div class="job-title">{job.title}</div>
-      </li>
-    {/each}
-  </ul>
-</div>
+<h4 class="base-h4">Jobs</h4>
+<ul class="job-list">
+  {#each jobs as job (job.id)}
+    <li class="job-item">
+      <div class="job-image" style="background-image: url({job.url})" />
+      <div class="job-title">{job.title}</div>
+    </li>
+  {/each}
+</ul>
 
 <style>
   .job-list {
@@ -82,6 +80,3 @@
     cursor: pointer; /* Ein Zeiger-Cursor zeigt an, dass der Job-Titel anklickbar ist */
   }
 </style>
-
-
-

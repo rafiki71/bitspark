@@ -159,7 +159,6 @@ footer {
 
     /* From .py-16 (assuming it sets padding-top and padding-bottom to 4rem) */
     padding-top: 32px;
-    padding-bottom: 4rem;
 
     /* From .bg-blueGray-200 */
     /* background-color: #e2e8f0; */
@@ -216,7 +215,7 @@ footer {
 .single-card {
     background-color: white;
     width: 100%;
-    margin-bottom: 6rem;
+    margin-bottom: 4rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border-radius: 1.25rem;

@@ -109,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="container bg-card">
+            <div class="single-card container">
                 <UserIdeas {profile_id} />
             </div>
         </div>
