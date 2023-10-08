@@ -134,9 +134,9 @@
         </div>
       </div>
       <div class="single-card container">
-        <JobWidget ideaID={id} />
+        <JobWidget ideaID={id} creatorPubKey={idea.pubkey}/>
       </div>
-      <div class="container bg-card p-4">
+      <div class="single-card container">
         <CommentWidget {id} />
       </div>
     </div>

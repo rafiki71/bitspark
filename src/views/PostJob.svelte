@@ -26,6 +26,7 @@
     async function postJob() {
         if (
             $previewJobStore.ideaId &&
+            $previewJobStore.sats &&
             $previewJobStore.jobTitle &&
             $previewJobStore.jBannerUrl &&
             $previewJobStore.jobDescription &&
@@ -33,6 +34,7 @@
         ) {
             await $helperStore.postJob(
                 $previewJobStore.ideaId,
+                $previewJobStore.sats,
                 $previewJobStore.jobTitle,
                 $previewJobStore.jBannerUrl,
                 $previewJobStore.jobDescription,
@@ -88,6 +90,16 @@
                                     placeholder="Job Title"
                                     class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                     bind:value={$previewJobStore.jobTitle}
+                                    style="width: 100%;"
+                                />
+                            </div>
+
+                            <div class="mb-4">
+                                <input
+                                    type="text"
+                                    placeholder="Sats"
+                                    class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    bind:value={$previewJobStore.sats}
                                     style="width: 100%;"
                                 />
                             </div>
