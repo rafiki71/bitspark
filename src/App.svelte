@@ -10,6 +10,7 @@
   import ProfileView from "./views/ProfileView.svelte";
   import PreView from "./views/IdeaPreview.svelte";
   import PostJob from "./views/PostJob.svelte";
+  import JobView from "./views/JobView.svelte";
 </script>
 
 <svelte:head>
@@ -30,6 +31,7 @@
       <Route path="/preview" component={PreView} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
+      <Route path="/job/:id" component={JobView} />
       <Route path="/tutorial/:id" component={TutorialView} />
       <Route path="/postidea" component={PostIdea} />
       <Route path="/edit_profile/:profile_id" let:params component={EditProfileView} />

@@ -3,7 +3,6 @@
 <script>
   import { onMount } from "svelte";
   import { helperStore } from "../helperStore.js"; // Import the store
-
   export let ideaID; // Die ID der Idee, um Jobs zu laden
 
   let jobs = [];
@@ -43,14 +42,34 @@
   <ul class="job-list">
     {#each jobs as job (job.id)}
       <li class="job-item">
-        <div class="job-image" style="background-image: url({job.url})"></div>
-        <div class="job-title">{job.title}</div>
+        <!-- Verwenden eines <a>-Tags ohne sichtbare Veränderungen: -->
+        <a href={`/job/${job.id}`} class="invisible-link">
+          <div class="job-image" style="background-image: url({job.url})"></div>
+          <div class="job-title">{job.title}</div>
+        </a>
       </li>
     {/each}
   </ul>
 </div>
 
 <style>
+   .invisible-link {
+    text-decoration: none; /* Keine Unterstreichung */
+    color: inherit; /* Erbt die Farbe des Elternelements */
+    display: flex;
+    align-items: center; /* Zentriert den Titel vertikal neben dem Bild */
+    gap: 1rem;
+  }
+  
+  .invisible-link:hover {
+    text-decoration: none; /* Stellt sicher, dass die Unterstreichung beim Überfahren nicht angezeigt wird */
+  }
+
+  .job-item:hover .job-title {
+    color: #0077cc; /* Ein leichtes Blau als Hover-Farbe für den Titel */
+    cursor: pointer; /* Ein Zeiger-Cursor zeigt an, dass der Job-Titel anklickbar ist */
+  }
+
   .job-list {
     display: flex;
     flex-direction: column; /* Jobs untereinander stapeln */
