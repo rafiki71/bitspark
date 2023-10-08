@@ -158,7 +158,7 @@ footer {
     position: relative;
 
     /* From .py-16 (assuming it sets padding-top and padding-bottom to 4rem) */
-    padding-top: 4rem;
+    padding-top: 32px;
     padding-bottom: 4rem;
 
     /* From .bg-blueGray-200 */
