@@ -424,18 +424,16 @@ export default class NostrHelper {
   }
 
   // 3. Angebot senden:
-  async postOffer(jobId, developerIntro, developerBid, jobProfile) {
+  async postOffer(jobId, developerIntro, developerBid) {
     if (!this.write_mode) return;
 
     const tags = [
       ["t", "offer"],
       ["e", jobId],  // Job ID
-      ["p", jobProfile],  // Profile of the developer
-      ["intro", developerIntro],
       ["bid", developerBid]
     ];
 
-    const offerEvent = this.createEvent(this.job_kind, "Developer Offer", tags);
+    const offerEvent = this.createEvent(this.job_kind, developerIntro, tags);
     console.log("Offer Posted");
     return await this.sendEvent(offerEvent);
   }
