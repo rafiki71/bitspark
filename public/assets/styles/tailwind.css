@@ -1104,10 +1104,6 @@ select {
   top: 88px;
 }
 
-.top-auto {
-  top: auto;
-}
-
 .isolate {
   isolation: isolate;
 }
@@ -1605,10 +1601,6 @@ select {
 
 .h-7 {
   height: 1.75rem;
-}
-
-.h-70-px {
-  height: 70px;
 }
 
 .h-72 {
@@ -8422,10 +8414,6 @@ select {
 @media (min-width: 1024px) {
   .lg\:static {
     position: static;
-  }
-
-  .lg\:order-2 {
-    order: 2;
   }
 
   .lg\:mb-0 {
