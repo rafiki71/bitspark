@@ -28,8 +28,7 @@ export default class NostrHelper {
    */
   async getPublicRelaysString() {
     return ["wss://relay.damus.io",
-      "wss://nostr-pub.wellorder.net",
-      "wss://nostr.bitcoiner.social"];
+      "wss://nostr-pub.wellorder.net"];
 
     let usePlugin = await this.extensionAvailable();
     if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
@@ -391,13 +390,21 @@ export default class NostrHelper {
 
   async getJobs(ideaId) {
     if (this.eventBuffer.jobsEmpty(ideaId)) {
-      return await this.fetchJobs(ideaId);
+      return await this.fetchIdeaJobs(ideaId);
     }
 
     return this.eventBuffer.getJobsForIdea(ideaId);
   }
 
-  async fetchJobs(idea_id) {
+  async getUserJobs(npub) {
+    if (this.eventBuffer.jobsEmpty(npub)) {
+      return await this.fetchUserJobs(npub);
+    }
+
+    return this.eventBuffer.getJobsForUser(npub);
+  }
+
+  async fetchIdeaJobs(idea_id) {
     const now = Date.now();
     const thresh = 10000; // 10 seconds in milliseconds
     // Check if it's been less than 10 seconds since the last fetch
@@ -407,7 +414,7 @@ export default class NostrHelper {
     }
 
     // Add idea_id to the filter
-    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id] }];
+    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id], '#t': ['job'] }];
     let jobs = await this.pool.list(this.relays, filters);
     // Filter out jobs where job creator is not idea creator
     jobs = jobs.filter(job => {
@@ -416,7 +423,36 @@ export default class NostrHelper {
 
     // Add each valid job to the associated idea in the eventBuffer
     jobs.forEach(job => {
-      this.eventBuffer.addJob(job, idea_id);
+      this.eventBuffer.addJob(job);
+    });
+
+    this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
+    return jobs;
+  }
+
+  async fetchUserJobs(npub) {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchJobs has been called too frequently. Please wait a bit.");
+      return;
+    }
+
+    // Add idea_id to the filter
+    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#t': ['job'] }];
+    let jobs = await this.pool.list(this.relays, filters);
+    // Filter out jobs where job creator is not idea creator
+    jobs = jobs.filter(job => {
+        if(job.pubkey==npub)
+        {
+          return job;
+        }
+    });
+
+    // Add each valid job to the associated idea in the eventBuffer
+    jobs.forEach(job => {
+      this.eventBuffer.addJob(job);
     });
 
     this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
@@ -427,14 +463,18 @@ export default class NostrHelper {
   async postOffer(jobId, developerIntro, developerBid) {
     if (!this.write_mode) return;
 
+    console.log(jobId);
+    console.log(developerIntro);
+    console.log(developerBid);
+
     const tags = [
       ["t", "offer"],
-      ["e", jobId],  // Job ID
-      ["bid", developerBid]
+      ["e", jobId],
+      ["sats", developerBid]
     ];
 
     const offerEvent = this.createEvent(this.job_kind, developerIntro, tags);
-    console.log("Offer Posted");
+    console.log("offerEvent:", offerEvent);
     return await this.sendEvent(offerEvent);
   }
 
@@ -446,19 +486,26 @@ export default class NostrHelper {
     return offers;
   }
 
-  // 5. Angebot annehmen oder ablehnen:
-  async acceptOffer(offerId, offerProfile) {
-    const tags = [["t", "ao"],["e", offerId], ["p", offerProfile], ["status", "accepted"]];
-    const acceptEvent = this.createEvent(this.job_kind, "Offer Accepted", tags);
-    return await this.sendEvent(acceptEvent);
+  // 5. Jobs von einem User abrufen:
+  async getOffersForUser(npub) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['offer'] }];
+    let offers = await this.pool.list(this.relays, filters);
+
+    return offers;
   }
 
-  async declineOffer(offerId, offerProfile, reason) {
-    const tags = [["t", "do"],["e", offerId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
-    const declineEvent = this.createEvent(this.job_kind, "Offer Declined", tags);
-    return await this.sendEvent(declineEvent);
+  async updateOfferStatus(offerId, status, reason = '') {
+    const tags = [
+      ["t", status === 'accepted' ? 'ao' : 'do'],
+      ["e", offerId],
+      ["status", status],
+      ["reason", reason]
+    ];
+  
+    const updateEvent = this.createEvent(this.job_kind, `Offer ${status}`, tags);
+    return await this.sendEvent(updateEvent);
   }
-
+  
   // 6. Pull Request abgeben und informieren:
   async postPullRequest(offerId, pullRequestId, jobProfile) {
     if (!this.write_mode) return;
@@ -475,17 +522,22 @@ export default class NostrHelper {
     return await this.sendEvent(prEvent);
   }
 
-  // 7. Pull Request annehmen oder ablehnen:
-  async acceptPullRequest(pullRequestId, offerProfile) {
-    const tags = [["t", "apr"],["e", pullRequestId], ["p", offerProfile], ["status", "accepted"]];
-    const acceptEvent = this.createEvent(this.job_kind, "PR Accepted", tags);
-    return await this.sendEvent(acceptEvent);
-  }
-
-  async declinePullRequest(pullRequestId, offerProfile, reason) {
-    const tags = [["t", "dpr"], ["e", pullRequestId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
-    const declineEvent = this.createEvent(this.job_kind, "PR Declined", tags);
-    return await this.sendEvent(declineEvent);
+  async setPullRequestStatus(pullRequestId, offerProfile, status, reason = '') {
+    const statusTag = status === 'accepted' ? ["status", "accepted"] : ["status", "declined"];
+    const tags = [
+      ["t", status === 'accepted' ? "apr" : "dpr"],
+      ["e", pullRequestId],
+      ["p", offerProfile],
+      statusTag
+    ];
+    
+    // Wenn der Pull Request abgelehnt wird, fügen Sie einen Grund hinzu
+    if (status === 'declined' && reason) {
+      tags.push(["reason", reason]);
+    }
+  
+    const event = this.createEvent(this.job_kind, `PR ${status}`, tags);
+    return await this.sendEvent(event);
   }
 
   // 9. Bewertungen:

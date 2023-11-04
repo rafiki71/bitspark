@@ -5,6 +5,7 @@ class EventBuffer {
         this.categoryIdeas = new Map();  // to store idea ids by category
         this.ideas = new Map();
         this.jobs = new Map();  // to store jobs
+        this.userJobs = new Map();  // to store jobs
         this.ideaJobs = new Map();
     }
 
@@ -98,7 +99,15 @@ class EventBuffer {
         }
     }
 
-    addJob(job, ideaId) {
+    addJob(job) {
+        let ideaId = "";
+
+        // Find the ideaId within the tags array
+        const ideaTag = job.tags.find(tag => tag[0] === 'e');
+        if (ideaTag && ideaTag.length > 1) {
+            ideaId = ideaTag[1]; // The second element is the ideaId value
+        }
+
         if (!job || !this.ideas.has(ideaId)) {
             return;
         }
@@ -113,11 +122,22 @@ class EventBuffer {
         const jobSetForIdea = this.ideaJobs.get(ideaId) || new Set();
         jobSetForIdea.add(job.id);
         this.ideaJobs.set(ideaId, jobSetForIdea);
+        
+        const userPubkey = job.pubkey;
+        const jobSetForUser = this.userJobs.get(userPubkey) || new Set();
+        jobSetForUser.add(job.id); // Add the job ID
+        this.userJobs.set(userPubkey, jobSetForUser);
     }
 
     // Get all jobs associated with an idea
     getJobsForIdea(ideaId) {
         const jobIds = this.ideaJobs.get(ideaId);
+        return Array.from(jobIds || []).map(id => this.jobs.get(id));
+    }
+
+     // Get all jobs associated with an user
+     getJobsForUser(npub) {
+        const jobIds = this.userJobs.get(npub);
         return Array.from(jobIds || []).map(id => this.jobs.get(id));
     }
 }
