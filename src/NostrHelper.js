@@ -388,6 +388,17 @@ export default class NostrHelper {
     return await this.sendEvent(jobEvent);
   }
 
+  async getJob(jid) {
+    if (this.eventBuffer.hasJob(jid)) {
+      return this.eventBuffer.getJob(jid);
+    }
+
+    let job = await this.getEvent(jid);
+    this.eventBuffer.addJob(job);
+
+    return job;
+  }
+
   async getJobs(ideaId) {
     if (this.eventBuffer.jobsEmpty(ideaId)) {
       return await this.fetchIdeaJobs(ideaId);
@@ -418,7 +429,7 @@ export default class NostrHelper {
     let jobs = await this.pool.list(this.relays, filters);
     // Filter out jobs where job creator is not idea creator
     jobs = jobs.filter(job => {
-        return job;
+      return job;
     });
 
     // Add each valid job to the associated idea in the eventBuffer
@@ -440,15 +451,8 @@ export default class NostrHelper {
     }
 
     // Add idea_id to the filter
-    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#t': ['job'] }];
+    let filters = [{ kinds: [this.job_kind], authors: [npub], '#s': ['bitspark'], '#t': ['job'] }];
     let jobs = await this.pool.list(this.relays, filters);
-    // Filter out jobs where job creator is not idea creator
-    jobs = jobs.filter(job => {
-        if(job.pubkey==npub)
-        {
-          return job;
-        }
-    });
 
     // Add each valid job to the associated idea in the eventBuffer
     jobs.forEach(job => {
@@ -463,10 +467,6 @@ export default class NostrHelper {
   async postOffer(jobId, developerIntro, developerBid) {
     if (!this.write_mode) return;
 
-    console.log(jobId);
-    console.log(developerIntro);
-    console.log(developerBid);
-
     const tags = [
       ["t", "offer"],
       ["e", jobId],
@@ -476,6 +476,46 @@ export default class NostrHelper {
     const offerEvent = this.createEvent(this.job_kind, developerIntro, tags);
     console.log("offerEvent:", offerEvent);
     return await this.sendEvent(offerEvent);
+  }
+
+  async fetchUserJobsAndOffers(npub) {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchUserJobsAndOffers has been called too frequently. Please wait a bit.");
+      return;
+    }
+
+    // Fetch user's own jobs
+    let jobFilters = [{ kinds: [this.job_kind], authors: [npub], '#s': ['bitspark'], '#t': ['job'] }];
+    let jobs = await this.pool.list(this.relays, jobFilters);
+
+    // Fetch offers made by the user
+    let offerFilters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
+    let offers = await this.pool.list(this.relays, offerFilters);
+
+    // Fetch jobs for which the user has made offers
+    let jobIdsFromOffers = offers.map(offer => offer.tags.find(tag => tag[0] === 'e')[1]);
+    let jobsFromOffers = await Promise.all(jobIdsFromOffers.map(jobId => this.getJob(jobId)));
+
+    // Combine both arrays and remove duplicates
+    let allJobs = [...jobs, ...jobsFromOffers].reduce((acc, current) => {
+      const x = acc.find(item => item.id === current.id);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);
+
+    // Add each valid job to the associated idea in the eventBuffer
+    allJobs.forEach(job => {
+      this.eventBuffer.addJob(job);
+    });
+
+    this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
+    return allJobs;
   }
 
   // 4. Angebote für einen Job abrufen:
@@ -488,7 +528,7 @@ export default class NostrHelper {
 
   // 5. Jobs von einem User abrufen:
   async getOffersForUser(npub) {
-    const filters = [{ kinds: [this.job_kind], '#t': ['offer'] }];
+    const filters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
 
     return offers;
@@ -501,11 +541,11 @@ export default class NostrHelper {
       ["status", status],
       ["reason", reason]
     ];
-  
+
     const updateEvent = this.createEvent(this.job_kind, `Offer ${status}`, tags);
     return await this.sendEvent(updateEvent);
   }
-  
+
   // 6. Pull Request abgeben und informieren:
   async postPullRequest(offerId, pullRequestId, jobProfile) {
     if (!this.write_mode) return;
@@ -530,12 +570,12 @@ export default class NostrHelper {
       ["p", offerProfile],
       statusTag
     ];
-    
+
     // Wenn der Pull Request abgelehnt wird, fügen Sie einen Grund hinzu
     if (status === 'declined' && reason) {
       tags.push(["reason", reason]);
     }
-  
+
     const event = this.createEvent(this.job_kind, `PR ${status}`, tags);
     return await this.sendEvent(event);
   }

@@ -26,12 +26,8 @@
 
   async function loadJobsAndOffers() {
     if (userPublicKey) {
-      jobs = await $helperStore.fetchUserJobs(userPublicKey);
-      offers = await $helperStore.getOffersForUser(userPublicKey);
+      jobs = await $helperStore.fetchUserJobsAndOffers(userPublicKey);
     }
-    console.log("npub:", userPublicKey);
-    console.log("jobs:", jobs);
-    console.log("offers:", offers);
   }
 
   async function selectJob(job) {
@@ -55,7 +51,7 @@
   <div class="job-list">
     {#each jobs as job}
       <div class="job-item" on:click={() => selectJob(job)}>
-        {job.tags.find(tag => tag[0] === 'jTitle')[1]} <!-- Anzeige des Jobtitels -->
+        {job.tags.find(tag => tag[0] === 'jTitle')[1]}
       </div>
     {/each}
   </div>

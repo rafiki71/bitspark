@@ -101,7 +101,6 @@ class EventBuffer {
 
     addJob(job) {
         let ideaId = "";
-
         // Find the ideaId within the tags array
         const ideaTag = job.tags.find(tag => tag[0] === 'e');
         if (ideaTag && ideaTag.length > 1) {
@@ -115,8 +114,9 @@ class EventBuffer {
         if (this.jobs.has(job.id)) {
             return;
         }
-        console.log("addJob:", job)
+
         this.jobs.set(job.id, job);
+        console.log("Job Added:", job);
 
         // Associate job with the given idea
         const jobSetForIdea = this.ideaJobs.get(ideaId) || new Set();
@@ -127,6 +127,14 @@ class EventBuffer {
         const jobSetForUser = this.userJobs.get(userPubkey) || new Set();
         jobSetForUser.add(job.id); // Add the job ID
         this.userJobs.set(userPubkey, jobSetForUser);
+    }
+
+    hasJob(jid) {
+        return this.jobs.has(jid);
+    }
+
+    getJob(jid) {
+        return this.jobs.get(jid);
     }
 
     // Get all jobs associated with an idea
