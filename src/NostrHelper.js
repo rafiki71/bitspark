@@ -9,7 +9,7 @@ export default class NostrHelper {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
     this.idea_kind = 1339;
-    this.job_kind = 1340;
+    this.job_kind = 1341;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -399,6 +399,21 @@ export default class NostrHelper {
     return job;
   }
 
+  async getJobByOffer(offerId) {
+    const offer = await this.getEvent(offerId);
+    if (offer && offer.tags) {
+      // Finden Sie das Tag mit dem Schlüssel 'e', das die Job-ID enthält
+      const jobTag = offer.tags.find(tag => tag[0] === 'e');
+      if (jobTag && jobTag[1]) {
+        // Rufen Sie die Job-ID aus dem Wert des Tags ab
+        const jobId = jobTag[1];
+        // Verwenden Sie die Job-ID, um den Job zu holen
+        return await this.getJob(jobId);
+      }
+    }
+    throw new Error("Job ID not found in offer tags");
+  }
+
   async getJobs(ideaId) {
     if (this.eventBuffer.jobsEmpty(ideaId)) {
       return await this.fetchIdeaJobs(ideaId);
@@ -478,7 +493,7 @@ export default class NostrHelper {
     return await this.sendEvent(offerEvent);
   }
 
-  async fetchUserJobsAndOffers(npub) {
+  async fetchRelevantUserJobs(npub) {
     const now = Date.now();
     const thresh = 10000; // 10 seconds in milliseconds
     // Check if it's been less than 10 seconds since the last fetch
@@ -522,16 +537,60 @@ export default class NostrHelper {
   async getOffersForJob(jobId) {
     const filters = [{ kinds: [this.job_kind], '#e': [jobId], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
+  
+    // Hängen Sie jedem Angebot den Status an
+    for (let offer of offers) {
+      offer.status = await this.getOfferStatus(offer.id);
+    }
 
+    console.log(offers);
     return offers;
   }
-
+  
   // 5. Jobs von einem User abrufen:
   async getOffersForUser(npub) {
     const filters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
-
+  
+    // Hängen Sie jedem Angebot den Status an
+    for (let offer of offers) {
+      offer.status = await this.getOfferStatus(offer.id);
+    }
+  
     return offers;
+  }
+
+  async getOfferStatus(offerId) {
+    const job = await this.getJobByOffer(offerId);
+    if (!job) {
+      throw new Error("Job not found for the offer");
+    }
+
+    // Filter für Akzeptanzen des Angebots
+    const filters1 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['ao'] }];
+    let accepts = await this.pool.list(this.relays, filters1);
+
+    // Filter für Ablehnungen des Angebots
+    const filters2 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['do'] }];
+    let declines = await this.pool.list(this.relays, filters2);
+
+    // Kombinieren Sie beide Arrays und sortieren Sie sie nach dem Erstellungsdatum
+    let allResponses = [...accepts, ...declines].sort((a, b) => b.created_at - a.created_at);
+
+    // Nehmen Sie die jüngste Antwort (Accept oder Decline)
+    let latestResponse = allResponses[0];
+
+    // Basierend auf der jüngsten Antwort den Status zurückgeben
+    if (latestResponse) {
+      const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
+      if (responseType === 'ao') {
+        return 'accepted';
+      } else if (responseType === 'do') {
+        return 'declined';
+      }
+    }
+
+    return 'pending'; // Falls es keine Antwort gibt, ist der Status noch offen
   }
 
   async updateOfferStatus(offerId, status, reason = '') {
