@@ -2,8 +2,11 @@
 
 <script>
   import { onMount } from "svelte";
-  import { helperStore } from "../helperStore.js";
+  import { helperStore } from "../../helperStore.js";
   import { navigate } from "svelte-routing";
+  import JobList from "./JobList.svelte";
+  import JobDetails from "./JobDetails.svelte";
+  import OfferItem from "./OfferItem.svelte";
 
   let jobs = [];
   let selectedJob = null;
@@ -45,73 +48,33 @@
     }));
   }
 
-  async function acceptOffer(offerId, event) {
+  async function acceptOffer(offerId, event, msg) {
     event.stopPropagation();
-    await $helperStore.updateOfferStatus(offerId, "accepted");
+    await $helperStore.updateOfferStatus(offerId, "accepted", msg);
     offers = await $helperStore.getOffersForJob(selectedJob.id);
   }
 
-  async function declineOffer(offerId, event) {
+  async function declineOffer(offerId, event, msg) {
     event.stopPropagation();
-    await $helperStore.updateOfferStatus(offerId, "declined");
+    await $helperStore.updateOfferStatus(offerId, "declined", msg);
     offers = await $helperStore.getOffersForJob(selectedJob.id);
   }
 </script>
 
 <div class="job-manager">
-  <div class="job-list">
-    {#each jobs as job}
-      <div class="job-item" on:click={() => selectJob(job)}>
-        {job.tags.find((tag) => tag[0] === "jTitle")[1]}
-      </div>
-    {/each}
-  </div>
-
-  <div class="job-details">
+  <JobList {jobs} {selectJob} />
+  <div class="selected-job-container">
     {#if selectedJob}
-      <h2>{selectedJob.title}</h2>
+      <JobDetails job={selectedJob} />
       <div class="offers">
         {#each offers as offer}
-          <div
-            class={`offer ${offer.status}`}
-            on:click={() => selectJob(offer)}
-          >
-            <div class="offer-content">
-              <p>{offer.content}</p>
-              <p class="sats">
-                {offer.tags.find((tag) => tag[0] === "sats")[1]} sats
-              </p>
-            </div>
-            <div class="offer-footer">
-              <span class="offer-date"
-                >{new Date(offer.created_at * 1000).toLocaleString()}</span
-              >
-              <div class="offer-actions">
-                {#if offer.status === "pending" && selectedJob.pubkey === $helperStore.publicKey}
-                  <div class="offer-actions">
-                    <button
-                      class="offer-button accept"
-                      on:click={(event) => {
-                        acceptOffer(offer.id, event);
-                        event.stopPropagation();
-                      }}
-                    >
-                      <i class="fas fa-check" />
-                    </button>
-                    <button
-                      class="offer-button decline"
-                      on:click={(event) => {
-                        declineOffer(offer.id, event);
-                        event.stopPropagation();
-                      }}
-                    >
-                      <i class="fas fa-times" />
-                    </button>
-                  </div>
-                {/if}
-              </div>
-            </div>
-          </div>
+          <OfferItem
+            {offer}
+            {selectJob}
+            {acceptOffer}
+            {declineOffer}
+            isOwnJob={selectedJob.pubkey === $helperStore.publicKey}
+          />
         {/each}
       </div>
     {/if}
@@ -119,6 +82,11 @@
 </div>
 
 <style>
+  .selected-job-container {
+    padding: 10px;
+    max-width: 100%; /* Stelle sicher, dass es nicht breiter als die anderen Bubbles wird */
+  }
+
   .offers {
     margin-top: 20px;
     display: flex;
@@ -166,21 +134,5 @@
 
   .job-manager {
     display: flex;
-  }
-
-  .job-list {
-    width: 30%;
-    border-right: 1px solid #ccc;
-  }
-
-  .job-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-  }
-
-  .job-details {
-    width: 70%;
-    padding: 10px;
   }
 </style>

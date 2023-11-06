@@ -540,7 +540,9 @@ export default class NostrHelper {
   
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
-      offer.status = await this.getOfferStatus(offer.id);
+      let stat = await this.getOfferStatus(offer.id);
+      offer.status = stat.status;
+      offer.reason = stat.reason;
     }
 
     console.log(offers);
@@ -554,7 +556,9 @@ export default class NostrHelper {
   
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
-      offer.status = await this.getOfferStatus(offer.id);
+      let stat = await this.getOfferStatus(offer.id);
+      offer.status = stat.status;
+      offer.reason = stat.reason;
     }
   
     return offers;
@@ -581,16 +585,25 @@ export default class NostrHelper {
     let latestResponse = allResponses[0];
 
     // Basierend auf der jüngsten Antwort den Status zurückgeben
+    let statusDetails = {
+      status: 'pending',
+      reason: ''
+    };
+  
+    // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
     if (latestResponse) {
       const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
+      const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
+      statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
+  
       if (responseType === 'ao') {
-        return 'accepted';
+        statusDetails.status = 'accepted';
       } else if (responseType === 'do') {
-        return 'declined';
+        statusDetails.status = 'declined';
       }
     }
-
-    return 'pending'; // Falls es keine Antwort gibt, ist der Status noch offen
+  
+    return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
   async updateOfferStatus(offerId, status, reason = '') {

@@ -2,7 +2,7 @@
 <script>
   import { onMount } from "svelte";
   import Menu from "../components/Menu.svelte";
-  import JobManager from "../components/JobManager.svelte";
+  import JobManager from "../components/JobManager/JobManager.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { sidebarOpen } from "../helperStore.js";
