@@ -22,7 +22,7 @@
 
 <div class="">
   <button 
-    class="w-full bg-white px-4 py-2 text-left rounded-md" 
+    class="input-style" 
     on:click={() => dropdownOpen = !dropdownOpen}>
     Select Categories
   </button>

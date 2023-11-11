@@ -15,7 +15,6 @@
 }
 
 footer {
-    position: relative;
     z-index: 10;
     background-color: rgb(12, 12, 12);
 }
@@ -306,4 +305,8 @@ footer {
 
 .bs-blue:active {
     background-color: #1a2f53;
+}
+
+.modal-button {
+    font-size: 1.0rem;
 }

@@ -1,16 +1,33 @@
 <script>
     import { navigate } from "svelte-routing";
     import { onMount } from "svelte";
-    import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
     import Menu from "../components/Menu.svelte";
     import { helperStore } from "../helperStore.js";
     import { previewStore } from "../previewStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
+    import SelectionModal from "../components/Modals/SelectionModal.svelte";
+    import Modal, { bind } from "svelte-simple-modal";
+    import { filterStore } from "../filterStore.js";
 
     function navigateTo(route) {
         navigate(route);
+    }
+
+    function openCategoryModal() {
+        // Pass the current selected categories to the modal
+        filterStore.set(
+            bind(SelectionModal, {
+                categories: categories,
+                initialSelectedCategories: $previewStore.categories,
+                onConfirm: handleCategoryConfirm,
+            })
+        );
+    }
+
+    function handleCategoryConfirm(selectedCategories) {
+        $previewStore.categories = selectedCategories;
     }
 
     onMount(async () => {});
@@ -96,6 +113,13 @@
     let bannerImage = "../../img/Banner1u.png";
     let title = "BitSpark";
     let subtitle = "Spark idea";
+
+    function removeCategory(category) {
+        let selectedCategories = $previewStore.categories.filter(
+            (item) => item !== category
+        );
+        $previewStore.categories = selectedCategories;
+    }
 </script>
 
 <main class="overview-page">
@@ -151,11 +175,25 @@
                             class="input-style"
                             bind:value={$previewStore.lightningAddress}
                         />
-                        <h5 class="base-h5 text-color-df">Select Categories</h5>
-                        <MultiSelectDropdown
-                            {categories}
-                            bind:selected={$previewStore.categories}
-                        />
+
+                        <h5 class="base-h5 text-color-df">Categories</h5>
+
+                        <div class="category-container">
+                            <Modal show={$filterStore}>
+                                <button
+                                    class="bs-orange active:bg-orange-600 text-white font-bold py-1 px-2 block rounded plus-button"
+                                    on:click={openCategoryModal}>+</button
+                                >
+                            </Modal>
+                            {#each $previewStore.categories as category}
+                                <button
+                                    class="category-button"
+                                    on:click={() => removeCategory(category)}
+                                >
+                                    {category}
+                                </button>
+                            {/each}
+                        </div>
                     </div>
                 </div>
                 <div class="container mx-auto px-4 py-4 flex justify-end">
@@ -177,3 +215,56 @@
         <Footer />
     </div>
 </main>
+
+<style>
+    .category-container {
+        display: flex; /* Use flexbox to layout buttons */
+        flex-wrap: wrap; /* Allow the items to wrap as needed */
+        gap: 8px; /* Adjust the gap between buttons as needed */
+    }
+    .category-button {
+        /* Remove the flex-grow property if you don't want the buttons to grow */
+        padding: 4px 8px; /* Adjust padding to fit the text */
+        background-color: rgb(238, 238, 238);
+        border: none; /* Remove border if you don't need it */
+        cursor: pointer; /* Makes it clear the element is clickable */
+        white-space: nowrap; /* Prevent text inside the button from wrapping */
+        /* You can remove min-width if you want the button to only be as wide as its content plus padding */
+        /* min-width: 120px; */
+        margin: 2px; /* Provide some space around the buttons */
+        border-radius: 4px; /* If you want rounded corners */
+        /* Add text alignment and other styles as needed */
+        text-align: center;
+        font-size: 1rem; /* Adjust font size as needed */
+    }
+
+    .category-button:hover {
+        background-color: #223d6d;
+        position: relative;
+        color: #adadad;
+    }
+
+    .plus-button {
+        border-radius: 50%; /* Makes the button round */
+        width: 2rem; /* Sets a fixed width */
+        height: 2rem; /* Sets a fixed height to match the width for a perfect circle */
+        display: flex; /* Use flexbox to center the content */
+        align-items: center; /* Center content vertically */
+        justify-content: center; /* Center content horizontally */
+        /* Other styles for padding, background, border, etc., as needed */
+    }
+    .category-button:hover::after {
+        content: "×"; /* Unicode multiplication sign as 'x' */
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%); /* Center the 'x' */
+        color: #fff; /* Color of the 'x', choose what stands out */
+        font-size: 1.5rem; /* Size of the 'x', adjust as needed */
+        pointer-events: none; /* Prevents the 'x' from interfering with button clicks */
+    }
+
+    .category-button:focus {
+        outline: none;
+    }
+</style>
