@@ -9,7 +9,7 @@ export default class NostrHelper {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
     this.idea_kind = 1339;
-    this.job_kind = 1340;
+    this.job_kind = 1341;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -28,8 +28,7 @@ export default class NostrHelper {
    */
   async getPublicRelaysString() {
     return ["wss://relay.damus.io",
-      "wss://nostr-pub.wellorder.net",
-      "wss://nostr.bitcoiner.social"];
+      "wss://nostr-pub.wellorder.net"];
 
     let usePlugin = await this.extensionAvailable();
     if (!usePlugin || !this.write_mode) return ["wss://relay.damus.io",
@@ -389,15 +388,49 @@ export default class NostrHelper {
     return await this.sendEvent(jobEvent);
   }
 
+  async getJob(jid) {
+    if (this.eventBuffer.hasJob(jid)) {
+      return this.eventBuffer.getJob(jid);
+    }
+
+    let job = await this.getEvent(jid);
+    this.eventBuffer.addJob(job);
+
+    return job;
+  }
+
+  async getJobByOffer(offerId) {
+    const offer = await this.getEvent(offerId);
+    if (offer && offer.tags) {
+      // Finden Sie das Tag mit dem Schlüssel 'e', das die Job-ID enthält
+      const jobTag = offer.tags.find(tag => tag[0] === 'e');
+      if (jobTag && jobTag[1]) {
+        // Rufen Sie die Job-ID aus dem Wert des Tags ab
+        const jobId = jobTag[1];
+        // Verwenden Sie die Job-ID, um den Job zu holen
+        return await this.getJob(jobId);
+      }
+    }
+    throw new Error("Job ID not found in offer tags");
+  }
+
   async getJobs(ideaId) {
     if (this.eventBuffer.jobsEmpty(ideaId)) {
-      return await this.fetchJobs(ideaId);
+      return await this.fetchIdeaJobs(ideaId);
     }
 
     return this.eventBuffer.getJobsForIdea(ideaId);
   }
 
-  async fetchJobs(idea_id) {
+  async getUserJobs(npub) {
+    if (this.eventBuffer.jobsEmpty(npub)) {
+      return await this.fetchUserJobs(npub);
+    }
+
+    return this.eventBuffer.getJobsForUser(npub);
+  }
+
+  async fetchIdeaJobs(idea_id) {
     const now = Date.now();
     const thresh = 10000; // 10 seconds in milliseconds
     // Check if it's been less than 10 seconds since the last fetch
@@ -407,16 +440,38 @@ export default class NostrHelper {
     }
 
     // Add idea_id to the filter
-    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id] }];
+    let filters = [{ kinds: [this.job_kind], '#s': ['bitspark'], '#e': [idea_id], '#t': ['job'] }];
     let jobs = await this.pool.list(this.relays, filters);
     // Filter out jobs where job creator is not idea creator
     jobs = jobs.filter(job => {
-        return job;
+      return job;
     });
 
     // Add each valid job to the associated idea in the eventBuffer
     jobs.forEach(job => {
-      this.eventBuffer.addJob(job, idea_id);
+      this.eventBuffer.addJob(job);
+    });
+
+    this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
+    return jobs;
+  }
+
+  async fetchUserJobs(npub) {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchJobs has been called too frequently. Please wait a bit.");
+      return;
+    }
+
+    // Add idea_id to the filter
+    let filters = [{ kinds: [this.job_kind], authors: [npub], '#s': ['bitspark'], '#t': ['job'] }];
+    let jobs = await this.pool.list(this.relays, filters);
+
+    // Add each valid job to the associated idea in the eventBuffer
+    jobs.forEach(job => {
+      this.eventBuffer.addJob(job);
     });
 
     this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
@@ -429,34 +484,138 @@ export default class NostrHelper {
 
     const tags = [
       ["t", "offer"],
-      ["e", jobId],  // Job ID
-      ["bid", developerBid]
+      ["e", jobId],
+      ["sats", developerBid]
     ];
 
     const offerEvent = this.createEvent(this.job_kind, developerIntro, tags);
-    console.log("Offer Posted");
+    console.log("offerEvent:", offerEvent);
     return await this.sendEvent(offerEvent);
+  }
+
+  async fetchRelevantUserJobs(npub) {
+    const now = Date.now();
+    const thresh = 10000; // 10 seconds in milliseconds
+    // Check if it's been less than 10 seconds since the last fetch
+    if (now - this.lastFetchTimeIdea < thresh) {
+      console.log("fetchUserJobsAndOffers has been called too frequently. Please wait a bit.");
+      return;
+    }
+
+    // Fetch user's own jobs
+    let jobFilters = [{ kinds: [this.job_kind], authors: [npub], '#s': ['bitspark'], '#t': ['job'] }];
+    let jobs = await this.pool.list(this.relays, jobFilters);
+
+    // Fetch offers made by the user
+    let offerFilters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
+    let offers = await this.pool.list(this.relays, offerFilters);
+
+    // Fetch jobs for which the user has made offers
+    let jobIdsFromOffers = offers.map(offer => offer.tags.find(tag => tag[0] === 'e')[1]);
+    let jobsFromOffers = await Promise.all(jobIdsFromOffers.map(jobId => this.getJob(jobId)));
+
+    // Combine both arrays and remove duplicates
+    let allJobs = [...jobs, ...jobsFromOffers].reduce((acc, current) => {
+      const x = acc.find(item => item.id === current.id);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);
+
+    // Add each valid job to the associated idea in the eventBuffer
+    allJobs.forEach(job => {
+      this.eventBuffer.addJob(job);
+    });
+
+    this.lastFetchTimeIdea = now;  // Consider having a separate timestamp for jobs, e.g., this.lastFetchTimeJob
+    return allJobs;
   }
 
   // 4. Angebote für einen Job abrufen:
   async getOffersForJob(jobId) {
     const filters = [{ kinds: [this.job_kind], '#e': [jobId], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
+  
+    // Hängen Sie jedem Angebot den Status an
+    for (let offer of offers) {
+      let stat = await this.getOfferStatus(offer.id);
+      offer.status = stat.status;
+      offer.reason = stat.reason;
+    }
 
+    console.log(offers);
+    return offers;
+  }
+  
+  // 5. Jobs von einem User abrufen:
+  async getOffersForUser(npub) {
+    const filters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
+    let offers = await this.pool.list(this.relays, filters);
+  
+    // Hängen Sie jedem Angebot den Status an
+    for (let offer of offers) {
+      let stat = await this.getOfferStatus(offer.id);
+      offer.status = stat.status;
+      offer.reason = stat.reason;
+    }
+  
     return offers;
   }
 
-  // 5. Angebot annehmen oder ablehnen:
-  async acceptOffer(offerId, offerProfile) {
-    const tags = [["t", "ao"],["e", offerId], ["p", offerProfile], ["status", "accepted"]];
-    const acceptEvent = this.createEvent(this.job_kind, "Offer Accepted", tags);
-    return await this.sendEvent(acceptEvent);
+  async getOfferStatus(offerId) {
+    const job = await this.getJobByOffer(offerId);
+    if (!job) {
+      throw new Error("Job not found for the offer");
+    }
+
+    // Filter für Akzeptanzen des Angebots
+    const filters1 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['ao'] }];
+    let accepts = await this.pool.list(this.relays, filters1);
+
+    // Filter für Ablehnungen des Angebots
+    const filters2 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['do'] }];
+    let declines = await this.pool.list(this.relays, filters2);
+
+    // Kombinieren Sie beide Arrays und sortieren Sie sie nach dem Erstellungsdatum
+    let allResponses = [...accepts, ...declines].sort((a, b) => b.created_at - a.created_at);
+
+    // Nehmen Sie die jüngste Antwort (Accept oder Decline)
+    let latestResponse = allResponses[0];
+
+    // Basierend auf der jüngsten Antwort den Status zurückgeben
+    let statusDetails = {
+      status: 'pending',
+      reason: ''
+    };
+  
+    // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
+    if (latestResponse) {
+      const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
+      const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
+      statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
+  
+      if (responseType === 'ao') {
+        statusDetails.status = 'accepted';
+      } else if (responseType === 'do') {
+        statusDetails.status = 'declined';
+      }
+    }
+  
+    return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
-  async declineOffer(offerId, offerProfile, reason) {
-    const tags = [["t", "do"],["e", offerId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
-    const declineEvent = this.createEvent(this.job_kind, "Offer Declined", tags);
-    return await this.sendEvent(declineEvent);
+  async updateOfferStatus(offerId, status, reason = '') {
+    const tags = [
+      ["t", status === 'accepted' ? 'ao' : 'do'],
+      ["e", offerId],
+      ["status", status],
+      ["reason", reason]
+    ];
+
+    const updateEvent = this.createEvent(this.job_kind, `Offer ${status}`, tags);
+    return await this.sendEvent(updateEvent);
   }
 
   // 6. Pull Request abgeben und informieren:
@@ -475,17 +634,22 @@ export default class NostrHelper {
     return await this.sendEvent(prEvent);
   }
 
-  // 7. Pull Request annehmen oder ablehnen:
-  async acceptPullRequest(pullRequestId, offerProfile) {
-    const tags = [["t", "apr"],["e", pullRequestId], ["p", offerProfile], ["status", "accepted"]];
-    const acceptEvent = this.createEvent(this.job_kind, "PR Accepted", tags);
-    return await this.sendEvent(acceptEvent);
-  }
+  async setPullRequestStatus(pullRequestId, offerProfile, status, reason = '') {
+    const statusTag = status === 'accepted' ? ["status", "accepted"] : ["status", "declined"];
+    const tags = [
+      ["t", status === 'accepted' ? "apr" : "dpr"],
+      ["e", pullRequestId],
+      ["p", offerProfile],
+      statusTag
+    ];
 
-  async declinePullRequest(pullRequestId, offerProfile, reason) {
-    const tags = [["t", "dpr"], ["e", pullRequestId], ["p", offerProfile], ["status", "declined"], ["reason", reason]];
-    const declineEvent = this.createEvent(this.job_kind, "PR Declined", tags);
-    return await this.sendEvent(declineEvent);
+    // Wenn der Pull Request abgelehnt wird, fügen Sie einen Grund hinzu
+    if (status === 'declined' && reason) {
+      tags.push(["reason", reason]);
+    }
+
+    const event = this.createEvent(this.job_kind, `PR ${status}`, tags);
+    return await this.sendEvent(event);
   }
 
   // 9. Bewertungen:

@@ -24,7 +24,6 @@
     company: "Unternehmen XYZ",
   };
 
-
   async function deleteJob() {
     const confirmDelete = confirm("Möchten Sie diesen Job wirklich löschen?");
     if (confirmDelete) {
@@ -62,6 +61,7 @@
         description: fetchedJob.content,
         pubkey: fetchedJob.pubkey,
       };
+
       creator_profile = await $helperStore.getProfile(fetchedJob.pubkey);
       profiles[creator_profile.pubkey] = creator_profile;
     } catch (error) {
@@ -69,8 +69,18 @@
     }
   }
 
-  $: contentContainerClass = $sidebarOpen 
-    ? "combined-content-container sidebar-open" 
+  async function postOffer() {
+    try {
+      await $helperStore.postOffer(job.id, developerIntro, developerBid);
+      console.log("Offer submitted successfully");
+      showOfferPopup = false; // Schließen Sie das Popup, wenn das Angebot erfolgreich abgegeben wurde
+    } catch (error) {
+      console.error("Error submitting offer:", error);
+    }
+  }
+
+  $: contentContainerClass = $sidebarOpen
+    ? "combined-content-container sidebar-open"
     : "combined-content-container";
 
   $: fetchData(), $helperStore;
@@ -125,39 +135,26 @@
     <Footer />
   </div>
   {#if showOfferPopup}
-    <div class="offer-popup-overlay">
-      <div class="offer-popup">
-        <h3>Send Offer</h3>
-        <label>
-          Sats:
-          <input
-            bind:value={developerBid}
-            type="number"
-            placeholder={job.sats}
-          />
-        </label>
-        <label>
-          Message:
-          <textarea bind:value={developerIntro} placeholder="Your Message..." />
-        </label>
-        <div class="offer-popup-buttons">
-          <button on:click={() => (showOfferPopup = false)}>Cancel</button>
-          <button
-            on:click={async () => {
-              await $helperStore.postOffer(
-                job.id,
-                developerIntro,
-                developerBid
-              );
-              showOfferPopup = false;
-            }}
-          >
-            Submit
-          </button>
-        </div>
+  <div class="offer-popup-overlay">
+    <div class="offer-popup">
+      <h3>Send Offer</h3>
+      <label>
+        Sats:
+        <input bind:value={developerBid} type="text" placeholder={job.sats} />
+      </label>
+      <label>
+        Message:
+        <textarea bind:value={developerIntro} placeholder="Your Message..." />
+      </label>
+      <div class="offer-popup-buttons">
+        <button on:click={() => (showOfferPopup = false)}>Cancel</button>
+        <button on:click={postOffer}>
+          Submit
+        </button>
       </div>
     </div>
-  {/if}
+  </div>
+{/if}
 </main>
 
 <style>
@@ -228,7 +225,8 @@
     height: 200px; /* Definiert eine feste Höhe für das Textfeld */
   }
 
-  .offer-popup h3, .offer-popup label {
+  .offer-popup h3,
+  .offer-popup label {
     margin-bottom: 1rem;
     color: var(--primary-text-color);
   }
@@ -254,7 +252,6 @@
 
   .offer-popup button:first-child {
     background-color: #2c5282; /* Dunkelblauer Farbton */
-    
   }
 
   .offer-popup button:last-child {

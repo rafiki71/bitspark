@@ -11,6 +11,7 @@
   import PreView from "./views/IdeaPreview.svelte";
   import PostJob from "./views/PostJob.svelte";
   import JobView from "./views/JobView.svelte";
+  import JobManager from "./views/JobManager.svelte";
 </script>
 
 <svelte:head>
@@ -29,6 +30,7 @@
       <Route path="/" component={Overview} />
       <Route path="/overview" component={Overview} />
       <Route path="/preview" component={PreView} />
+      <Route path="/jobmanager" component={JobManager} />
       <Route path="/overview/:category" let:params component={Overview} />
       <Route path="/idea/:id" component={IdeaDetail} />
       <Route path="/job/:id" component={JobView} />
