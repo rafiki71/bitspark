@@ -1048,6 +1048,10 @@ select {
   inset-inline-start: 0.25rem;
 }
 
+.start-5 {
+  inset-inline-start: 1.25rem;
+}
+
 .top-0 {
   top: 0px;
 }
@@ -4572,10 +4576,6 @@ select {
   vertical-align: super;
 }
 
-.align-\[alignment\] {
-  vertical-align: alignment;
-}
-
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -5115,53 +5115,43 @@ select {
 }
 
 .underline {
-  -webkit-text-decoration-line: underline;
-          text-decoration-line: underline;
+  text-decoration-line: underline;
 }
 
 .overline {
-  -webkit-text-decoration-line: overline;
-          text-decoration-line: overline;
+  text-decoration-line: overline;
 }
 
 .line-through {
-  -webkit-text-decoration-line: line-through;
-          text-decoration-line: line-through;
+  text-decoration-line: line-through;
 }
 
 .no-underline {
-  -webkit-text-decoration-line: none;
-          text-decoration-line: none;
+  text-decoration-line: none;
 }
 
 .decoration-blue-400 {
-  -webkit-text-decoration-color: #60a5fa;
-          text-decoration-color: #60a5fa;
+  text-decoration-color: #60a5fa;
 }
 
 .decoration-solid {
-  -webkit-text-decoration-style: solid;
-          text-decoration-style: solid;
+  text-decoration-style: solid;
 }
 
 .decoration-double {
-  -webkit-text-decoration-style: double;
-          text-decoration-style: double;
+  text-decoration-style: double;
 }
 
 .decoration-dotted {
-  -webkit-text-decoration-style: dotted;
-          text-decoration-style: dotted;
+  text-decoration-style: dotted;
 }
 
 .decoration-dashed {
-  -webkit-text-decoration-style: dashed;
-          text-decoration-style: dashed;
+  text-decoration-style: dashed;
 }
 
 .decoration-wavy {
-  -webkit-text-decoration-style: wavy;
-          text-decoration-style: wavy;
+  text-decoration-style: wavy;
 }
 
 .decoration-2 {
@@ -5595,9 +5585,9 @@ select {
 }
 
 .transition {
-  transition-property: color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -6207,13 +6197,11 @@ select {
 }
 
 .hover\:underline:hover {
-  -webkit-text-decoration-line: underline;
-          text-decoration-line: underline;
+  text-decoration-line: underline;
 }
 
 .hover\:no-underline:hover {
-  -webkit-text-decoration-line: none;
-          text-decoration-line: none;
+  text-decoration-line: none;
 }
 
 .hover\:shadow-lg:hover {
@@ -7336,8 +7324,7 @@ select {
   }
 
   .dark\:decoration-blue-600 {
-    -webkit-text-decoration-color: #2563eb;
-            text-decoration-color: #2563eb;
+    text-decoration-color: #2563eb;
   }
 
   .dark\:placeholder-gray-400::-moz-placeholder {
@@ -8021,8 +8008,7 @@ select {
   }
 
   .sm\:underline {
-    -webkit-text-decoration-line: underline;
-            text-decoration-line: underline;
+    text-decoration-line: underline;
   }
 
   .sm\:ring-8 {
