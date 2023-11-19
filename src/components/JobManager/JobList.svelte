@@ -1,3 +1,5 @@
+<!-- JobList.svelte -->
+
 <script>
     export let jobs;
     export let selectJob;

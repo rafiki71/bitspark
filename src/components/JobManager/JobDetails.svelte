@@ -5,9 +5,11 @@
     function goToJobDetails() {
         navigate(`/job/${job.id}`);
     }
+
+    $: console.log("job:", job);
 </script>
 
-{#if job}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="job-detail" on:click={goToJobDetails}>
         <h2>{job.title}</h2>
         <p class="sats">
@@ -17,7 +19,6 @@
             {job.createdAt}
         </p>
     </div>
-{/if}
 
 <style>
     .job-detail {
