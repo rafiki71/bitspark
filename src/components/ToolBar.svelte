@@ -9,6 +9,7 @@
     export let githubRepo;
 
     let creator_profile = null;
+    let profile = null;
 
     onMount(async () => {
         console.log("On mount:", lnAddress);
@@ -18,6 +19,16 @@
     $: {
         console.log("lnAddress changed:", lnAddress);
     }
+
+    async function fetchData() {
+        try {
+            profile = await $helperStore.getProfile($helperStore.publicKey);
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+        }
+        console.log("lnAddress changed:", lnAddress);
+    }
+    $: fetchData(), $helperStore;
 
     // Reactive statement to fetch the profile when the pubkey changes
     $: if (pubkey) {
@@ -60,6 +71,12 @@
                     <a href={githubRepo} target="_blank">
                         <i class="fab fa-github text-white github-icon-size" />
                     </a>
+                {/if}
+                {#if profile && profile.picture}
+                    <ProfileImg
+                        profile={profile}
+                        style={{ width: "40px", height: "40px" }}
+                    />
                 {/if}
             </div>
         </div>
