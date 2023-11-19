@@ -22,15 +22,12 @@
     let ghUser = "";
     let lnAddress = "";
 
-    let publicKey = "";
-
     onMount(async () => {
         fetchData();
     });
 
     async function fetchData() {
         try {
-            publicKey = $helperStore.publicKey;
             profile = await $helperStore.getProfile(profile_id);
             if (profile) {
                 name = profile.name;
