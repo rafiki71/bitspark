@@ -181,7 +181,7 @@
                         <div class="category-container">
                             <Modal show={$filterStore}>
                                 <button
-                                    class="bs-orange active:bg-orange-600 text-white font-bold py-1 px-2 block rounded plus-button"
+                                    class="font-bold py-1 plus-button"
                                     on:click={openCategoryModal}>+</button
                                 >
                             </Modal>
@@ -245,14 +245,27 @@
     }
 
     .plus-button {
-        border-radius: 50%; /* Makes the button round */
-        width: 2rem; /* Sets a fixed width */
-        height: 2rem; /* Sets a fixed height to match the width for a perfect circle */
-        display: flex; /* Use flexbox to center the content */
-        align-items: center; /* Center content vertically */
-        justify-content: center; /* Center content horizontally */
-        /* Other styles for padding, background, border, etc., as needed */
+        /* Remove the flex-grow property if you don't want the buttons to grow */
+        padding: 4px 8px; /* Adjust padding to fit the text */
+        background-color: rgb(238, 238, 238);
+        border: none; /* Remove border if you don't need it */
+        cursor: pointer; /* Makes it clear the element is clickable */
+        white-space: nowrap; /* Prevent text inside the button from wrapping */
+        /* You can remove min-width if you want the button to only be as wide as its content plus padding */
+        /* min-width: 120px; */
+        margin: 2px; /* Provide some space around the buttons */
+        border-radius: 4px; /* If you want rounded corners */
+        /* Add text alignment and other styles as needed */
+        text-align: center;
+        font-size: 1rem; /* Adjust font size as needed */
     }
+
+    .plus-button:hover {
+        background-color: rgb(249 115 22);
+        position: relative;
+        color:  #fff;
+    }
+
     .category-button:hover::after {
         content: "×"; /* Unicode multiplication sign as 'x' */
         position: absolute;
