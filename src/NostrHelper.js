@@ -608,10 +608,13 @@ export default class NostrHelper {
   }
 
   async updateOfferStatus(jobId, offerId, status, reason = '') {
+    offerOwner = self.getEvent(offerId).pubkey;
+    
     const tags = [
       ["t", status === 'accepted' ? 'ao' : 'do'],
       ["e", jobId],
       ["o", offerId],
+      ["p", offerOwner],
       ["status", status],
       ["reason", reason]
     ];
@@ -634,14 +637,21 @@ export default class NostrHelper {
     const tags = [
       ["t", "pr"],
       ["e", jobId],
-      ["e", offerId],
-      ["pr", pullRequestId],
+      ["o", offerId],
+      ["pr_url", pullRequestId],
       ["p", jobProfile]
     ];
 
     const prEvent = this.createEvent(this.job_kind, "Pull Request", tags);
     console.log("Pull Request Posted");
     return await this.sendEvent(prEvent);
+  }
+
+  async getPullRequests(jobid, offerid) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['pr'], '#e': [jobid], '#o': [offerid] }];
+    let pullreqs = await this.pool.list(this.relays, filters);
+    console.log("Pull Requests:", pullreqs)
+    return pullreqs;
   }
 
   async setPullRequestStatus(pullRequestId, offerProfile, status, reason = '') {
