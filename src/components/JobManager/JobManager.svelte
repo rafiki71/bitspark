@@ -7,12 +7,14 @@
   import JobList from "./JobList.svelte";
   import JobDetails from "./JobDetails.svelte";
   import OfferItem from "./OfferItem.svelte";
-  import PullRequestDialog from "./PullRequestDialog.svelte";
+  import SubmitPullRequestDialog from "./SubmitPullRequestDialog.svelte";
+  import ManagePullRequestDialog from "./ManagePullRequestDialog.svelte";
 
   let jobs = [];
   let selectedJob = null;
   let offers = [];
   let accepts = [];
+  let pullRequests = [];
   let userPublicKey;
 
   onMount(async () => {
@@ -56,7 +58,12 @@
     accepts = await $helperStore.getJobAccepts(job.id);
     accepts = [...accepts];
 
-    combinedList = combineAndSortLists(offers, accepts);
+    pullRequests = await $helperStore.getPullRequests(job.id);
+
+    pullRequests = [...pullRequests];
+    console.log("pullRequests:", pullRequests);
+
+    combinedList = combineAndSortLists(offers, accepts, pullRequests);
   }
 
   async function acceptOffer(offerId, event, msg) {
@@ -84,30 +91,31 @@
   let combinedList = [];
 
   $: if (selectedJob) {
-    combinedList = combineAndSortLists(offers, accepts);
+    combinedList = combineAndSortLists(offers, accepts, pullRequests);
     console.log("combined", combinedList);
   }
 
-  function combineAndSortLists(offers, accepts) {
+  function combineAndSortLists(offers, accepts, pullRequests) {
     const markedOffers = offers.map((offer) => ({ ...offer, type: "offer" }));
     const markedAccepts = accepts.map((accept) => ({
       ...accept,
       type: "accept",
     }));
+    const markedPr = pullRequests.map((pr) => ({ ...pr, type: "pullreq" })); // Korrigiert
 
-    // Kombiniere und sortiere die Listen
-    const combined = [...markedOffers, ...markedAccepts];
-    return combined.sort((a, b) =>  a.created_at-b.created_at);
+    return [...markedOffers, ...markedAccepts, ...markedPr].sort(
+      (a, b) => a.created_at - b.created_at
+    );
   }
 
-  $: (combinedList = combineAndSortLists(offers, accepts)), offers, accepts;
+  $: (combinedList = combineAndSortLists(offers, accepts, pullRequests)), offers, accepts, pullRequests;
 </script>
 
 <div class="job-manager">
   <JobList {jobs} {selectJob} />
   <div class="selected-job-container">
     {#if selectedJob}
-     <JobDetails job={selectedJob} />
+      <JobDetails job={selectedJob} />
       <div class="combined-list">
         {#each combinedList as item}
           {#if item.type === "offer"}
@@ -119,7 +127,9 @@
               isOwnJob={selectedJob.pubkey === $helperStore.publicKey}
             />
           {:else if item.type === "accept"}
-            <PullRequestDialog accept={item} jobId={selectedJob.id} />
+            <SubmitPullRequestDialog accept={item} jobId={selectedJob.id} />
+          {:else if item.type === "pullreq"}
+            <ManagePullRequestDialog pullRequest={item} />
           {/if}
         {/each}
       </div>

@@ -68,6 +68,21 @@
 {/if}
 
 <style>
+    .offer-date {
+        display: block; /* Stellt sicher, dass es eine eigene Zeile einnimmt */
+        margin-top: 10px; /* Abstand nach oben */
+        text-align: center; /* Zentriert den Text */
+        color: #6c757d; /* Etwas dunkler für gute Lesbarkeit */
+        font-size: 0.9rem; /* Leicht kleinere Schriftgröße für ein subtiles Aussehen */
+        font-style: italic; /* Leichter Stil für das Datum */
+    }
+
+    @media (max-width: 600px) {
+        .offer-date {
+            font-size: 0.8rem; /* Noch kleinere Schriftgröße für kleinere Bildschirme */
+        }
+    }
+
     .offer {
         margin-bottom: 20px;
         padding: 20px;

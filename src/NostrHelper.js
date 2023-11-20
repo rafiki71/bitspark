@@ -537,7 +537,7 @@ export default class NostrHelper {
   async getOffersForJob(jobId) {
     const filters = [{ kinds: [this.job_kind], '#e': [jobId], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
-  
+
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
       let stat = await this.getOfferStatus(offer.id);
@@ -548,19 +548,19 @@ export default class NostrHelper {
     console.log(offers);
     return offers;
   }
-  
+
   // 5. Jobs von einem User abrufen:
   async getOffersForUser(npub) {
     const filters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
-  
+
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
       let stat = await this.getOfferStatus(offer.id);
       offer.status = stat.status;
       offer.reason = stat.reason;
     }
-  
+
     return offers;
   }
 
@@ -584,32 +584,35 @@ export default class NostrHelper {
     // Nehmen Sie die jüngste Antwort (Accept oder Decline)
     let latestResponse = allResponses[0];
     console.log("latestResponse:", latestResponse);
-    
+
     // Basierend auf der jüngsten Antwort den Status zurückgeben
     let statusDetails = {
       status: 'pending',
       reason: ''
     };
-  
+
     // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
     if (latestResponse) {
       const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
       const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
       statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
-  
+
       if (responseType === 'ao') {
         statusDetails.status = 'accepted';
       } else if (responseType === 'do') {
         statusDetails.status = 'declined';
       }
     }
-    
+
     return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
   async updateOfferStatus(jobId, offerId, status, reason = '') {
-    offerOwner = self.getEvent(offerId).pubkey;
-    
+    console.log("offerId:", offerId);
+    const offer = await this.getEvent(offerId);
+    console.log("offer:", offer);
+    let offerOwner = offer.pubkey;
+    console.log("offerOwner:", offerOwner);
     const tags = [
       ["t", status === 'accepted' ? 'ao' : 'do'],
       ["e", jobId],
@@ -647,8 +650,15 @@ export default class NostrHelper {
     return await this.sendEvent(prEvent);
   }
 
-  async getPullRequests(jobid, offerid) {
+  async getPullRequestsForOffer(jobid, offerid) {
     const filters = [{ kinds: [this.job_kind], '#t': ['pr'], '#e': [jobid], '#o': [offerid] }];
+    let pullreqs = await this.pool.list(this.relays, filters);
+    console.log("Pull Requests:", pullreqs)
+    return pullreqs;
+  }
+
+  async getPullRequests(jobid) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['pr'], '#e': [jobid] }];
     let pullreqs = await this.pool.list(this.relays, filters);
     console.log("Pull Requests:", pullreqs)
     return pullreqs;
@@ -670,6 +680,44 @@ export default class NostrHelper {
 
     const event = this.createEvent(this.job_kind, `PR ${status}`, tags);
     return await this.sendEvent(event);
+  }
+
+  async getPullRequestStatus(pullRequestId) {
+    // Filter für Akzeptanzen des Pull Requests
+    const filtersAccept = [{ kinds: [this.job_kind], '#e': [pullRequestId], '#t': ['apr'] }];
+    let accepts = await this.pool.list(this.relays, filtersAccept);
+
+    // Filter für Ablehnungen des Pull Requests
+    const filtersDecline = [{ kinds: [this.job_kind], '#e': [pullRequestId], '#t': ['dpr'] }];
+    let declines = await this.pool.list(this.relays, filtersDecline);
+
+    // Kombinieren Sie beide Arrays und sortieren Sie sie nach dem Erstellungsdatum
+    let allResponses = [...accepts, ...declines].sort((a, b) => b.created_at - a.created_at);
+
+    // Nehmen Sie die jüngste Antwort (Accept oder Decline)
+    let latestResponse = allResponses[0];
+    console.log("latestResponse:", latestResponse);
+
+    // Basierend auf der jüngsten Antwort den Status zurückgeben
+    let statusDetails = {
+      status: 'pending',
+      reason: ''
+    };
+
+    // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
+    if (latestResponse) {
+      const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
+      const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
+      statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
+
+      if (responseType === 'apr') {
+        statusDetails.status = 'accepted';
+      } else if (responseType === 'dpr') {
+        statusDetails.status = 'declined';
+      }
+    }
+
+    return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
   // 9. Bewertungen:
