@@ -1,20 +1,79 @@
-import { SimplePool } from 'nostr-tools';
-import { addOrUpdateEvent } from './NostrStore.js';
+import 'websocket-polyfill'
+import { addOrUpdateEvent } from './NostrCacheStore.js';
+const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
+
 
 export class NostrCacheManager {
-    constructor(relays) {
+    constructor(relays, write_mode) {
         this.pool = new SimplePool();
         this.relays = relays;
         this.subscriptions = new Map();
+        this.write_mode = write_mode;
+    }
+
+    async initialize() {
+        let useExtension = await this.extensionAvailable();
+        console.log("useExtension2:", useExtension);
+        console.log("writeMode:", this.write_mode);
+        if (this.write_mode && useExtension) {
+            this.publicKey = await window.nostr.getPublicKey();
+            console.log("publicKey:", this.publicKey);
+        }
+        else {
+            this.write_mode = false;
+            this.publicKey = null;
+            this.relays = await this.getPublicRelaysString(); //fetch from the public first
+        }
+        console.log("used relays:", this.relays);
+    }
+
+    async extensionAvailable() {
+        if ("nostr" in window) {
+            return true;
+        }
+        return false;
+    }
+
+    uniqueTags(tags) {
+        // Convert each tag array to a string and put it in a set.
+        const tagSet = new Set(tags.map(tag => JSON.stringify(tag)));
+
+        // Convert the set back to an array of arrays.
+        const uniqueTags = Array.from(tagSet).map(tagStr => JSON.parse(tagStr));
+
+        return uniqueTags;
+    }
+
+    async sendEvent(kind, content, tags) {
+        if (!this.write_mode) return; // Do nothing in read-only mode
+        if (!this.extensionAvailable()) return;
+
+        let event = {
+            pubkey: this.publicKey,
+            created_at: Math.floor(Date.now() / 1000),
+            kind,
+            content,
+            tags,
+        };
+
+        event.tags.push(["s", "bitspark"]);
+        event = await window.nostr.signEvent(event);
+
+        event.tags = this.uniqueTags(event.tags);
+        const pubs = this.pool.publish(this.relays, event);
+        console.log("send event:", event);
+        return event.id;
     }
 
     // Methode zum Abonnieren von Events mit Fehlerbehandlung
     subscribeToEvents(criteria) {
         const subscriptionKey = this.generateSubscriptionKey(criteria);
-        
+
         if (this.subscriptions.has(subscriptionKey)) {
             console.warn('Subscription for these criteria already exists.');
             return;
+        } else {
+            console.log('Subscription:', criteria);
         }
 
         let sub;
@@ -51,10 +110,4 @@ export class NostrCacheManager {
         this.subscriptions.forEach(sub => sub.unsub());
         this.subscriptions.clear();
     }
-
-    // Weitere nützliche Methoden...
 }
-
-export const cacheManager = new NostrCacheManager([
-    // Liste der Relay-URLs
-]);

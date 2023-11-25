@@ -87,6 +87,7 @@ export const nostrEvents = writable(cache);
 
 // Beispiel für eine Exportmethode, um ein Event hinzuzufügen oder zu aktualisieren
 export const addOrUpdateEvent = (event) => {
+  console.log("Event Added:", event);
   nostrEvents.update(cache => {
     cache.addOrUpdateEvent(event);
     return cache;
