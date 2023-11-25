@@ -172,13 +172,13 @@ export default class NostrHelper {
       this.publicKey = await window.nostr.getPublicKey();
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
       this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
-      console.log("used relays:", this.relays);
     }
     else {
       this.write_mode = false;
       this.publicKey = null;
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
     }
+    console.log("used relays:", this.relays);
   }
 
   /*

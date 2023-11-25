@@ -13,6 +13,32 @@
   import { ideas, verifiedCards, unverifiedCards } from "../ideaStore.js";
   import { sidebarOpen } from "../helperStore.js";
 
+  // Importieren der neuen Klassen
+  import { NostrCacheManager } from "../backend/NostrCacheManager.js";
+  import { addOrUpdateEvent } from "../backend/NostrStore.js";
+
+  // Initialisierung des Cache-Managers
+  const cacheManager = new NostrCacheManager(["wss://relay.damus.io"]); // Beispiel-URL
+
+  // Debugging-Funktion, um neue Events zu abonnieren
+  function debugSubscribeToEvents() {
+    let criteria = {
+      kinds: [1339],
+      tags: {
+        s: ["bitspark"],
+      },
+    };
+    cacheManager.subscribeToEvents(criteria);
+
+    // Beispiel, um die Funktionalität zu testen
+    //addOrUpdateEvent({
+    //  id: 'test-event',
+    // kind: 1,
+    //  pubkey: 'Beispiel-PubKey',
+    //  content: 'Test Event für Debugging',
+    //  created_at: Math.floor(Date.now() / 1000),
+    //});
+  }
   let publicKey = "";
   let profilePicture = "";
   let profile = null;
@@ -65,7 +91,7 @@
       $ideas.forEach((idea) => {
         const tags = idea.tags.reduce(
           (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-          {}
+          {},
         );
         const card = {
           id: idea.id,
@@ -90,7 +116,9 @@
     }
   }
 
-  onMount(async () => {});
+  onMount(async () => {
+    debugSubscribeToEvents();
+  });
 
   $: filterIdeas(), category;
   $: updateIdeas(), $ideas;
