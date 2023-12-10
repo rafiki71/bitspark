@@ -83,12 +83,12 @@ class NostrEventCache {
 
 // Erstellt einen Svelte Store mit einer Instanz von NostrEventCache
 const cache = new NostrEventCache();
-export const nostrEvents = writable(cache);
+export const nostrCache = writable(cache);
 
 // Beispiel für eine Exportmethode, um ein Event hinzuzufügen oder zu aktualisieren
 export const addOrUpdateEvent = (event) => {
   console.log("Event Added:", event);
-  nostrEvents.update(cache => {
+  nostrCache.update(cache => {
     cache.addOrUpdateEvent(event);
     return cache;
   });
@@ -97,7 +97,7 @@ export const addOrUpdateEvent = (event) => {
 // Beispiel für eine Exportmethode, um Events nach Kriterien zu filtern
 export const getEventsByCriteria = (criteria) => {
   let filteredEvents;
-  nostrEvents.subscribe(cache => {
+  nostrCache.subscribe(cache => {
     filteredEvents = cache.getEventsByCriteria(criteria);
   })();
   return filteredEvents;
