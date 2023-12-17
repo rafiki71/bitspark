@@ -70,12 +70,6 @@ footer {
     background: none;
     border: none;
     cursor: pointer;
-    transition: opacity 0.3s ease;
-
-    /* Add a hover effect for better user feedback */
-    &:hover {
-        opacity: 0.8;
-    }
 }
 
 .support-button img {

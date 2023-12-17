@@ -10,6 +10,7 @@
   import Footer from "../components/Footers/FooterBS.svelte";
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
+  import ToolBar from "../components/ToolBar.svelte";
 
   let comments = [];
   let newComment = "";
@@ -56,26 +57,11 @@
       subtitle={$previewStore.subtitle}
       show_right_text={false}
     />
-
-    <div class="content-overlay">
-      <div class="content-icons">
-        <button on:click={supportIdea} class="support-button">
-          <img
-            src="../../img/lightning.png"
-            alt="Support via Bitcoin Lightning"
-          />
-        </button>
-        {#if creator_profile && creator_profile.picture}
-            <ProfileImg
-              profile={creator_profile}
-              style={{ width: "40px", height: "40px" }}
-            />
-        {/if}
-        <a href={$previewStore.githubRepo} target="_blank">
-          <i class="fab fa-github text-white" style="font-size: 2.5rem;" />
-        </a>
-      </div>
-    </div>
+    <ToolBar
+      lnAddress={$previewStore.lightningAddress}
+      pubkey={$helperStore.publicKey}
+      githubRepo={$previewStore.githubRepo}
+    />
     
     <div class={contentContainerClass}>
       <div class="container bg-card relative flex flex-col min-w-0 break-words">

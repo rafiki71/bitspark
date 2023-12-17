@@ -10,6 +10,7 @@
     import SelectionModal from "../components/Modals/SelectionModal.svelte";
     import Modal, { bind } from "svelte-simple-modal";
     import { filterStore } from "../filterStore.js";
+    import ToolBar from "../components/ToolBar.svelte";
 
     function navigateTo(route) {
         navigate(route);
@@ -126,6 +127,7 @@
     <Menu />
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+        <ToolBar/>
         <div class={contentContainerClass}>
             <div class="single-card container">
                 <div class="text-center mt-6 px-6">

@@ -68,9 +68,12 @@
                     />
                 {/if}
                 {#if githubRepo}
-                    <a href={githubRepo} target="_blank">
+                    <a href={githubRepo} target="_blank" style="line-height: 30px">
                         <i class="fab fa-github text-white github-icon-size" />
                     </a>
+                {/if}
+                {#if (lnAddress || (creator_profile && creator_profile.picture) || githubRepo) && (profile && profile.picture)}
+                    <span class="vertical-separator" style="margin: 0px 0px; border-left: 2px solid white; height: 40px;"></span>
                 {/if}
                 {#if profile && profile.picture}
                     <ProfileImg
