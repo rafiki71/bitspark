@@ -1,139 +1,75 @@
 <!-- Overview.svelte -->
-
 <script>
-  // Core components
+  import "websocket-polyfill";
   import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
-  import ProfileImg from "../components/ProfileImg.svelte";
   import Menu from "../components/Menu.svelte";
   import Banner from "../components/Banner.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import ToolBar from "../components/ToolBar.svelte";
-  import "websocket-polyfill";
-  import { helperStore } from "../helperStore.js"; // Import the store
-  import { ideas, verifiedCards, unverifiedCards } from "../ideaStore.js";
   import { sidebarOpen } from "../helperStore.js";
-  // Importieren der neuen Klassen
-  import { nostrManagerStore } from "../backend/NostrManagerStore.js";
-
-  // Debugging-Funktion, um neue Events zu abonnieren
-  function debugSubscribeToEvents() {
-    console.log("debugSubscribeToEvents");
-    let criteria = {
-      kinds: [1339],
-      '#s': ["bitspark"],
-    };
-    $nostrManagerStore.subscribeToEvents(criteria);
-  }
-
-  let publicKey = "";
-  let profilePicture = "";
-  let profile = null;
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { onDestroy } from "svelte";
 
   export let category;
 
-  async function fetchIdeas() {
-    if (!$helperStore) {
-      return;
-    }
+  let verifiedCards = [];
+  let unverifiedCards = [];
 
-    try {
-      await $helperStore.fetchIdeas();
+  async function fetchAndDisplayIdeas() {
+    let criteria = {
+      kinds: [1339],
+      "#s": ["bitspark"],
+    };
 
-      if (category) {
-        $ideas = await $helperStore.getIdeas([category]);
+    const fetchedEvents = await $nostrCache.getEventsByCriteria(criteria);
+
+    verifiedCards = [];
+    unverifiedCards = [];
+    fetchedEvents.forEach((idea) => {
+      const card = transformIdeaToCard(idea);
+      if (idea.Symbol && idea.Symbol(verified)) {
+        verifiedCards.push(card);
       } else {
-        $ideas = await $helperStore.getIdeas();
+        unverifiedCards.push(card);
       }
-    } catch (error) {
-      console.error("Error updating cards:", error);
-    }
+    });
   }
 
-  async function filterIdeas() {
-    if (!$helperStore) {
-      return;
-    }
-
-    if (category) {
-      $ideas = await $helperStore.getIdeas([category]);
-    } else {
-      $ideas = await $helperStore.getIdeas();
-    }
+  function transformIdeaToCard(idea) {
+    const tags = idea.tags.reduce(
+      (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
+      {},
+    );
+    return {
+      id: idea.id,
+      name: tags.iName,
+      subtitle: tags.iSub,
+      bannerImage: tags.ibUrl,
+      message: idea.content,
+      abstract: tags.abstract,
+    };
   }
 
-  async function updateProfileImg() {
-    if (!$helperStore) {
-      return;
-    }
-    publicKey = $helperStore.publicKey;
-    profile = await $helperStore.getProfile(publicKey);
-    profilePicture = profile.picture;
-  }
-
-  async function updateIdeas() {
-    try {
-      let verified = [];
-      let unverified = [];
-      $ideas.forEach((idea) => {
-        const tags = idea.tags.reduce(
-          (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-          {},
-        );
-        const card = {
-          id: idea.id,
-          name: tags.iName,
-          subtitle: tags.iSub,
-          bannerImage: tags.ibUrl,
-          message: idea.content,
-          abstract: tags.abstract,
-        };
-
-        if (idea.githubVerified) {
-          verified.push(card);
-        } else {
-          unverified.push(card);
-        }
-      });
-      // Assign outside of forEach loop
-      $verifiedCards = verified;
-      $unverifiedCards = unverified;
-    } catch (error) {
-      console.error("Error updating cards:", error);
-    }
-  }
-
-  onMount(async () => {
-    debugSubscribeToEvents();
-    /*await $nostrManagerStore.sendEvent(1339, "content", 
-    [
-      ["iName", "ideaName"],
-      ["iSub", "ideaSubtitle"],
-      ["ibUrl", "blub"],
-      ["gitrepo", "githubRepo"],
-      ["lnadress", "lnAdress"],
-      ["abstract", "abstract"],
-      ["c", "Art & Design"]
-    ])
-    */
+  onMount(() => {
+    $nostrManager.subscribeToEvents({
+      kinds: [1339],
+      "#s": ["bitspark"],
+    });
+    fetchAndDisplayIdeas();
   });
 
-  $: filterIdeas(), category;
-  $: updateIdeas(), $ideas;
-  $: updateProfileImg(), $helperStore;
-  $: fetchIdeas(), $helperStore;
-  $: filterIdeas(), $helperStore;
+  onDestroy(() => {
+    $nostrManager.unsubscribeAll(); // Diese Methode müsste in Ihrem nostrManager definiert sein
+  });
 
-  let contentContainerClass = "content-container";
-  let titleClass = "title-class";
+  $: fetchAndDisplayIdeas(), category;
+  $: fetchAndDisplayIdeas(), $nostrCache;
 
-  $: {
-    if ($sidebarOpen) {
-      contentContainerClass = "content-container sidebar-open";
-    } else {
-      contentContainerClass = "content-container";
-    }
-  }
+  let contentContainerClass = $sidebarOpen
+    ? "content-container sidebar-open"
+    : "content-container";
 
   let bannerImage = "../../img/Banner1u.png";
   let title = "BitSpark";
@@ -149,27 +85,23 @@
       <section class="content-container relative py-16">
         <div class="content-container">
           <div class="container mx-auto px-4">
+            <!-- Anzeigen von verifizierten Ideen -->
             <div class="row">
-              {#each $verifiedCards as card (card.id)}
-                <div
-                  class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                  style="margin-bottom: 2rem;"
-                >
+              {#each verifiedCards as card (card.id)}
+                <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
                   <IdeaCard {card} />
                 </div>
               {/each}
             </div>
             <!-- Divider -->
             <div
-              style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
               class="w-full"
+              style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
             />
+            <!-- Anzeigen von nicht verifizierten Ideen -->
             <div class="row">
-              {#each $unverifiedCards as card (card.id)}
-                <div
-                  class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8"
-                  style="margin-top: 2rem;"
-                >
+              {#each unverifiedCards as card (card.id)}
+                <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
                   <IdeaCard {card} />
                 </div>
               {/each}

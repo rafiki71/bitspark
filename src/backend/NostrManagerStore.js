@@ -11,4 +11,4 @@ const initialManager = new NostrCacheManager([
 initialManager.initialize();
 
 // Erstellen des Svelte Stores
-export const nostrManagerStore = writable(initialManager);
+export const nostrManager = writable(initialManager);
