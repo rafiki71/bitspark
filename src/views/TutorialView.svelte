@@ -7,6 +7,7 @@
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
   import tutorials from "../Tutorials.js";
+    import ToolBar from "../components/ToolBar.svelte";
 
   export let id;
   let tutorial = null;
@@ -40,6 +41,7 @@
         subtitle={tutorial.subtitle}
         show_right_text={false}
       />
+      <ToolBar/>
       <div class={contentContainerClass}>
         <div class="single-card container">
           <div class="text-center mt-6 px-6">

@@ -8,10 +8,23 @@
   import Menu from "../components/Menu.svelte";
   import Banner from "../components/Banner.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
+  import ToolBar from "../components/ToolBar.svelte";
   import "websocket-polyfill";
   import { helperStore } from "../helperStore.js"; // Import the store
   import { ideas, verifiedCards, unverifiedCards } from "../ideaStore.js";
   import { sidebarOpen } from "../helperStore.js";
+  // Importieren der neuen Klassen
+  import { nostrManagerStore } from "../backend/NostrManagerStore.js";
+
+  // Debugging-Funktion, um neue Events zu abonnieren
+  function debugSubscribeToEvents() {
+    console.log("debugSubscribeToEvents");
+    let criteria = {
+      kinds: [1339],
+      '#s': ["bitspark"],
+    };
+    $nostrManagerStore.subscribeToEvents(criteria);
+  }
 
   let publicKey = "";
   let profilePicture = "";
@@ -65,7 +78,7 @@
       $ideas.forEach((idea) => {
         const tags = idea.tags.reduce(
           (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-          {}
+          {},
         );
         const card = {
           id: idea.id,
@@ -90,7 +103,20 @@
     }
   }
 
-  onMount(async () => {});
+  onMount(async () => {
+    debugSubscribeToEvents();
+    /*await $nostrManagerStore.sendEvent(1339, "content", 
+    [
+      ["iName", "ideaName"],
+      ["iSub", "ideaSubtitle"],
+      ["ibUrl", "blub"],
+      ["gitrepo", "githubRepo"],
+      ["lnadress", "lnAdress"],
+      ["abstract", "abstract"],
+      ["c", "Art & Design"]
+    ])
+    */
+  });
 
   $: filterIdeas(), category;
   $: updateIdeas(), $ideas;
@@ -118,6 +144,7 @@
   <Menu />
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+    <ToolBar/>
     <div class={contentContainerClass}>
       <section class="content-container relative py-16">
         <div class="content-container">

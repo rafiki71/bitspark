@@ -9,7 +9,7 @@ export default class NostrHelper {
     this.pool = new SimplePool();
     this.relays = [];//get set by initialize()
     this.idea_kind = 1339;
-    this.job_kind = 1341;
+    this.job_kind = 1342;
     this.write_mode = write_mode;
     this.publicKey = null;
     this.publicRelays = [];
@@ -172,13 +172,13 @@ export default class NostrHelper {
       this.publicKey = await window.nostr.getPublicKey();
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
       this.relays = await this.getAllRelays(this.publicKey); //do it again since relays changed now.
-      console.log("used relays:", this.relays);
     }
     else {
       this.write_mode = false;
       this.publicKey = null;
       this.relays = await this.getPublicRelaysString(); //fetch from the public first
     }
+    console.log("used relays:", this.relays);
   }
 
   /*
@@ -537,7 +537,7 @@ export default class NostrHelper {
   async getOffersForJob(jobId) {
     const filters = [{ kinds: [this.job_kind], '#e': [jobId], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
-  
+
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
       let stat = await this.getOfferStatus(offer.id);
@@ -548,19 +548,19 @@ export default class NostrHelper {
     console.log(offers);
     return offers;
   }
-  
+
   // 5. Jobs von einem User abrufen:
   async getOffersForUser(npub) {
     const filters = [{ kinds: [this.job_kind], authors: [npub], '#t': ['offer'] }];
     let offers = await this.pool.list(this.relays, filters);
-  
+
     // Hängen Sie jedem Angebot den Status an
     for (let offer of offers) {
       let stat = await this.getOfferStatus(offer.id);
       offer.status = stat.status;
       offer.reason = stat.reason;
     }
-  
+
     return offers;
   }
 
@@ -571,11 +571,11 @@ export default class NostrHelper {
     }
 
     // Filter für Akzeptanzen des Angebots
-    const filters1 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['ao'] }];
+    const filters1 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#o': [offerId], '#t': ['ao'] }];
     let accepts = await this.pool.list(this.relays, filters1);
 
     // Filter für Ablehnungen des Angebots
-    const filters2 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#e': [offerId], '#t': ['do'] }];
+    const filters2 = [{ kinds: [this.job_kind], authors: [job.pubkey], '#o': [offerId], '#t': ['do'] }];
     let declines = await this.pool.list(this.relays, filters2);
 
     // Kombinieren Sie beide Arrays und sortieren Sie sie nach dem Erstellungsdatum
@@ -583,33 +583,41 @@ export default class NostrHelper {
 
     // Nehmen Sie die jüngste Antwort (Accept oder Decline)
     let latestResponse = allResponses[0];
+    console.log("latestResponse:", latestResponse);
 
     // Basierend auf der jüngsten Antwort den Status zurückgeben
     let statusDetails = {
       status: 'pending',
       reason: ''
     };
-  
+
     // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
     if (latestResponse) {
       const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
       const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
       statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
-  
+
       if (responseType === 'ao') {
         statusDetails.status = 'accepted';
       } else if (responseType === 'do') {
         statusDetails.status = 'declined';
       }
     }
-  
+
     return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
-  async updateOfferStatus(offerId, status, reason = '') {
+  async updateOfferStatus(jobId, offerId, status, reason = '') {
+    console.log("offerId:", offerId);
+    const offer = await this.getEvent(offerId);
+    console.log("offer:", offer);
+    let offerOwner = offer.pubkey;
+    console.log("offerOwner:", offerOwner);
     const tags = [
       ["t", status === 'accepted' ? 'ao' : 'do'],
-      ["e", offerId],
+      ["e", jobId],
+      ["o", offerId],
+      ["p", offerOwner],
       ["status", status],
       ["reason", reason]
     ];
@@ -618,20 +626,42 @@ export default class NostrHelper {
     return await this.sendEvent(updateEvent);
   }
 
+  async getJobAccepts(jobid) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['ao'], '#e': [jobid] }];
+    let accepts = await this.pool.list(this.relays, filters);
+    console.log("accepts:", accepts)
+    return accepts;
+  }
+
   // 6. Pull Request abgeben und informieren:
-  async postPullRequest(offerId, pullRequestId, jobProfile) {
+  async postPullRequest(jobId, offerId, pullRequestId, jobProfile) {
     if (!this.write_mode) return;
 
     const tags = [
       ["t", "pr"],
-      ["e", offerId],  // Job ID
-      ["pr", pullRequestId],
+      ["e", jobId],
+      ["o", offerId],
+      ["pr_url", pullRequestId],
       ["p", jobProfile]
     ];
 
     const prEvent = this.createEvent(this.job_kind, "Pull Request", tags);
     console.log("Pull Request Posted");
     return await this.sendEvent(prEvent);
+  }
+
+  async getPullRequestsForOffer(jobid, offerid) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['pr'], '#e': [jobid], '#o': [offerid] }];
+    let pullreqs = await this.pool.list(this.relays, filters);
+    console.log("Pull Requests:", pullreqs)
+    return pullreqs;
+  }
+
+  async getPullRequests(jobid) {
+    const filters = [{ kinds: [this.job_kind], '#t': ['pr'], '#e': [jobid] }];
+    let pullreqs = await this.pool.list(this.relays, filters);
+    console.log("Pull Requests:", pullreqs)
+    return pullreqs;
   }
 
   async setPullRequestStatus(pullRequestId, offerProfile, status, reason = '') {
@@ -650,6 +680,44 @@ export default class NostrHelper {
 
     const event = this.createEvent(this.job_kind, `PR ${status}`, tags);
     return await this.sendEvent(event);
+  }
+
+  async getPullRequestStatus(pullRequestId) {
+    // Filter für Akzeptanzen des Pull Requests
+    const filtersAccept = [{ kinds: [this.job_kind], '#e': [pullRequestId], '#t': ['apr'] }];
+    let accepts = await this.pool.list(this.relays, filtersAccept);
+
+    // Filter für Ablehnungen des Pull Requests
+    const filtersDecline = [{ kinds: [this.job_kind], '#e': [pullRequestId], '#t': ['dpr'] }];
+    let declines = await this.pool.list(this.relays, filtersDecline);
+
+    // Kombinieren Sie beide Arrays und sortieren Sie sie nach dem Erstellungsdatum
+    let allResponses = [...accepts, ...declines].sort((a, b) => b.created_at - a.created_at);
+
+    // Nehmen Sie die jüngste Antwort (Accept oder Decline)
+    let latestResponse = allResponses[0];
+    console.log("latestResponse:", latestResponse);
+
+    // Basierend auf der jüngsten Antwort den Status zurückgeben
+    let statusDetails = {
+      status: 'pending',
+      reason: ''
+    };
+
+    // Basierend auf der jüngsten Antwort den Status und den Grund zurückgeben
+    if (latestResponse) {
+      const responseType = latestResponse.tags.find(tag => tag[0] === 't')[1];
+      const reason = latestResponse.tags.find(tag => tag[0] === 'reason');
+      statusDetails.reason = reason ? reason[1] : ''; // Überprüfen Sie, ob das 'reason'-Tag vorhanden ist
+
+      if (responseType === 'apr') {
+        statusDetails.status = 'accepted';
+      } else if (responseType === 'dpr') {
+        statusDetails.status = 'declined';
+      }
+    }
+
+    return statusDetails; // Gibt ein Objekt mit Status und Grund zurück
   }
 
   // 9. Bewertungen:
