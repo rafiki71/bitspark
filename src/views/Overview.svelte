@@ -19,8 +19,14 @@
   async function fetchAndDisplayIdeas() {
     let criteria = {
       kinds: [1339],
-      "#s": ["bitspark"],
+      tags: {
+        s: ["bitspark"],
+      },
     };
+
+    if (category) {
+      criteria.tags.c = [category];
+    }
 
     const fetchedEvents = await $nostrCache.getEventsByCriteria(criteria);
 
@@ -50,9 +56,9 @@
       abstract: tags.abstract,
     };
   }
-  
+
   function initialize() {
-    if($nostrManager) {
+    if ($nostrManager) {
       $nostrManager.subscribeToEvents({
         kinds: [1339],
         "#s": ["bitspark"],
@@ -62,7 +68,7 @@
   }
 
   onMount(() => {
-    initialize()
+    initialize();
   });
 
   onDestroy(() => {

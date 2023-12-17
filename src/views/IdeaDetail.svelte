@@ -60,11 +60,15 @@
   }
 
   function fetchCreatorProfile() {
-    const profileEvents = $nostrCache.getEventsByCriteria({
+    let criteria = {
       kinds: [0],
       authors: [idea.pubkey],
-      "#s": ["bitspark"],
-    });
+      tags: {
+        s: ["bitspark"],
+      },
+    };
+
+    const profileEvents = $nostrCache.getEventsByCriteria(criteria);
 
     if (profileEvents && profileEvents.length > 0) {
       creator_profile = profileEvents[0];

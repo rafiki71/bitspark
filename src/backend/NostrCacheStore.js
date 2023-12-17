@@ -1,3 +1,4 @@
+// NostrCacheStore.js
 import { writable } from 'svelte/store';
 
 // Definiert die Struktur des Cache-Objekts
@@ -70,22 +71,24 @@ class NostrEventCache {
       if (key === 'kinds' && !criteria.kinds.includes(event.kind)) {
         return false;
       }
+
       if (key === 'authors' && !criteria.authors.includes(event.pubkey)) {
         return false;
       }
-      if (key.startsWith('#')) {
-        const tagValues = event.tags.filter(tag => tag[0] === key.substring(1)).map(tag => tag[1]);
-        // Überprüft, ob jeder Wert im Filter auch in der Tag-Liste ist
-        for (let value of criteria[key]) {
-          if (!tagValues.includes(value)) {
+
+      if (criteria.tags) {
+        for (let tagKey in criteria.tags) {
+          const tagValues = event.tags.filter(tag => tag[0] === tagKey).map(tag => tag[1]);
+          // Überprüft, ob jeder Wert im Filter auch in der Tag-Liste ist
+          if (!criteria.tags[tagKey].some(value => tagValues.includes(value))) {
             return false;
           }
         }
       }
     }
+
     return true;
   }
-
 }
 
 // Erstellt einen Svelte Store mit einer Instanz von NostrEventCache
