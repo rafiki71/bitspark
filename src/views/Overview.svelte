@@ -50,13 +50,19 @@
       abstract: tags.abstract,
     };
   }
+  
+  function initialize() {
+    if($nostrManager) {
+      $nostrManager.subscribeToEvents({
+        kinds: [1339],
+        "#s": ["bitspark"],
+      });
+      fetchAndDisplayIdeas();
+    }
+  }
 
   onMount(() => {
-    $nostrManager.subscribeToEvents({
-      kinds: [1339],
-      "#s": ["bitspark"],
-    });
-    fetchAndDisplayIdeas();
+    initialize()
   });
 
   onDestroy(() => {
@@ -65,6 +71,7 @@
 
   $: fetchAndDisplayIdeas(), category;
   $: fetchAndDisplayIdeas(), $nostrCache;
+  $: initialize(), $nostrManager;
 
   let contentContainerClass = $sidebarOpen
     ? "content-container sidebar-open"

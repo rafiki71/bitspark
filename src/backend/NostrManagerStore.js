@@ -2,13 +2,15 @@
 import { writable } from 'svelte/store';
 import { NostrCacheManager } from './NostrCacheManager.js';
 
-// Initialisierung des NostrCacheManager
-const initialManager = new NostrCacheManager([
-  // Liste der Relay-URLs
-  'wss://relay.damus.io'
-], true); // Der zweite Parameter ist 'write_mode'
-
-initialManager.initialize();
-
 // Erstellen des Svelte Stores
-export const nostrManager = writable(initialManager);
+export const nostrManager = writable(null);
+
+// Asynchrone Initialisierung des NostrCacheManager
+async function initializeNostrManager(login) {
+  const manager = new NostrCacheManager(['wss://relay.damus.io'], login);
+  await manager.initialize();
+  nostrManager.set(manager); // Setzen des Stores erst nach der Initialisierung
+}
+
+// Aufruf der Initialisierungsfunktion
+initializeNostrManager(true);

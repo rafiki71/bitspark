@@ -10,19 +10,26 @@ class NostrEventCache {
 
   // Fügt ein Event hinzu oder aktualisiert es
   addOrUpdateEvent(event) {
-    this.events.set(event.id, event);
+    // Prüfen, ob das Event bereits existiert
+    const existingEvent = this.events.get(event.id);
 
-    // Aktualisieren der kindIndex Map
-    if (!this.kindIndex.has(event.kind)) {
-      this.kindIndex.set(event.kind, new Set());
+    if (!existingEvent) {
+      console.log("Event Added:", event);
+      // Add new event if it does not exist
+      this.events.set(event.id, event);
+      
+      // Aktualisieren der kindIndex Map
+      if (!this.kindIndex.has(event.kind)) {
+        this.kindIndex.set(event.kind, new Set());
+      }
+      this.kindIndex.get(event.kind).add(event);
+      
+      // Aktualisieren der authorIndex Map
+      if (!this.authorIndex.has(event.pubkey)) {
+        this.authorIndex.set(event.pubkey, new Set());
+      }
+      this.authorIndex.get(event.pubkey).add(event);
     }
-    this.kindIndex.get(event.kind).add(event);
-
-    // Aktualisieren der authorIndex Map
-    if (!this.authorIndex.has(event.pubkey)) {
-      this.authorIndex.set(event.pubkey, new Set());
-    }
-    this.authorIndex.get(event.pubkey).add(event);
   }
 
   // Holt ein Event anhand seiner ID
@@ -33,7 +40,7 @@ class NostrEventCache {
   // Filtert Events basierend auf übergebenen Kriterien
   getEventsByCriteria(criteria) {
     let filteredEvents = new Set(this.events.values());
-  
+
     // Nutzen der Indizes für 'kinds' und 'authors'
     if (criteria.kinds) {
       filteredEvents = new Set(
@@ -46,14 +53,14 @@ class NostrEventCache {
       );
       filteredEvents = new Set([...filteredEvents].filter(event => authorFiltered.has(event)));
     }
-  
+
     // Für Tags und weitere Filter den reduzierten Event-Satz durchsuchen
     if (criteria.tags) {
       filteredEvents = new Set([...filteredEvents].filter(event =>
         this.matchesCriteria(event, criteria)
       ));
     }
-  
+
     return Array.from(filteredEvents);
   }
 
@@ -78,7 +85,7 @@ class NostrEventCache {
     }
     return true;
   }
-  
+
 }
 
 // Erstellt einen Svelte Store mit einer Instanz von NostrEventCache
@@ -87,7 +94,6 @@ export const nostrCache = writable(cache);
 
 // Beispiel für eine Exportmethode, um ein Event hinzuzufügen oder zu aktualisieren
 export const addOrUpdateEvent = (event) => {
-  console.log("Event Added:", event);
   nostrCache.update(cache => {
     cache.addOrUpdateEvent(event);
     return cache;
