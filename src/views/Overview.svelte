@@ -6,6 +6,7 @@
   import Menu from "../components/Menu.svelte";
   import Banner from "../components/Banner.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
+  import ToolBar from "../components/ToolBar.svelte";
   import { sidebarOpen } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
@@ -92,6 +93,7 @@
   <Menu />
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+    <ToolBar/>
     <div class={contentContainerClass}>
       <section class="content-container relative py-16">
         <div class="content-container">

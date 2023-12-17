@@ -8,6 +8,7 @@
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
+    import ToolBar from "../components/ToolBar.svelte";
 
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
@@ -73,6 +74,7 @@
     <Menu />
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
+        <ToolBar/>
         <div class={contentContainerClass}>
             <div
                 class="container bg-card relative flex flex-col min-w-0 break-words"
