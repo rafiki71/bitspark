@@ -3,13 +3,12 @@
     import { onMount, onDestroy } from "svelte";
     import { slide } from "svelte/transition";
     import { Link, navigate } from "svelte-routing";
-    import NostrHelper from "../NostrHelper.js";
     import { writable } from "svelte/store";
-    import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
     import { construct_svelte_component } from "svelte/internal";
     import tutorials from "../Tutorials.js";
     import "../styles/global.css";
+    import { nostrManager, initializeNostrManager } from "../backend/NostrManagerStore.js";
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -19,7 +18,6 @@
 
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
-    export let nostrHelper = null;
 
     let categories = [
         "Art & Design",
@@ -95,23 +93,22 @@
     }
 
     async function login() {
-        // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
         console.log("Logging in...");
-        await NostrHelper.create(true);
+        await initializeNostrManager(true, false);
         menuState.update((state) => ({ ...state, logged_in: true }));
     }
 
     async function logout() {
         console.log("Logging out...");
-        await NostrHelper.create(false);
+        await initializeNostrManager(false, false);
         menuState.update((state) => ({ ...state, logged_in: false }));
     }
 
     onMount(async () => {
-        nostrHelper = await NostrHelper.create();
-        const loggedIn = (await nostrHelper.publicKey) != null;
-        console.log("nostrhelper pk", loggedIn);
-        const usingExtension = await nostrHelper.extensionAvailable();
+        await initializeNostrManager(false, true);
+        const loggedIn = ($nostrManager.publicKey) != null;
+        console.log("Logged in:", loggedIn);
+        const usingExtension = await $nostrManager.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
 
@@ -185,7 +182,7 @@
                     <button
                         class={linkStyle}
                         on:click={() =>
-                            navigate(`/profile/${nostrHelper.publicKey}`)}
+                            navigate(`/profile/${$nostrManager.publicKey}`)}
                     >
                         <i
                             class="fas fa-user"
@@ -198,7 +195,7 @@
                     <button
                         class={linkStyle}
                         on:click={() =>
-                            navigate(`/edit_profile/${nostrHelper.publicKey}`)}
+                            navigate(`/edit_profile/${$nostrManager.publicKey}`)}
                     >
                         <i
                             class="fas fa-cog"

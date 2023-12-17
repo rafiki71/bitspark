@@ -11,6 +11,18 @@ export class NostrCacheManager {
         this.write_mode = write_mode;
     }
 
+    async extensionAvailable() {
+        if ("nostr" in window) {
+          return true;
+        }
+        return false;
+      }
+    
+    async getPublicRelaysString() {
+        return ["wss://relay.damus.io",
+          "wss://nostr-pub.wellorder.net"];
+      }
+
     async initialize() {
         let useExtension = await this.extensionAvailable();
         console.log("useExtension2:", useExtension);

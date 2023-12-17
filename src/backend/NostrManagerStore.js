@@ -6,11 +6,18 @@ import { NostrCacheManager } from './NostrCacheManager.js';
 export const nostrManager = writable(null);
 
 // Asynchrone Initialisierung des NostrCacheManager
-async function initializeNostrManager(login) {
-  const manager = new NostrCacheManager(['wss://relay.damus.io'], login);
-  await manager.initialize();
-  nostrManager.set(manager); // Setzen des Stores erst nach der Initialisierung
+export async function initializeNostrManager(login, init) {
+  let currentValue;
+  nostrManager.subscribe(value => {
+    currentValue = value;
+  })(); // Abonnieren und sofort kündigen, um den aktuellen Wert zu erhalten
+  
+  if (!init || currentValue === null) {  // Überprüfe, ob der aktuelle Wert des Stores null ist
+    const manager = new NostrCacheManager(['wss://relay.damus.io'], login);
+    await manager.initialize();
+    nostrManager.set(manager); // Setzen des Stores erst nach der Initialisierung
+  }
 }
 
 // Aufruf der Initialisierungsfunktion
-initializeNostrManager(true);
+//initializeNostrManager(true);
