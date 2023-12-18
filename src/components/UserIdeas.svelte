@@ -1,24 +1,59 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
+    
     export let profile_id;
 
     let ideas = [];
     let profile = null;
 
-    onMount(async () => {
-        fetch_ideas();
+    onMount(() => {
+        if ($nostrManager) {
+            // Abonnieren der Events für das Profil und die Ideen
+            $nostrManager.subscribeToEvents({
+                kinds: [0, 1339], // Profil und Ideen
+                tags: {
+                    s: ["bitspark"],
+                    authors: [profile_id]
+                }
+            });
+
+            fetchData();
+        }
     });
 
-    async function fetch_ideas() {
-        console.log("fetchd user ideas:");
+    onDestroy(() => {
+        // Beenden der Abonnements bei Zerstörung der Komponente
+        $nostrManager.unsubscribeAll();
+    });
+
+    async function fetchData() {
         try {
-            profile = await $helperStore.getProfile(profile_id);
-            const ideas_ = await $helperStore.getUserIdeas(profile_id);
-            console.log(profile);
-            console.log(ideas_);
-            ideas = ideas_.map((idea) => {
+            // Abrufen des Profils aus dem Cache
+            const profileEvents = $nostrCache.getEventsByCriteria({
+                kinds: [0],
+                tags: {
+                    s: ["bitspark"],
+                    authors: [profile_id]
+                }
+            });
+
+            if (profileEvents && profileEvents.length > 0) {
+                profile = profileEvents[0];
+            }
+
+            // Abrufen der Ideen des Benutzers
+            const ideaEvents = $nostrCache.getEventsByCriteria({
+                kinds: [1339],
+                tags: {
+                    s: ["bitspark"],
+                    authors: [profile_id]
+                }
+            });
+
+            ideas = ideaEvents.map((idea) => {
                 const tags = idea.tags.reduce(
                     (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
                     {}
@@ -33,19 +68,10 @@
                     abstract: tags.abstract,
                 };
             });
-            console.log(ideas);
         } catch (error) {
             console.error("Error fetching user ideas:", error);
         }
     }
-
-    function test() {
-        console.log("Profile id changed");
-    }
-    $: fetch_ideas(), $helperStore;
-    // $: ideas;
-    $: fetch_ideas(), profile_id;
-    // $: profile;
 </script>
 
 <div class="w-full">

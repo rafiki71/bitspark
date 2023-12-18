@@ -1,16 +1,16 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
     import { sendSatsLNurl } from "../LNHelper.js";
     import Menu from "../components/Menu.svelte";
-    import { helperStore } from "../helperStore.js"; // Import the store
-    import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
+    import UserIdeas from "../components/UserIdeas.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
-    import "../styles/global.css";
     import ToolBar from "../components/ToolBar.svelte";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
 
     export let profile_id;
 
@@ -22,30 +22,65 @@
     let ghUser = "";
     let lnAddress = "";
 
-    onMount(async () => {
-        fetchData();
+    // Funktion zum Abrufen des Profils
+    async function fetchProfile() {
+        const profileEvents = $nostrCache.getEventsByCriteria({
+            kinds: [0],
+            authors: [profile_id],
+            tags: {
+                s: ["bitspark"],
+            },
+        });
+
+        if (profileEvents && profileEvents.length > 0) {
+            const profileContent = JSON.parse(profileEvents[0].content);
+            return {
+                ...profileEvents[0],
+                ...profileContent,
+            };
+        }
+        return null;
+    }
+
+    // Abonnieren und Abrufen des Profils beim Laden
+    onMount(() => {
+        if ($nostrManager) {
+            $nostrManager.subscribeToEvents({
+                kinds: [0],
+                authors: [profile_id],
+                "#s": ["bitspark"],
+            });
+            updateProfile();
+        }
     });
 
-    async function fetchData() {
-        try {
-            profile = await $helperStore.getProfile(profile_id);
-            if (profile) {
-                name = profile.name;
-                about = profile.dev_about;
-                picture = profile.picture;
-                banner = profile.banner;
-                ghUser = profile.githubUsername;
-                lnAddress = profile.lud16;
-            }
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-        }
-        console.log("lnAddress changed:", lnAddress);
+    onDestroy(() => {
+        $nostrManager.unsubscribeAll();
+    });
+
+    // Reaktive Anweisung zum Aktualisieren des Profils, wenn sich der Cache ändert
+    $: $nostrCache, updateProfile();
+    $: if ($nostrManager) {
+        $nostrManager.subscribeToEvents({
+            kinds: [0],
+            authors: [profile_id],
+            "#s": ["bitspark"],
+        });
+        updateProfile();
     }
 
-    async function supportProfile() {
-        await sendSatsLNurl(lnAddress);
+    async function updateProfile() {
+        profile = await fetchProfile();
+        if (profile) {
+            name = profile.name;
+            about = profile.dev_about;
+            picture = profile.picture;
+            banner = profile.banner;
+            ghUser = profile.githubUsername;
+            lnAddress = profile.lud16;
+        }
     }
+
     let contentContainerClass = "combined-content-container";
 
     $: {
@@ -55,9 +90,6 @@
             contentContainerClass = "combined-content-container";
         }
     }
-    $: fetchData(), $helperStore;
-    $: fetchData(), profile_id;
-    $: lnAddress;
 </script>
 
 <main class="overview-page">
