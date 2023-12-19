@@ -3,12 +3,12 @@
     import { onMount } from "svelte";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
     import Menu from "../components/Menu.svelte";
-    import { helperStore } from "../helperStore.js";
     import { previewJobStore } from "../previewJobStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
     import ToolBar from "../components/ToolBar.svelte";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
 
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
@@ -33,21 +33,31 @@
             $previewJobStore.jobDescription &&
             $previewJobStore.jobCategories.length
         ) {
-            await $helperStore.postJob(
-                $previewJobStore.ideaId,
-                $previewJobStore.sats,
-                $previewJobStore.jobTitle,
-                $previewJobStore.jBannerUrl,
-                $previewJobStore.jobDescription,
-                $previewJobStore.jobCategories
+            let tags = [
+                ["t", "job"],
+                ["s", "bitspark"],
+                ["jTitle", $previewJobStore.jobTitle],
+                ["sats", $previewJobStore.sats],
+                ["jbUrl", $previewJobStore.jBannerUrl],
+                ["e", $previewJobStore.ideaId],
+                ...$previewJobStore.jobCategories.map(category => ["c", category])
+            ];
+
+            // Senden des Job-Events über nostrManager
+            if ($nostrManager && $nostrManager.write_mode) {
+                await $nostrManager.sendEvent(
+                    1337, // Der Kind-Wert für Jobs
+                    $previewJobStore.jobDescription,
+                    tags
                 );
+            }
 
             // Zurücksetzen des Zustands
             for (let key in $previewJobStore) {
                 if (Array.isArray($previewJobStore[key])) {
-                    previewJobStore[key] = [];
+                    $previewJobStore[key] = [];
                 } else {
-                    previewJobStore[key] = "";
+                    $previewJobStore[key] = "";
                 }
             }
             navigate(`/idea/${ideaID}`);

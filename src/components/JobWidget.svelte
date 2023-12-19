@@ -1,58 +1,71 @@
 <!-- JobWidget.svelte -->
 
 <script>
-  import { onMount } from "svelte";
-  import { helperStore } from "../helperStore.js"; // Import the store
+  import { onMount, onDestroy } from "svelte";
   import { navigate } from "svelte-routing";
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
 
-  export let ideaID; // Die ID der Idee, um Jobs zu laden
-  export let creatorPubKey; // Fügen Sie diesen neuen exportierten Wert hinzu
+  export let ideaID;
+  export let creatorPubKey;
 
   let jobs = [];
+  let jobKind = 1337; // Ersetzen Sie dies durch den korrekten Kind-Wert für Jobs
+
+  onMount(() => {
+    if ($nostrManager) {
+      initialize();
+    }
+  });
+
+  $: $nostrManager && initialize();
+  $: $nostrCache && fetchJobs();
+
+  function initialize() {
+    // Abonnieren von Job-Events
+    $nostrManager.subscribeToEvents({
+      kinds: [jobKind], // Kind-Wert für Jobs
+      "#e": [ideaID], // ID der Idee
+      "#t": ["job"] // Tag zur Kennzeichnung von Jobs
+    });
+  }
+
+  async function fetchJobs() {
+    const jobEvents = await $nostrCache.getEventsByCriteria({
+      kinds: [jobKind],
+      tags: {
+        e: [ideaID],
+        s: ["bitspark"],
+        t: ["job"],
+      },
+    });
+
+    jobs = jobEvents.map((jobEvent) => ({
+      id: jobEvent.id,
+      title: jobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] || "N/A",
+      sats: jobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
+      description: jobEvent.content,
+      url: jobEvent.tags.find((tag) => tag[0] === "jbUrl")?.[1] || "",
+      kind: jobEvent.kind,
+      pubkey: jobEvent.pubkey,
+      sig: jobEvent.sig,
+    }));
+  }
 
   function postJob() {
     navigate(`/postjob/${ideaID}`);
   }
 
-  async function fetchJobs() {
-    if (!$helperStore) {
-      return;
+  onDestroy(() => {
+    if ($nostrManager) {
+      $nostrManager.unsubscribeAll();
     }
-
-    try {
-      const fetchedJobs = await $helperStore.getJobs(ideaID);
-      jobs = fetchedJobs.map((job) => {
-        console.log(job);
-        const tagObject = {};
-        job.tags.forEach((tag) => {
-          tagObject[tag[0]] = tag[1];
-        });
-        return {
-          id: job.id,
-          title: tagObject.jTitle || "N/A",
-          sats: tagObject.sats || "0 Sats",
-          description: job.content,
-          url: tagObject.jbUrl || "",
-          kind: job.kind,
-          pubkey: job.pubkey,
-          sig: job.sig,
-        };
-      });
-
-      console.log("Jobs:", jobs);
-    } catch (error) {
-      console.error("Error fetching jobs data:", error);
-    }
-  }
-
-  $: if ($helperStore) {
-    fetchJobs();
-  }
+  });
 </script>
 
 <div class="header">
   <h4 class="base-h4">Jobs</h4>
-  {#if $helperStore?.publicKey && $helperStore?.publicKey === creatorPubKey}
+  {#if creatorPubKey === $nostrManager?.publicKey}
     <button on:click={postJob} class="add-job-icon">
       <i class="fa fa-plus-circle" aria-hidden="true" />
     </button>
@@ -82,7 +95,9 @@
     justify-content: center; /* Horizontale Zentrierung des Icons */
     border-radius: 50%; /* Runder Button */
     padding: 0; /* Entfernen Sie jeglichen Abstand */
-    transition: color 0.5s, background-color 0.5s; /* Langsamere Übergänge */
+    transition:
+      color 0.5s,
+      background-color 0.5s; /* Langsamere Übergänge */
     outline: none;
     cursor: pointer;
   }
