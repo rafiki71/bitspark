@@ -32,20 +32,12 @@
 
     function initialize() {
         if ($nostrManager) {
-            // Subscriben für das Profil und Relays
             $nostrManager.subscribeToEvents({
                 kinds: [0],
                 authors: [profile_id],
                 "#s": ["bitspark"],
             });
-            $nostrManager.subscribeToEvents({
-                kinds: [10002],
-                authors: [$nostrManager.publicKey],
-            });
-
-            // Profil und Relays abrufen
             fetchProfile();
-            fetchRelays();
         }
     }
 
@@ -64,76 +56,31 @@
 
         if (profileEvents && profileEvents.length > 0) {
             profileEvents.sort((a, b) => b.created_at - a.created_at);
-            const profileContent = JSON.parse(profileEvents[0].content);
-            profile = {
-                ...profileEvents[0],
-                ...profileContent,
-            };
+            profile = profileEvents[0].profileData;
 
-            // Setzen der Profilwerte
             name = profile.name;
             dev_about = profile.dev_about;
             picture = profile.picture;
             banner = profile.banner;
-            lud16 = profileContent.lud16; // Achten Sie darauf, lud16 direkt aus profileContent zu beziehen
-
-            // Extrahieren der GitHub-Informationen aus den Tags
-            const githubTag = profileEvents[0].tags.find(
-                (tag) => tag[0] === "i" && tag[1].startsWith("github:"),
-            );
-            if (githubTag) {
-                const githubParts = githubTag[1].split(":");
-                git_username = githubParts[1];
-                git_proof = githubTag[2];
-            }
+            lud16 = profile.lud16;
+            git_username = profile.githubUsername;
+            git_proof = profile.githubProof;
         }
     }
 
-    // Funktion zum Erstellen eines Profil-Events
-    function createProfileEvent(
-        name,
-        picture,
-        banner,
-        dev_about,
-        lud16,
-        identities,
-    ) {
-        const content = JSON.stringify({
-            name,
-            picture,
-            banner,
-            dev_about,
-            lud16,
-        });
-
-        const tags = identities.map((identity) => [
-            "i",
-            `${identity.platform}:${identity.identity}`,
-            identity.proof,
-        ]);
-
-        return {
-            kind: 0, // Profil-Kind
-            content,
-            tags,
-        };
-    }
-
-    // Funktion zum Aktualisieren des Profils
     async function updateProfile() {
         if (!$nostrManager || !$nostrManager.write_mode) return;
 
-        // Verwenden Sie die Variablen direkt in der Funktion
-        const profileEvent = createProfileEvent(
-            name,
-            picture,
-            banner,
-            dev_about,
-            lud16,
-            [{ platform: "github", identity: git_username, proof: git_proof }],
-        );
+        const profileEvent = {
+            kind: 0,
+            content: JSON.stringify({ name, picture, banner, dev_about, lud16 }),
+            tags: [
+                ["i", `github:${git_username}`, git_proof],
+                ["s", "bitspark"]
+            ]
+        };
+
         try {
-            console.log(profileEvent);
             await $nostrManager.sendEvent(
                 profileEvent.kind,
                 profileEvent.content,

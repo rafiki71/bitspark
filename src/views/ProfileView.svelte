@@ -22,27 +22,6 @@
     let ghUser = "";
     let lnAddress = "";
 
-    // Funktion zum Abrufen des Profils
-    async function fetchProfile() {
-        const profileEvents = $nostrCache.getEventsByCriteria({
-            kinds: [0],
-            authors: [profile_id],
-            tags: {
-                s: ["bitspark"],
-            },
-        });
-
-        if (profileEvents && profileEvents.length > 0) {
-            const profileContent = JSON.parse(profileEvents[0].content);
-            return {
-                ...profileEvents[0],
-                ...profileContent,
-            };
-        }
-        return null;
-    }
-
-    // Abonnieren und Abrufen des Profils beim Laden
     onMount(() => {
         if ($nostrManager) {
             $nostrManager.subscribeToEvents({
@@ -54,24 +33,38 @@
         }
     });
 
-    onDestroy(() => {
-        $nostrManager.unsubscribeAll();
-    });
-
-    // Reaktive Anweisung zum Aktualisieren des Profils, wenn sich der Cache ändert
-    $: $nostrCache, updateProfile();
-    $: if ($nostrManager) {
-        $nostrManager.subscribeToEvents({
-            kinds: [0],
-            authors: [profile_id],
-            "#s": ["bitspark"],
-        });
-        updateProfile();
+    
+    function initialize() {
+        if ($nostrManager) {
+            $nostrManager.subscribeToEvents({
+                kinds: [0],
+                authors: [profile_id],
+                "#s": ["bitspark"],
+            });
+            updateProfile();
+        }
     }
+    
+    onDestroy(() => {
+        if ($nostrManager) {
+            $nostrManager.unsubscribeAll();
+        }
+    });
+    
+    $: $nostrManager, initialize();
+    $: $nostrCache, updateProfile();
 
     async function updateProfile() {
-        profile = await fetchProfile();
-        if (profile) {
+        const profileEvents = $nostrCache.getEventsByCriteria({
+            kinds: [0],
+            authors: [profile_id],
+            tags: {
+                s: ["bitspark"],
+            },
+        });
+
+        if (profileEvents && profileEvents.length > 0) {
+            profile = profileEvents[0].profileData; // Nutzen der neuen Struktur
             name = profile.name;
             about = profile.dev_about;
             picture = profile.picture;

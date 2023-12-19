@@ -9,22 +9,49 @@ class NostrEventCache {
     this.authorIndex = new Map();
   }
 
+  // Hilfsmethode zur Verarbeitung von Profil-Events
+  processProfileEvent(event) {
+    // Frühzeitige Rückkehr, wenn es sich nicht um ein Profil-Event handelt
+    if (event.kind !== 0) {
+      return;
+    }
+
+    // Versuchen, den Inhalt des Events zu parsen
+    try {
+      event.profileData = JSON.parse(event.content);
+    } catch (e) {
+      console.error("Fehler beim Parsen des Profil-Contents", e);
+      event.profileData = {};
+    }
+
+    // Extrahieren der GitHub-Informationen aus den Tags
+    const githubTag = event.tags.find(tag => tag[0] === "i" && tag[1].startsWith("github:"));
+    if (githubTag) {
+      const githubParts = githubTag[1].split(":");
+      event.profileData.githubUsername = githubParts[1];
+      event.profileData.githubProof = githubTag[2];
+    }
+
+    // Weitere spezifische Verarbeitung kann hier hinzugefügt werden
+  }
+
   // Fügt ein Event hinzu oder aktualisiert es
   addOrUpdateEvent(event) {
     // Prüfen, ob das Event bereits existiert
     const existingEvent = this.events.get(event.id);
 
     if (!existingEvent) {
-      console.log("Event Added:", event);
+      this.processProfileEvent(event);
       // Add new event if it does not exist
       this.events.set(event.id, event);
-      
+      console.log("Event Added:", event);
+
       // Aktualisieren der kindIndex Map
       if (!this.kindIndex.has(event.kind)) {
         this.kindIndex.set(event.kind, new Set());
       }
       this.kindIndex.get(event.kind).add(event);
-      
+
       // Aktualisieren der authorIndex Map
       if (!this.authorIndex.has(event.pubkey)) {
         this.authorIndex.set(event.pubkey, new Set());

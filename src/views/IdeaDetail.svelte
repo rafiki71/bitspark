@@ -71,14 +71,14 @@
     const profileEvents = $nostrCache.getEventsByCriteria(criteria);
 
     if (profileEvents && profileEvents.length > 0) {
-      creator_profile = profileEvents[0];
+      creator_profile = profileEvents[0].profileData;
     }
   }
 
   async function deleteIdea() {
     const confirmDelete = confirm("Do you really want to delete this idea?");
     if (confirmDelete) {
-      await nostrManager.sendEvent(5, "", [["e", id]]);
+      await $nostrManager.sendEvent(5, "", [["e", id]]);
     }
   }
 
