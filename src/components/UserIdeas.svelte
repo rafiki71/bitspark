@@ -3,26 +3,34 @@
     import { Link } from "svelte-routing";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
-    
+
     export let profile_id;
 
     let ideas = [];
     let profile = null;
 
-    onMount(() => {
-        if ($nostrManager) {
-            // Abonnieren der Events für das Profil und die Ideen
-            $nostrManager.subscribeToEvents({
-                kinds: [0, 1339], // Profil und Ideen
-                tags: {
-                    s: ["bitspark"],
-                    authors: [profile_id]
-                }
-            });
+    // Reaktive Anweisung, um bei Änderungen des Managers Daten zu aktualisieren
+    $: $nostrManager && fetchData();
+    $: $nostrManager && initialize();
 
-            fetchData();
+    // Reaktive Anweisung, um bei Änderungen des Caches Daten zu aktualisieren
+    $: $nostrCache && fetchData();
+
+    onMount(() => {
+        // Initialisierung, wenn der Manager bereits existiert
+        if ($nostrManager) {
+            initialize();
         }
     });
+
+    function initialize() {
+        // Abonnieren der Events für das Profil und die Ideen
+        $nostrManager.subscribeToEvents({
+            kinds: [0, 1339], // Profil und Ideen
+            authors: [profile_id],
+            "#s": ["bitspark"],
+        });
+    }
 
     onDestroy(() => {
         // Beenden der Abonnements bei Zerstörung der Komponente
@@ -34,29 +42,30 @@
             // Abrufen des Profils aus dem Cache
             const profileEvents = $nostrCache.getEventsByCriteria({
                 kinds: [0],
+                authors: [profile_id],
                 tags: {
                     s: ["bitspark"],
-                    authors: [profile_id]
-                }
+                },
             });
 
             if (profileEvents && profileEvents.length > 0) {
-                profile = profileEvents[0];
+                profileEvents.sort((a, b) => b.created_at - a.created_at);
+                profile = profileEvents[0].profileData; // Nutzung der neuen Profilstruktur
             }
 
             // Abrufen der Ideen des Benutzers
             const ideaEvents = $nostrCache.getEventsByCriteria({
                 kinds: [1339],
+                authors: [profile_id],
                 tags: {
                     s: ["bitspark"],
-                    authors: [profile_id]
-                }
+                },
             });
 
             ideas = ideaEvents.map((idea) => {
                 const tags = idea.tags.reduce(
                     (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-                    {}
+                    {},
                 );
 
                 return {
