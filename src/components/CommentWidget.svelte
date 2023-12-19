@@ -1,55 +1,114 @@
 <!-- CommentWidget.svelte -->
 
 <script>
-  import { helperStore } from "../helperStore.js";
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
   import ProfileImg from "../components/ProfileImg.svelte";
+  import { onMount, onDestroy } from "svelte";
 
   export let id;
 
   let comments = [];
   let newComment = "";
-  let profiles = {};
+  let pubkeys = new Set();
+
+  onMount(() => {
+    if ($nostrManager) {
+      initialize();
+    }
+  });
+
+  $: $nostrManager && initialize();
+  $: $nostrCache && fetchComments();
+
+  function initialize() {
+    $nostrManager.subscribeToEvents({
+      kinds: [1], // Kommentare
+      "#e": [id],
+      "#s": ["bitspark"],
+    });
+    // Hier könnten wir auch die Profil-Events abonnieren
+    subscribeProfileEvents();
+  }
+
+  async function subscribeProfileEvents() {
+    console.log("pubkeys:", pubkeys);
+    if (pubkeys.size > 0) {
+      $nostrManager.subscribeToEvents({
+        kinds: [0], // Profil-Events
+        authors: Array.from(pubkeys),
+      });
+    }
+  }
 
   async function fetchComments() {
-    if (!$helperStore) {
-      return;
-    }
+    const commentEvents = await $nostrCache.getEventsByCriteria({
+      kinds: [1],
+      tags: {
+        e: [id],
+        s: ["bitspark"],
+      },
+    });
+
+    pubkeys = new Set(commentEvents.map((event) => event.pubkey));
+    subscribeProfileEvents(); // Neu abonnieren für die aktualisierten pubkeys
+
+    const profilePromises = commentEvents.map(async (event) => {
+      const profileEvents = await $nostrCache.getEventsByCriteria({
+        kinds: [0],
+        authors: [event.pubkey],
+      });
+
+      let profile = {};
+      if (profileEvents.length > 0) {
+        const latestProfileEvent = profileEvents.reduce((latest, current) =>
+          latest.created_at > current.created_at ? latest : current,
+        );
+        profile = latestProfileEvent.profileData || {};
+      }
+
+      return {
+        id: event.id,
+        comment: event.content,
+        name: profile.name || "NoName",
+        picture: profile.picture || "",
+        pubkey: event.pubkey,
+        githubVerified: profile.githubVerified,
+      };
+    });
 
     try {
-      const fetchedComments = await $helperStore.getComments(id);
-      comments = await Promise.all(
-        fetchedComments.map(async (comment) => {
-          const profile = await $helperStore.getProfile(comment.pubkey);
-          profiles[comment.pubkey] = profile;
-          return {
-            id: comment.id,
-            comment: comment.content,
-            name: comment.name,
-            picture: profile.picture,
-            pubkey: comment.pubkey,
-            githubVerified: profile.githubVerified,
-          };
-        })
-      );
+      comments = await Promise.all(profilePromises);
     } catch (error) {
       console.error("Error fetching comments data:", error);
     }
   }
 
   async function submitComment() {
-    if (newComment.trim() === "") return;
+    if (!newComment.trim() || !$nostrManager || !$nostrManager.write_mode)
+      return;
 
+    const tags = [
+      ["e", id],
+      ["s", "bitspark"],
+    ];
     try {
-      const commentId = await $helperStore.postComment(id, newComment);
-      await fetchComments();
+      await $nostrManager.sendEvent(1, newComment, tags);
+      //await fetchComments();
       newComment = "";
     } catch (error) {
       console.error("Error submitting comment:", error);
     }
   }
 
-  $: fetchComments(), $helperStore;
+  onDestroy(() => {
+    if ($nostrManager) {
+      $nostrManager.unsubscribeAll();
+    }
+  });
 </script>
+
+<!-- HTML-Markup und Styles bleiben unverändert -->
 
 <h4 class="base-h4">Comments</h4>
 <ul>

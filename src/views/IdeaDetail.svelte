@@ -128,7 +128,7 @@
 
     <div class={contentContainerClass}>
       <div class="single-card container">
-        {#if creator_profile && creator_profile.pubkey === $nostrCache.publicKey}
+        {#if creator_profile && creator_profile.pubkey === $nostrManager.publicKey}
           <button
             on:click={deleteIdea}
             class="absolute top-4 right-4 text-gray-400"

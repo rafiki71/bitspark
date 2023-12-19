@@ -12,6 +12,16 @@
     let creator_profile = null;
     let profile = null;
 
+    function ensureHttpScheme(url) {
+        if (!url) return url;
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return "https://" + url;
+        }
+        return url;
+    }
+
+    $: formattedGithubRepo = ensureHttpScheme(githubRepo);
+
     // Reaktive Anweisung, die auf Änderungen im nostrManager und nostrCache hört
     $: $nostrManager, $nostrCache, fetchProfiles();
 
@@ -83,11 +93,12 @@
                 {/if}
                 {#if githubRepo}
                     <a
-                        href={githubRepo}
+                        href={formattedGithubRepo}
                         target="_blank"
                         style="line-height: 30px"
                     >
-                        <i class="fab fa-github text-white github-icon-size" />
+                        <i class="fab fa-github text-white github-icon-size"
+                        ></i>
                     </a>
                 {/if}
                 {#if (lnAddress || (creator_profile && creator_profile.picture) || githubRepo) && profile && profile.picture}
