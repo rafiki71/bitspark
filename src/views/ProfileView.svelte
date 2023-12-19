@@ -64,6 +64,7 @@
         });
 
         if (profileEvents && profileEvents.length > 0) {
+            profileEvents.sort((a, b) => b.created_at - a.created_at);
             profile = profileEvents[0].profileData; // Nutzen der neuen Struktur
             name = profile.name;
             about = profile.dev_about;

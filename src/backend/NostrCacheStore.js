@@ -24,6 +24,8 @@ class NostrEventCache {
       event.profileData = {};
     }
 
+    event.profileData.pubkey = event.pubkey;
+    
     // Extrahieren der GitHub-Informationen aus den Tags
     const githubTag = event.tags.find(tag => tag[0] === "i" && tag[1].startsWith("github:"));
     if (githubTag) {
