@@ -37,15 +37,18 @@
             jobs = $nostrCache.getEventsByCriteria({
                 kinds: [1337],
                 authors: [$nostrManager.publicKey],
-                tags: {s: ["bitspark"]}
+                tags: {s: ["bitspark"],
+                       t: ["job"]}
             });
 
             // Offers abrufen und Job-IDs extrahieren
             const offers = $nostrCache.getEventsByCriteria({
-                kinds: [2],
+                kinds: [1337],
                 authors: [$nostrManager.publicKey],
-                tags: {t: ["offer"]}
+                tags: {s: ["bitspark"],
+                       t: ["offer"]}
             });
+
             offers.forEach(offer => {
                 const jobIdTag = offer.tags.find(tag => tag[0] === 'e');
                 if (jobIdTag) {
@@ -58,7 +61,8 @@
                 $nostrManager.subscribeToEvents({
                     kinds: [1337],
                     ids: [jobId],
-                    "#s": ["bitspark"]
+                    "#s": ["bitspark"],
+                    "#t": ["job"]
                 });
             });
 
