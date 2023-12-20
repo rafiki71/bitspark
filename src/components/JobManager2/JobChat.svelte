@@ -1,35 +1,66 @@
-<!-- JobChat.svelte -->
 <script>
+  import JobBubble from "./JobBubble.svelte";
+  import { nostrCache } from "../../backend/NostrCacheStore.js";
+  import { nostrManager } from "../../backend/NostrManagerStore.js";
   export let selectedJob;
 
-  function getJobTitle(job) {
-    const titleTag = job?.tags?.find(tag => tag[0] === 'jTitle');
-    return titleTag ? titleTag[1] : 'Error';
+  let authors = new Set(); // Set, um doppelte Abonnements zu vermeiden
+
+  // Autoren aus den verknüpften Events extrahieren und abonnieren
+  function subscribeAuthorsFromEvents() {
+    // Überprüfen und Abonnieren des Autors des Jobs selbst
+    if (selectedJob && selectedJob.pubkey && !authors.has(selectedJob.pubkey)) {
+      authors.add(selectedJob.pubkey);
+      $nostrManager.subscribeToEvents({
+        kinds: [0],
+        authors: [selectedJob.pubkey],
+      });
+    }
+
+    // Abrufen und Abonnieren der Autoren verknüpfter Events
+    const relatedEvents = $nostrCache.getEventsByCriteria({
+      kinds: [1337],
+      tags: {
+        e: [selectedJob.id],
+        s: ["bitspark"],
+      },
+    });
+
+    relatedEvents.forEach((event) => {
+      if (event.pubkey && !authors.has(event.pubkey)) {
+        authors.add(event.pubkey);
+        $nostrManager.subscribeToEvents({
+          kinds: [0],
+          authors: [event.pubkey],
+        });
+      }
+    });
   }
+
+  // Reaktive Anweisung für selectedJob und nostrCache
+  $: if (selectedJob) {
+    $nostrManager.subscribeToEvents({
+      kinds: [1337],
+      "#e": [selectedJob.id],
+      "#s": ["bitspark"],
+    });
+    subscribeAuthorsFromEvents();
+  }
+  $: $nostrCache, subscribeAuthorsFromEvents(); // Reagiert auf Änderungen im Cache
 </script>
 
 <div class="job-chat">
   {#if selectedJob}
-      <h2>{getJobTitle(selectedJob)}</h2>
-      <!-- Hier könnten weitere Job-Details und zugehörige Nostr-Events angezeigt werden -->
+    <JobBubble job={selectedJob} />
   {/if}
 </div>
 
 <style>
   .job-chat {
-    /* Design für den Chat-Bereich */
     background-color: #f5f5f5;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 10px;
   }
-
-  h2 {
-    /* Stil für die Job-Titel im Chat */
-    color: #333;
-    margin-bottom: 20px;
-  }
-
-  /* Weitere Stile für Nachrichten, Buttons usw. */
 </style>
