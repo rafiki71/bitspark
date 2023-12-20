@@ -22,11 +22,13 @@
   $: $nostrCache && fetchJobs();
 
   function initialize() {
+    console.log("init");
     // Abonnieren von Job-Events
     $nostrManager.subscribeToEvents({
       kinds: [jobKind], // Kind-Wert für Jobs
       "#e": [ideaID], // ID der Idee
-      "#t": ["job"] // Tag zur Kennzeichnung von Jobs
+      "#t": ["job"],
+      "#s": ["bitspark"]
     });
   }
 

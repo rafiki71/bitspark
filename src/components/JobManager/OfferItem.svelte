@@ -1,5 +1,4 @@
 <!-- OfferItem.svelte -->
-
 <script>
     export let offer;
     export let selectJob;

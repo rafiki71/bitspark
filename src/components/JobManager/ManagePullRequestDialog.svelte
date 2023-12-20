@@ -1,3 +1,4 @@
+<!-- ManagePullRequestDialog.svelte -->
 <script>
     import { helperStore } from "../../helperStore.js";
     import { onMount } from "svelte";

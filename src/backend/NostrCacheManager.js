@@ -35,7 +35,6 @@ export class NostrCacheManager {
         else {
             this.write_mode = false;
             this.publicKey = null;
-            this.relays = await this.getPublicRelaysString(); //fetch from the public first
         }
         console.log("used relays:", this.relays);
     }
