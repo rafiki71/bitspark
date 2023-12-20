@@ -1,9 +1,10 @@
+<!-- JobChat.svelte -->
 <script>
   export let selectedJob;
 
   function getJobTitle(job) {
     const titleTag = job?.tags?.find(tag => tag[0] === 'jTitle');
-    return titleTag ? titleTag[1] : 'Unbekannter Titel';
+    return titleTag ? titleTag[1] : 'Error';
   }
 </script>
 
@@ -15,5 +16,20 @@
 </div>
 
 <style>
-  /* CSS-Stile für den Job-Chat */
+  .job-chat {
+    /* Design für den Chat-Bereich */
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+  }
+
+  h2 {
+    /* Stil für die Job-Titel im Chat */
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  /* Weitere Stile für Nachrichten, Buttons usw. */
 </style>
