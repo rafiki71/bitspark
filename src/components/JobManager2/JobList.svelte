@@ -1,9 +1,9 @@
 <!-- JobList.svelte -->
 <script>
-    import { onMount, onDestroy } from 'svelte';
-    import { nostrCache } from '../../backend/NostrCacheStore.js';
-    import { nostrManager } from '../../backend/NostrManagerStore.js';
-    import { createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy } from "svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
     let jobs = [];
@@ -17,7 +17,7 @@
                 kinds: [1337],
                 authors: [$nostrManager.publicKey],
                 "#t": ["job"],
-                "#s": ["bitspark"]
+                "#s": ["bitspark"],
             });
 
             // Eigene Offers
@@ -25,7 +25,7 @@
                 kinds: [1337], // Kind für Offers
                 authors: [$nostrManager.publicKey],
                 "#t": ["offer"],
-                "#s": ["bitspark"]
+                "#s": ["bitspark"],
             });
         }
     }
@@ -37,42 +37,51 @@
             jobs = $nostrCache.getEventsByCriteria({
                 kinds: [1337],
                 authors: [$nostrManager.publicKey],
-                tags: {s: ["bitspark"],
-                       t: ["job"]}
+                tags: { s: ["bitspark"], t: ["job"] },
             });
 
             // Offers abrufen und Job-IDs extrahieren
             const offers = $nostrCache.getEventsByCriteria({
                 kinds: [1337],
                 authors: [$nostrManager.publicKey],
-                tags: {s: ["bitspark"],
-                       t: ["offer"]}
+                tags: { s: ["bitspark"], t: ["offer"] },
             });
 
-            offers.forEach(offer => {
-                const jobIdTag = offer.tags.find(tag => tag[0] === 'e');
+            offers.forEach((offer) => {
+                const jobIdTag = offer.tags.find((tag) => tag[0] === "e");
                 if (jobIdTag) {
                     jobIdsFromOffers.add(jobIdTag[1]);
                 }
             });
 
             // Jobs für extrahierte Job-IDs abonnieren
-            jobIdsFromOffers.forEach(jobId => {
+            jobIdsFromOffers.forEach((jobId) => {
                 $nostrManager.subscribeToEvents({
                     kinds: [1337],
                     ids: [jobId],
                     "#s": ["bitspark"],
-                    "#t": ["job"]
+                    "#t": ["job"],
                 });
             });
 
-            // Jobs für extrahierte Job-IDs aus dem Cache abrufen
-            jobIdsFromOffers.forEach(jobId => {
+            let uniqueJobsMap = new Map();
+
+            // Jobs zu Map hinzufügen (Duplikate werden entfernt)
+            jobs.forEach((job) => {
+                uniqueJobsMap.set(job.id, job);
+            });
+
+            // Jobs aus Job-IDs von Offers hinzufügen
+            jobIdsFromOffers.forEach((jobId) => {
                 const job = $nostrCache.getEventById(jobId);
                 if (job) {
-                    jobs.push(job);
+                    uniqueJobsMap.set(job.id, job);
                 }
             });
+
+            // Umwandeln der Map in Array und Sortierung
+            jobs = Array.from(uniqueJobsMap.values());
+            jobs.sort((a, b) => b.created_at - a.created_at);
         }
     }
 
@@ -87,7 +96,7 @@
     });
 
     function selectJob(job) {
-        dispatch('selectJob', { job });
+        dispatch("selectJob", { job });
     }
 
     // Reaktive Anweisungen
@@ -98,34 +107,38 @@
 <div class="job-list">
     {#each jobs as job}
         <div class="job-item" on:click={() => selectJob(job)}>
-            {job.tags.find(tag => tag[0] === "jTitle")?.[1] || "Unbekannter Job"}
+            {job.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
+                "Unbekannter Job"}
         </div>
     {/each}
 </div>
 
 <style>
-   .job-list {
-    max-height: calc(100vh - 120px); /* Maximalhöhe basierend auf der Höhe des Viewports und des Headers */
-    width: 30%;
-    border-right: 2px solid #e0e0e0;
-    box-sizing: border-box;
-    padding: 15px;
-    overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Liste */
-}
+    .job-list {
+        max-height: calc(
+            100vh - 120px
+        ); /* Maximalhöhe basierend auf der Höhe des Viewports und des Headers */
+        width: 30%;
+        border-right: 2px solid #e0e0e0;
+        box-sizing: border-box;
+        padding: 15px;
+        overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Liste */
+    }
 
-.job-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.3s, color 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+    .job-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        transition:
+            background-color 0.3s,
+            color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-.job-item:hover {
-    background-color: #f5f5f5;
-    color: #333;
-}
-
+    .job-item:hover {
+        background-color: #f5f5f5;
+        color: #333;
+    }
 </style>
