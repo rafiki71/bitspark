@@ -1,3 +1,4 @@
+<!-- JobChat.svelte -->
 <script>
   import JobBubble from "./JobBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
@@ -52,15 +53,15 @@
 <div class="job-chat">
   {#if selectedJob}
     <JobBubble job={selectedJob} />
+    <JobBubble job={{...selectedJob, pubkey: "32ff6345af6bea020295e43cd71c3d2365396f1a740d196af64d16e18db15d2a"}} />
   {/if}
 </div>
 
 <style>
   .job-chat {
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 10px;
   }
 </style>

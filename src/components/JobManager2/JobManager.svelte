@@ -32,7 +32,8 @@
   
     .job-chat-container {
       flex-grow: 1;
-      overflow-y: auto;
+      height: 100%; /* Stellt sicher, dass es die volle Höhe des übergeordneten Elements einnimmt */
+      overflow-y: auto; 
       border-left: 2px solid #e0e0e0;
       padding: 15px;
     }
