@@ -1,11 +1,37 @@
 <!-- JobChat.svelte -->
 <script>
   import JobBubble from "./JobBubble.svelte";
+  import OfferBubble from "./OfferBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
+
   export let selectedJob;
 
   let authors = new Set(); // Set, um doppelte Abonnements zu vermeiden
+  let bubbles = [];
+  let relatedEvents = [];
+
+  function createBubble(event) {
+    const eventType = event.tags.find((tag) => tag[0] === "t")?.[1];
+
+    switch (eventType) {
+      case "job":
+        return JobBubble;
+      case "offer":
+        return OfferBubble;
+      case "ao": // Akzeptiertes Angebot
+        return AcceptanceBubble;
+      case "do": // Abgelehntes Angebot
+        return DeclineBubble;
+      case "pr":
+        return PRBubble;
+      case "apr": // Akzeptierter PR
+        return PRResponseBubble;
+      // ... weitere Fälle für andere Event-Typen
+      default:
+        return null; // oder ein Standard-Bubble-Komponent
+    }
+  }
 
   // Autoren aus den verknüpften Events extrahieren und abonnieren
   function subscribeAuthorsFromEvents() {
@@ -19,13 +45,16 @@
     }
 
     // Abrufen und Abonnieren der Autoren verknüpfter Events
-    const relatedEvents = $nostrCache.getEventsByCriteria({
+    console.log("selectedJob:", selectedJob);
+    relatedEvents = $nostrCache.getEventsByCriteria({
       kinds: [1337],
       tags: {
         e: [selectedJob.id],
         s: ["bitspark"],
       },
     });
+
+    relatedEvents.push(selectedJob);
 
     relatedEvents.forEach((event) => {
       if (event.pubkey && !authors.has(event.pubkey)) {
@@ -45,15 +74,28 @@
       "#e": [selectedJob.id],
       "#s": ["bitspark"],
     });
+
     subscribeAuthorsFromEvents();
+
+    bubbles = relatedEvents.map((event) => {
+      const BubbleComponent = createBubble(event);
+      return { component: BubbleComponent, props: { event } };
+    });
+
+    // Sortieren der Bubbles
+    bubbles.sort((a, b) => a.props.event.created_at - b.props.event.created_at);
+    console.log("relatedEvents:", relatedEvents);
+    console.log("bubbles:", bubbles);
   }
+
   $: $nostrCache, subscribeAuthorsFromEvents(); // Reagiert auf Änderungen im Cache
 </script>
 
 <div class="job-chat">
   {#if selectedJob}
-    <JobBubble job={selectedJob} />
-    <JobBubble job={{...selectedJob, pubkey: "32ff6345af6bea020295e43cd71c3d2365396f1a740d196af64d16e18db15d2a"}} />
+    {#each bubbles as bubble}
+      <svelte:component this={bubble.component} {...bubble.props} />
+    {/each}
   {/if}
 </div>
 

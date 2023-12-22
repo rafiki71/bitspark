@@ -47,6 +47,9 @@
     $: $nostrManager, checkIfOwnMessage();
 
     function checkIfOwnMessage() {
+        if(!event) {
+            return;
+        }
         isOwnMessage = event.pubkey === $nostrManager.publicKey;
     }
 
@@ -56,8 +59,6 @@
 
 <div class={`bubble ${isOwnMessage ? 'own-message' : 'other-message'}`} 
      style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor}; margin-left: {isOwnMessage ? 'auto' : '10px'}; margin-right: {isOwnMessage ? '10px' : 'auto'};">
-
-
     {#if profile.picture}
         <ProfileImg
             {profile}

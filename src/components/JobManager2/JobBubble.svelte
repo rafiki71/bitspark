@@ -1,7 +1,8 @@
 <!-- JobBubble.svelte -->
 <script>
     import BaseBubble from "./BaseBubble.svelte";
-    export let job;
+    
+    export let event;
 
     let jobTitle = "Unbekannter Job";
     let jobDescription = "Keine Beschreibung verfügbar.";
@@ -9,17 +10,17 @@
     let textColor = "#ffffff"; // Weiß für Kontrast
 
     // Reaktive Anweisungen, die auf Änderungen von `job` reagieren
-    $: if (job && job.tags) {
-        const titleTag = job.tags.find((tag) => tag[0] === "jTitle");
+    $: if (event && event.tags) {
+        const titleTag = event.tags.find((tag) => tag[0] === "jTitle");
         jobTitle = titleTag ? titleTag[1] : "Unbekannter Job";
     }
 
-    $: if (job) {
-        jobDescription = job.content || "Keine Beschreibung verfügbar.";
+    $: if (event) {
+        jobDescription = event.content || "Keine Beschreibung verfügbar.";
     }
 </script>
 
-<BaseBubble event={job} {backgroundColor} {textColor}>
+<BaseBubble event={event} {backgroundColor} {textColor}>
     <div class="job-content">
         <h3>{jobTitle}</h3>
         <p>{jobDescription}</p>
