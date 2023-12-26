@@ -4,6 +4,7 @@
   import OfferBubble from "./OfferBubble.svelte";
   import AddPRBubble from "./AddPRBubble.svelte";
   import PRBubble from "./PRBubble.svelte";
+  import PaymentRequestBubble from "./PaymentRequestBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
 
@@ -24,12 +25,30 @@
         return AddPRBubble;
       case "pr":
         return PRBubble;
-      //case "apr": // Akzeptierter PR
-        //return PRResponseBubble;
+      case "apr": // Akzeptierter PR
+        return PaymentRequestBubble;
       // ... weitere Fälle für andere Event-Typen
       default:
         return null; // oder ein Standard-Bubble-Komponent
     }
+  }
+
+  function subscribeToOfferZaps() {
+    const offerEvents = $nostrCache.getEventsByCriteria({
+      kinds: [1337],
+      tags: { s: ["bitspark"],
+              t: ["offer"]},
+    });
+
+    offerEvents.forEach((offer) => {
+      const offerId = offer.id;
+      console.log("offerId:", offerId);
+
+      $nostrManager.subscribeToEvents({
+        kinds: [9734], // Kind für Zap-Events
+        "#e": [offerId]
+      });
+    });
   }
 
   // Autoren aus den verknüpften Events extrahieren und abonnieren
@@ -66,18 +85,6 @@
     });
   }
 
-  // Reaktive Anweisung für selectedJob und nostrCache
-  $: if (selectedJob) {
-    $nostrManager.subscribeToEvents({
-      kinds: [1337],
-      "#e": [selectedJob.id],
-      "#s": ["bitspark"],
-    });
-
-    subscribeAuthorsFromEvents();
-    updateBubbles();
-  }
-
   function updateBubbles() {
     relatedEvents = $nostrCache.getEventsByCriteria({
       kinds: [1337],
@@ -111,6 +118,19 @@
 
   $: if ($nostrCache && selectedJob) {
     subscribeAuthorsFromEvents();
+    subscribeToOfferZaps();
+    updateBubbles();
+  }
+
+  $: if (selectedJob) {
+    $nostrManager.subscribeToEvents({
+      kinds: [1337],
+      "#e": [selectedJob.id],
+      "#s": ["bitspark"],
+    });
+
+    subscribeAuthorsFromEvents();
+    subscribeToOfferZaps();
     updateBubbles();
   }
 </script>
