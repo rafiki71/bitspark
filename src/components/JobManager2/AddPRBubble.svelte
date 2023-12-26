@@ -39,6 +39,7 @@
         }
 
         const tags = [
+            ["s", "bitspark"], // Tag für Pull Request
             ["t", "pr"], // Tag für Pull Request
             ["e", event.tags.find(tag => tag[0] === 'e')[1]], // Job ID
             ["o", event.tags.find(tag => tag[0] === 'o')[1]], // Offer ID
@@ -48,7 +49,6 @@
         try {
             await $nostrManager.sendEvent(offerKind, "Pull Request submitted", tags);
             prUrl = ""; // URL-Feld zurücksetzen
-            console.log("PR sent successfully");
         } catch (error) {
             console.error("Error sending PR:", error);
         }

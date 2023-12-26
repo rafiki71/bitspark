@@ -24,8 +24,8 @@
         return AddPRBubble;
       case "pr":
         return PRBubble;
-      case "apr": // Akzeptierter PR
-        return PRResponseBubble;
+      //case "apr": // Akzeptierter PR
+        //return PRResponseBubble;
       // ... weitere Fälle für andere Event-Typen
       default:
         return null; // oder ein Standard-Bubble-Komponent
