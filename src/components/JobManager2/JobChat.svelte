@@ -2,6 +2,8 @@
 <script>
   import JobBubble from "./JobBubble.svelte";
   import OfferBubble from "./OfferBubble.svelte";
+  import AddPRBubble from "./AddPRBubble.svelte";
+  import PRBubble from "./PRBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
 
@@ -13,16 +15,13 @@
 
   function createBubble(event) {
     const eventType = event.tags.find((tag) => tag[0] === "t")?.[1];
-
     switch (eventType) {
       case "job":
         return JobBubble;
       case "offer":
         return OfferBubble;
       case "ao": // Akzeptiertes Angebot
-        return AcceptanceBubble;
-      case "do": // Abgelehntes Angebot
-        return DeclineBubble;
+        return AddPRBubble;
       case "pr":
         return PRBubble;
       case "apr": // Akzeptierter PR
@@ -76,19 +75,44 @@
     });
 
     subscribeAuthorsFromEvents();
+    updateBubbles();
+  }
+
+  function updateBubbles() {
+    relatedEvents = $nostrCache.getEventsByCriteria({
+      kinds: [1337],
+      tags: {
+        e: [selectedJob.id],
+        s: ["bitspark"],
+      },
+    });
+
+    if (selectedJob) {
+      relatedEvents.push(selectedJob);
+    }
+
+    relatedEvents.forEach((event) => {
+      if (event.pubkey && !authors.has(event.pubkey)) {
+        authors.add(event.pubkey);
+        $nostrManager.subscribeToEvents({
+          kinds: [0],
+          authors: [event.pubkey],
+        });
+      }
+    });
 
     bubbles = relatedEvents.map((event) => {
       const BubbleComponent = createBubble(event);
       return { component: BubbleComponent, props: { event } };
     });
 
-    // Sortieren der Bubbles
     bubbles.sort((a, b) => a.props.event.created_at - b.props.event.created_at);
-    console.log("relatedEvents:", relatedEvents);
-    console.log("bubbles:", bubbles);
   }
 
-  $: $nostrCache, subscribeAuthorsFromEvents(); // Reagiert auf Änderungen im Cache
+  $: if ($nostrCache && selectedJob) {
+    subscribeAuthorsFromEvents();
+    updateBubbles();
+  }
 </script>
 
 <div class="job-chat">

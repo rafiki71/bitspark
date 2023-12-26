@@ -28,15 +28,12 @@
             },
         });
 
-        console.log("responses:", responses);
-        
         if (responses.length > 0) {
             offerStatus =
                 responses[0].tags.find((tag) => tag[0] === "t")[1] === "ao"
                     ? "accepted"
                     : "declined";
         }
-        console.log("offerStatus:", offerStatus);
     }
 
     async function handleAccept() {
@@ -86,7 +83,6 @@
             if (jobEvents.length > 0) {
                 const jobEvent = jobEvents[0];
                 isJobCreator = jobEvent.pubkey === $nostrManager.publicKey;
-                console.log("isJobCreator:", isJobCreator);
             }
         }
     }

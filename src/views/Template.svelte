@@ -36,7 +36,7 @@
   }
 
   async function postEvent() {
-    if (!newComment.trim() || !$nostrManager || !$nostrManager.write_mode)
+    if (!$nostrManager)
       return;
 
     const tags = [
@@ -44,7 +44,7 @@
       ["s", "bitspark"],
     ];
     try {
-      await $nostrManager.sendEvent(1, "content", tags);
+      await $nostrManager.sendEvent(kind, "content", tags);
       newComment = "";
     } catch (error) {
       console.error("Error submitting comment:", error);
