@@ -103,10 +103,17 @@
 
     // Reaktive Anweisungen
     $: $nostrCache && checkOfferStatus();
+    $: backgroundColor = offerStatus === 'accepted' ? '#E8F4FA' : (offerStatus === 'declined' ? '#FDE8E8' : '#F5F5F5');
+    $: borderColor = offerStatus === 'accepted' ? '#76C79E' : (offerStatus === 'declined' ? '#F28482' : '#FFAD60');
+    $: textColor = '#333333'; // Dunkelgrau für guten Kontrast
+    $: satsColor = '#34568B'; // Dunkelblau für Sats
+    $: acceptButtonColor = '#76C79E'; // Grün für Akzeptieren
+    $: declineButtonColor = '#F28482'; // Rot für Ablehnen
+    $: statusTextColor = '#FFFFFF'; // Weiß für Status-Text
+
     //$: $nostrManager && initialize();
 </script>
-
-<BaseBubble {event} {backgroundColor} {textColor}>
+<BaseBubble {event} {backgroundColor} {textColor} {borderColor} {status}>
     <div class="offer-content">
         <h3 class="sats-amount" style="color: {satsColor};">{sats} Sats</h3>
         <p class="offer-msg">{offerMsg}</p>
@@ -115,18 +122,13 @@
                 <button
                     on:click={handleAccept}
                     style="background-color: {acceptButtonColor};"
-                    >Akzeptieren</button
+                    >Accept</button
                 >
                 <button
                     on:click={handleDecline}
                     style="background-color: {declineButtonColor};"
-                    >Ablehnen</button
+                    >Decline</button
                 >
-            </div>
-        {/if}
-        {#if offerStatus !== "pending"}
-            <div class="offer-status" style="color: {statusTextColor};">
-                {offerStatus === "accepted" ? "Akzeptiert" : "Abgelehnt"}
             </div>
         {/if}
     </div>
@@ -158,12 +160,5 @@
         margin-right: 10px;
         cursor: pointer;
         font-weight: bold;
-    }
-
-    .offer-status {
-        padding: 5px;
-        border-radius: 4px;
-        font-weight: bold;
-        margin-top: 10px;
     }
 </style>

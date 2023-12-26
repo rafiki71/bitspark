@@ -10,6 +10,7 @@
     export let textColor = '#333'; // Standardwert
     export let borderColor = '#ddd'; // Optional
     export let borderRadius = '8px'; // Optional
+    export let status = 'normal';
 
     let profile = {};
     let formattedDate = "";
@@ -57,8 +58,8 @@
     $: $nostrCache, fetchProfile();
 </script>
 
-<div class={`bubble ${isOwnMessage ? 'own-message' : 'other-message'}`} 
-     style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor}; margin-left: {isOwnMessage ? 'auto' : '10px'}; margin-right: {isOwnMessage ? '10px' : 'auto'};">
+<div class={`bubble ${isOwnMessage ? 'own-message' : 'other-message'} ${status}`}
+     style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor}; box-shadow: {status === 'accepted' ? '0 0 10px #76C79E' : (status === 'declined' ? '0 0 10px #F28482' : 'none')}; margin-left: {isOwnMessage ? 'auto' : '10px'}; margin-right: {isOwnMessage ? '10px' : 'auto'};">
     {#if profile.picture}
         <ProfileImg
             {profile}
