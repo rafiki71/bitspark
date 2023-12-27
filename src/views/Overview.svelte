@@ -11,6 +11,7 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { onDestroy } from "svelte";
+  import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
 
   export let category;
 
@@ -19,7 +20,7 @@
 
   async function fetchAndDisplayIdeas() {
     let criteria = {
-      kinds: [1339],
+      kinds: [NOSTR_KIND_IDEA],
       tags: {
         s: ["bitspark"],
       },
@@ -61,7 +62,7 @@
   function initialize() {
     if ($nostrManager) {
       $nostrManager.subscribeToEvents({
-        kinds: [1339],
+        kinds: [NOSTR_KIND_IDEA],
         "#s": ["bitspark"],
       });
       fetchAndDisplayIdeas();

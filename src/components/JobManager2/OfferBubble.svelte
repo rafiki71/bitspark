@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
     export let event;
 
@@ -20,7 +21,7 @@
     async function checkOfferStatus() {
         offerStatus = "pending";
         const responses = $nostrCache.getEventsByCriteria({
-            kinds: [1337],
+            kinds: [NOSTR_KIND_JOB],
             tags: {
                 o: [event.id],
                 t: ["ao", "do"],
@@ -60,7 +61,7 @@
         ];
 
         try {
-            await $nostrManager.sendEvent(1337, content, tags);
+            await $nostrManager.sendEvent(NOSTR_KIND_JOB, content, tags);
             console.log("Response sent successfully");
         } catch (error) {
             console.error("Error sending response:", error);
@@ -76,7 +77,7 @@
         const jobId = event.tags.find((tag) => tag[0] === "e")?.[1];
         if (jobId) {
             const jobEvents = $nostrCache.getEventsByCriteria({
-                kinds: [1337], // Annahme, dass 1337 das Kind für Job-Postings ist
+                kinds: [NOSTR_KIND_JOB], // Annahme, dass NOSTR_KIND_JOB das Kind für Job-Postings ist
                 ids: [jobId],
                 tags: {
                     s: ["bitspark"],

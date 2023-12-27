@@ -3,12 +3,12 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
     export let event;
     let offer;
     let isOfferCreator = false;
     let prUrl = "";
-    const offerKind = 1337; // Event-Kind für Angebote, anpassen falls anders
 
     onMount(async () => {
         await loadOffer();
@@ -18,7 +18,7 @@
     async function loadOffer() {
         const offerId = event.tags.find(tag => tag[0] === 'o')[1];
         const offerEvents = $nostrCache.getEventsByCriteria({
-            kinds: [offerKind],
+            kinds: [NOSTR_KIND_JOB],
             ids: [offerId],
         });
 
@@ -50,7 +50,7 @@
         ];
 
         try {
-            await $nostrManager.sendEvent(offerKind, "Pull Request submitted", tags);
+            await $nostrManager.sendEvent(NOSTR_KIND_JOB, "Pull Request submitted", tags);
             prUrl = ""; // URL-Feld zurücksetzen
         } catch (error) {
             console.error("Error sending PR:", error);

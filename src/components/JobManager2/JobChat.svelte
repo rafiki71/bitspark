@@ -8,6 +8,7 @@
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
   import ReviewBubble from "./ReviewBubble.svelte";
+  import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
   export let selectedJob;
 
@@ -37,7 +38,7 @@
 
   function subscribeToOfferZaps() {
     const offerEvents = $nostrCache.getEventsByCriteria({
-      kinds: [1337],
+      kinds: [NOSTR_KIND_JOB],
       tags: { s: ["bitspark"],
               t: ["offer"]},
     });
@@ -65,9 +66,8 @@
     }
 
     // Abrufen und Abonnieren der Autoren verknüpfter Events
-    console.log("selectedJob:", selectedJob);
     relatedEvents = $nostrCache.getEventsByCriteria({
-      kinds: [1337],
+      kinds: [NOSTR_KIND_JOB],
       tags: {
         e: [selectedJob.id],
         s: ["bitspark"],
@@ -89,7 +89,7 @@
 
   function updateBubbles() {
     relatedEvents = $nostrCache.getEventsByCriteria({
-      kinds: [1337],
+      kinds: [NOSTR_KIND_JOB],
       tags: {
         e: [selectedJob.id],
         s: ["bitspark"],
@@ -126,7 +126,7 @@
 
   $: if (selectedJob) {
     $nostrManager.subscribeToEvents({
-      kinds: [1337],
+      kinds: [NOSTR_KIND_JOB],
       "#e": [selectedJob.id],
       "#s": ["bitspark"],
     });

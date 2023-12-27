@@ -32,7 +32,6 @@
   }
 
   async function subscribeProfileEvents() {
-    console.log("pubkeys:", pubkeys);
     if (pubkeys.size > 0) {
       $nostrManager.subscribeToEvents({
         kinds: [0], // Profil-Events

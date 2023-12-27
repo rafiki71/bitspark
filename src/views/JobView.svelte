@@ -9,6 +9,7 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { sidebarOpen } from "../helperStore.js";
+  import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
 
   export let id;
   let showOfferPopup = false;
@@ -16,12 +17,11 @@
   let developerIntro = "";
   let job = null;
   let creator_profile = null;
-  let jobKind = 1337; // Ersetzen mit dem tatsächlichen Kind-Wert für Jobs
 
   function initialize() {
     if ($nostrManager) {
       $nostrManager.subscribeToEvents({
-        kinds: [jobKind],
+        kinds: [NOSTR_KIND_JOB],
         ids: [id],
         "#t": ["job"],
         "#s": ["bitspark"],
@@ -32,7 +32,7 @@
 
   async function fetchJob() {
     const jobEvents = $nostrCache.getEventsByCriteria({
-      kinds: [jobKind],
+      kinds: [NOSTR_KIND_JOB],
       ids: [id],
       tags: { s: ["bitspark"] },
     });
@@ -71,8 +71,6 @@
     if (profileEvents.length > 0) {
       profileEvents.sort((a, b) => b.created_at - a.created_at);
       creator_profile = profileEvents[0].profileData;
-      console.log("creator:", creator_profile);
-      console.log("me:", $nostrManager.publicKey);
     }
   }
 
@@ -97,7 +95,7 @@
 
     try {
       await $nostrManager.sendEvent(
-        1337, // Der Kind-Wert für Jobs
+        NOSTR_KIND_JOB, // Der Kind-Wert für Jobs
         developerIntro,
         tags,
       );

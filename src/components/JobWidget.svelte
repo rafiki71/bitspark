@@ -6,12 +6,14 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { Link } from 'svelte-routing';
+  import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
+
 
   export let ideaID;
   export let creatorPubKey;
 
   let jobs = [];
-  let jobKind = 1337; // Ersetzen Sie dies durch den korrekten Kind-Wert für Jobs
+  let jobKind = NOSTR_KIND_JOB; // Ersetzen Sie dies durch den korrekten Kind-Wert für Jobs
 
   onMount(() => {
     if ($nostrManager) {
@@ -23,7 +25,6 @@
   $: $nostrCache && fetchJobs();
 
   function initialize() {
-    console.log("init");
     // Abonnieren von Job-Events
     $nostrManager.subscribeToEvents({
       kinds: [jobKind], // Kind-Wert für Jobs

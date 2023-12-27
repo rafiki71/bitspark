@@ -3,6 +3,7 @@
     import { Link } from "svelte-routing";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
 
     export let profile_id;
 
@@ -26,7 +27,7 @@
     function initialize() {
         // Abonnieren der Events für das Profil und die Ideen
         $nostrManager.subscribeToEvents({
-            kinds: [0, 1339], // Profil und Ideen
+            kinds: [0, NOSTR_KIND_IDEA], // Profil und Ideen
             authors: [profile_id],
             "#s": ["bitspark"],
         });
@@ -55,7 +56,7 @@
 
             // Abrufen der Ideen des Benutzers
             const ideaEvents = $nostrCache.getEventsByCriteria({
-                kinds: [1339],
+                kinds: [NOSTR_KIND_IDEA],
                 authors: [profile_id],
                 tags: {
                     s: ["bitspark"],

@@ -9,6 +9,8 @@
     import Banner from "../components/Banner.svelte";
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
+
 
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
@@ -46,7 +48,7 @@
             // Senden des Job-Events über nostrManager
             if ($nostrManager && $nostrManager.write_mode) {
                 await $nostrManager.sendEvent(
-                    1337, // Der Kind-Wert für Jobs
+                    NOSTR_KIND_JOB, // Der Kind-Wert für Jobs
                     $previewJobStore.jobDescription,
                     tags
                 );

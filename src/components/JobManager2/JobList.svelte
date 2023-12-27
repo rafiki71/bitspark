@@ -4,6 +4,7 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { createEventDispatcher } from "svelte";
+    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
     const dispatch = createEventDispatcher();
     let jobs = [];
@@ -14,7 +15,7 @@
         if ($nostrManager && $nostrManager.publicKey) {
             // Eigene Job-Postings
             $nostrManager.subscribeToEvents({
-                kinds: [1337],
+                kinds: [NOSTR_KIND_JOB],
                 authors: [$nostrManager.publicKey],
                 "#t": ["job"],
                 "#s": ["bitspark"],
@@ -22,7 +23,7 @@
 
             // Eigene Offers
             $nostrManager.subscribeToEvents({
-                kinds: [1337], // Kind für Offers
+                kinds: [NOSTR_KIND_JOB], // Kind für Offers
                 authors: [$nostrManager.publicKey],
                 "#t": ["offer"],
                 "#s": ["bitspark"],
@@ -35,14 +36,14 @@
         if ($nostrCache && $nostrManager && $nostrManager.publicKey) {
             // Jobs abrufen
             jobs = $nostrCache.getEventsByCriteria({
-                kinds: [1337],
+                kinds: [NOSTR_KIND_JOB],
                 authors: [$nostrManager.publicKey],
                 tags: { s: ["bitspark"], t: ["job"] },
             });
 
             // Offers abrufen und Job-IDs extrahieren
             const offers = $nostrCache.getEventsByCriteria({
-                kinds: [1337],
+                kinds: [NOSTR_KIND_JOB],
                 authors: [$nostrManager.publicKey],
                 tags: { s: ["bitspark"], t: ["offer"] },
             });
@@ -57,7 +58,7 @@
             // Jobs für extrahierte Job-IDs abonnieren
             jobIdsFromOffers.forEach((jobId) => {
                 $nostrManager.subscribeToEvents({
-                    kinds: [1337],
+                    kinds: [NOSTR_KIND_JOB],
                     ids: [jobId],
                     "#s": ["bitspark"],
                     "#t": ["job"],

@@ -11,6 +11,7 @@
     import { filterStore } from "../filterStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
+    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
 
     function navigateTo(route) {
         navigate(route);
@@ -77,6 +78,7 @@
             $previewStore.categories
         ) {
             let tags = [
+                ["s", "bitspark"],
                 ["iName", $previewStore.name],
                 ["iSub", $previewStore.subtitle],
                 ["ibUrl", $previewStore.bannerUrl],
@@ -91,7 +93,7 @@
             // Senden des Events über nostrManager
             if ($nostrManager && $nostrManager.write_mode) {
                 await $nostrManager.sendEvent(
-                    1339,
+                    NOSTR_KIND_IDEA,
                     $previewStore.message,
                     tags,
                 );

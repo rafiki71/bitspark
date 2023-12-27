@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
     export let event;
     let prUrl = "";
@@ -37,7 +38,7 @@
     async function checkPRStatus() {
         // Logik zum Überprüfen des PR-Status
         const responses = $nostrCache.getEventsByCriteria({
-            kinds: [1337],
+            kinds: [NOSTR_KIND_JOB],
             tags: {
                 e: [jobEvent.id],
                 pr: [event.id],
@@ -66,7 +67,7 @@
         ];
 
         try {
-            await $nostrManager.sendEvent(1337, "PR status update", tags);
+            await $nostrManager.sendEvent(NOSTR_KIND_JOB, "PR status update", tags);
             console.log("PR Response sent successfully");
         } catch (error) {
             console.error("Error sending PR response:", error);

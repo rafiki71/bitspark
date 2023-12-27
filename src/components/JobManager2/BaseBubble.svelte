@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
     export let event;
     export let backgroundColor = "#f0f0f0"; // Standardwert
@@ -62,7 +63,7 @@
         ].filter(Boolean); // Entfernt null-Werte
 
         try {
-            await $nostrManager.sendEvent(1337, comment, tags);
+            await $nostrManager.sendEvent(NOSTR_KIND_JOB, comment, tags);
             console.log("Rating submitted successfully");
             toggleRatingPopup();
         } catch (error) {

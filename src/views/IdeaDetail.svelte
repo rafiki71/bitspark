@@ -13,6 +13,8 @@
   import { sidebarOpen } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+
   export let id;
 
   let idea = {};
@@ -21,7 +23,7 @@
   async function initialize() {
     if ($nostrManager) {
       $nostrManager.subscribeToEvents({
-        kinds: [1339],
+        kinds: [NOSTR_KIND_IDEA],
         "#s": ["bitspark"],
         ids: [id],
       });
