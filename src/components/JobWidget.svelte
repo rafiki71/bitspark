@@ -5,6 +5,7 @@
   import { navigate } from "svelte-routing";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { Link } from 'svelte-routing';
 
   export let ideaID;
   export let creatorPubKey;
@@ -47,11 +48,12 @@
       title: jobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] || "N/A",
       sats: jobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
       description: jobEvent.content,
+      createdAt: jobEvent.created_at,
       url: jobEvent.tags.find((tag) => tag[0] === "jbUrl")?.[1] || "",
       kind: jobEvent.kind,
       pubkey: jobEvent.pubkey,
       sig: jobEvent.sig,
-    }));
+    })).sort((a, b) => b.createdAt - a.createdAt); // Sortieren nach dem Erstellungsdatum
   }
 
   function postJob() {
@@ -73,16 +75,20 @@
     </button>
   {/if}
 </div>
-<ul class="job-list">
+
+<div class="job-grid">
   {#each jobs as job (job.id)}
-    <li class="job-item">
-      <a href={`/job/${job.id}`} class="invisible-link">
+    <Link to={`/job/${job.id}`} class="job-card">
+      <div class="job-card-inner">
         <div class="job-image" style="background-image: url({job.url})" />
-        <div class="job-title">{job.title}</div>
-      </a>
-    </li>
+        <div class="job-info">
+          <div class="job-title">{job.title}</div>
+          <div class="job-sats">{job.sats} Sats</div>
+        </div>
+      </div>
+    </Link>
   {/each}
-</ul>
+</div>
 
 <style>
   .add-job-icon {
@@ -131,70 +137,50 @@
     align-items: center;
   }
 
-  .container {
-    position: relative;
+  .job-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive Gitter */
+    gap: 20px;
+    padding: 20px;
   }
 
-  .refresh-btn {
-    background-color: transparent;
-    border: none;
-    font-size: 1.2em;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    transition: color 0.2s;
+  .job-card {
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
   }
 
-  .refresh-btn:hover {
-    color: #0077cc;
+  .job-card:hover {
+    transform: translateY(-5px); /* Leichte Anhebung beim Hover */
   }
 
-  .invisible-link {
-    text-decoration: none; /* Keine Unterstreichung */
-    color: inherit; /* Erbt die Farbe des Elternelements */
-    display: flex;
-    align-items: center; /* Zentriert den Titel vertikal neben dem Bild */
-    gap: 1rem;
-  }
-
-  .invisible-link:hover {
-    text-decoration: none; /* Stellt sicher, dass die Unterstreichung beim Überfahren nicht angezeigt wird */
-  }
-
-  .job-item:hover .job-title {
-    color: #0077cc; /* Ein leichtes Blau als Hover-Farbe für den Titel */
-    cursor: pointer; /* Ein Zeiger-Cursor zeigt an, dass der Job-Titel anklickbar ist */
-  }
-
-  .job-list {
-    display: flex;
-    flex-direction: column; /* Jobs untereinander stapeln */
-    gap: 1rem;
-  }
-
-  .job-item {
-    display: flex;
-    align-items: center; /* Zentriert den Titel vertikal neben dem Bild */
-    gap: 1rem;
+  .job-card-inner {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .job-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; /* Rundes Bild */
+    width: 100%;
+    height: 120px;
     background-size: cover;
     background-position: center;
   }
 
-  .job-title {
-    font-weight: bold;
-    font-size: 1.1em; /* Ein bisschen größer als der Standardtext */
-    color: #333; /* Dunkelgrau für einen modernen Look */
+  .job-info {
+    padding: 15px;
   }
 
-  .job-item:hover .job-title {
-    color: #0077cc; /* Ein leichtes Blau als Hover-Farbe für den Titel */
-    cursor: pointer; /* Ein Zeiger-Cursor zeigt an, dass der Job-Titel anklickbar ist */
+  .job-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    color: #333333; /* Tiefes Grau für den Jobtitel */
+  }
+
+  .job-sats {
+    font-size: 0.9em;
+    color: #FF9900; /* Bitcoin Orange für die Sats */
   }
 </style>
