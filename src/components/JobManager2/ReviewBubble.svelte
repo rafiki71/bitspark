@@ -17,7 +17,7 @@
     }
 </script>
 
-<BaseBubble event={event} {backgroundColor} {textColor}>
+<BaseBubble event={event} showRatingButton={false} {backgroundColor} {textColor}>
     <div class="review-content">
         <div class="rating-display">
             {#each Array(5) as _, i}
