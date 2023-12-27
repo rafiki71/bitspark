@@ -203,6 +203,13 @@
                         /> Edit Profile
                     </button>
                 </li>
+                <li>
+                    <button class={linkStyle} on:click={() => navigate("/jobmanager")}>
+                        <i class="fas fa-briefcase" style="color: #223d6d; margin-right: 10px;"></i>
+                        Job Manager
+                    </button>
+                    <hr class="divider-line" />
+                </li>
             {/if}
             <li>
                 <hr class="divider-line" />
