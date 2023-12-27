@@ -7,6 +7,7 @@
   import PaymentRequestBubble from "./PaymentRequestBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
+  import ReviewBubble from "./ReviewBubble.svelte";
 
   export let selectedJob;
 
@@ -27,7 +28,8 @@
         return PRBubble;
       case "apr": // Akzeptierter PR
         return PaymentRequestBubble;
-      // ... weitere Fälle für andere Event-Typen
+      case "review": // Akzeptierter PR
+        return ReviewBubble;
       default:
         return null; // oder ein Standard-Bubble-Komponent
     }
@@ -45,7 +47,7 @@
       console.log("offerId:", offerId);
 
       $nostrManager.subscribeToEvents({
-        kinds: [9734], // Kind für Zap-Events
+        kinds: [9735], // Kind für Zap-Events
         "#e": [offerId]
       });
     });

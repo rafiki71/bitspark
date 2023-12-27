@@ -49,11 +49,14 @@
 
         const jobId = event.tags.find((tag) => tag[0] === "e")?.[1];
         const offerId = event.id;
+        const witnessEventString = btoa(JSON.stringify(event)); // Kodiert das Event in einen Base64-String
+
         const tags = [
             ["t", responseType],
             ["e", jobId],
             ["o", offerId],
             ["s", "bitspark"],
+            ["witness", witnessEventString]
         ];
 
         try {

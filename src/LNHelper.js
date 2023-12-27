@@ -30,6 +30,7 @@ export async function sendZap(lightningAddress, satoshi, comment, relays, eventI
 
     if (window.webln) {
       const ret = await ln.zap(zapArgs);
+      console.log("ret:", ret);
       return ret;
     } else {
       // Alternatives Vorgehen, wenn WebLN nicht verfügbar ist

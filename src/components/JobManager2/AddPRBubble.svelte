@@ -38,12 +38,15 @@
             return;
         }
 
+        const witnessEventString = btoa(JSON.stringify(event)); // Kodiert das Event in einen Base64-String
+
         const tags = [
             ["s", "bitspark"], // Tag für Pull Request
             ["t", "pr"], // Tag für Pull Request
             ["e", event.tags.find(tag => tag[0] === 'e')[1]], // Job ID
             ["o", event.tags.find(tag => tag[0] === 'o')[1]], // Offer ID
             ["pr_url", prUrl], // URL des Pull Requests
+            ["witness", witnessEventString], // URL des Pull Requests
         ];
 
         try {

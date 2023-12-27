@@ -1,7 +1,7 @@
 // NostrCacheManager.js
 import 'websocket-polyfill'
 import { addOrUpdateEvent } from './NostrCacheStore.js';
-const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
+const { SimplePool } = window.NostrTools;
 
 
 export class NostrCacheManager {

@@ -54,12 +54,15 @@
     async function handlePRResponse(responseType) {
         if (!$nostrManager) return;
 
+        const witnessEventString = btoa(JSON.stringify(event)); // Kodiert das Event in einen Base64-String
+
         const tags = [
             ["s", "bitspark"], // "apr" für Akzeptanz, "dpr" für Ablehnung
             ["t", responseType], // "apr" für Akzeptanz, "dpr" für Ablehnung
             ["o", offerID], // "apr" für Akzeptanz, "dpr" für Ablehnung
             ["e", jobEvent.id],
-            ["pr", event.id]
+            ["pr", event.id],
+            ["witness", witnessEventString]
         ];
 
         try {

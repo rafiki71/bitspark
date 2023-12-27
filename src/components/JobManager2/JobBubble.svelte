@@ -20,7 +20,7 @@
     }
 </script>
 
-<BaseBubble event={event} {backgroundColor} {textColor}>
+<BaseBubble event={event} showRatingButton={false} {backgroundColor} {textColor}>
     <div class="job-content">
         <h3>{jobTitle}</h3>
         <p>{jobDescription}</p>
