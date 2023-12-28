@@ -4,7 +4,7 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { createEventDispatcher } from "svelte";
-    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
 
     const dispatch = createEventDispatcher();
     let jobs = [];
@@ -116,14 +116,8 @@
 
 <style>
     .job-list {
-        max-height: calc(
-            100vh - 120px
-        ); /* Maximalhöhe basierend auf der Höhe des Viewports und des Headers */
-        width: 30%;
-        border-right: 2px solid #e0e0e0;
-        box-sizing: border-box;
-        padding: 15px;
-        overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Liste */
+        max-height: 100%; /* Begrenzt auf die Höhe des übergeordneten Containers */
+        overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Komponente */
     }
 
     .job-item {

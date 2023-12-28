@@ -30,11 +30,8 @@
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={false} />
     <ToolBar />
-
     <div class={contentContainerClass}>
-      <div class="single-card container">
-        <JobManager />
-      </div>
+      <JobManager />
     </div>
   </div>
   <Footer />
@@ -44,16 +41,18 @@
   .overview-page {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Verwenden Sie min-height anstelle von height */
+    min-height: 100vh;
+    padding: 0;
+    margin: 0 auto;
   }
 
   .flex-grow {
-    flex-grow: 1; /* Lässt diesen Container den verfügbaren Platz einnehmen */
+    flex-grow: 1;
   }
 
-  .combined-content-container, .single-card.container {
-    overflow: auto; /* Erlaubt Scrollen, wenn der Inhalt die Höhe übersteigt */
+  .combined-content-container {
+    padding: 1rem;
+    margin: 1rem auto;
   }
-
-  /* Stellen Sie sicher, dass keine anderen Stile das Layout negativ beeinflussen */
 </style>
+

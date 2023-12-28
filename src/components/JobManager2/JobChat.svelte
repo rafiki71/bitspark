@@ -147,9 +147,8 @@
 
 <style>
   .job-chat {
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 5px;
-    margin: 10px;
+    max-height: 100%; /* Begrenzt auf die Höhe des übergeordneten Containers */
+    overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Komponente */
   }
 </style>
+
