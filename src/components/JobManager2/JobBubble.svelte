@@ -1,7 +1,7 @@
 <!-- JobBubble.svelte -->
 <script>
     import BaseBubble from "./BaseBubble.svelte";
-    
+
     export let event;
 
     let jobTitle = "Unbekannter Job";
@@ -20,7 +20,7 @@
     }
 </script>
 
-<BaseBubble event={event} showRatingButton={false} {backgroundColor} {textColor}>
+<BaseBubble {event} showRatingButton={false} {backgroundColor} {textColor}>
     <div class="job-content">
         <h3>{jobTitle}</h3>
         <p>{jobDescription}</p>
@@ -28,6 +28,10 @@
 </BaseBubble>
 
 <style>
+    .job-content {
+        max-width: 100%; /* Begrenzt die Breite des Textinhalts auf 80% */
+    }
+    
     .job-content h3 {
         margin-bottom: 5px; /* Fügt Abstand unter der Überschrift hinzu */
         color: textcolor;

@@ -4,7 +4,7 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
 
     export let event;
     export let backgroundColor = "#f0f0f0"; // Standardwert
@@ -116,26 +116,18 @@
 
 <div
     class={`bubble ${isOwnMessage ? "own-message" : "other-message"} ${status}`}
-    style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor}; box-shadow: {status ===
-    'accepted'
-        ? '0 0 10px #76C79E'
-        : status === 'declined'
-          ? '0 0 10px #F28482'
-          : 'none'}; margin-left: {isOwnMessage
-        ? 'auto'
-        : '10px'}; margin-right: {isOwnMessage ? '10px' : 'auto'};"
+    style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor};"
 >
     {#if profile.picture}
-        <ProfileImg
-            {profile}
-            style={{
-                width: "70px",
-                height: "70px",
-                order: isOwnMessage ? 2 : 0,
-                "margin-left": isOwnMessage ? "15px" : "0",
-                "margin-right": isOwnMessage ? "0" : "15px",
-            }}
-        />
+        <div class="profile-container">
+            <ProfileImg
+                {profile}
+                style={{
+                    "object-fit": "cover",
+                    "border-radius": "50%",
+                }}
+            />
+        </div>
     {/if}
     <div class="content">
         <slot />
@@ -176,6 +168,23 @@
 {/if}
 
 <style>
+    .profile-container {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 15px; /* oder passen Sie den Abstand an Ihre Bedürfnisse an */
+    }
+
+    .content {
+        flex-grow: 1;
+        overflow: hidden; /* Verhindert das Überlaufen des Textes */
+        max-width: calc(
+            100% - 90px
+        ); /* Breite abzüglich des Profilbildes und Abstand */
+    }
+
     .rating-popup-overlay {
         position: fixed;
         top: 0;
@@ -263,11 +272,13 @@
     }
 
     .bubble {
+        width: auto; /* Ermöglicht es der Bubble, die Größe basierend auf ihrem Inhalt zu ändern */
+        min-width: 0; /* Verhindert, dass die Bubble zu klein wird */
+        max-width: calc(100% - 20px);
         position: relative;
         display: flex;
         align-items: center;
         gap: 15px;
-        max-width: 75%; /* Beispielwert, anpassbar */
         padding: 10px;
         border-radius: 8px;
         margin: 10px auto; /* Zentriert die Bubble und fügt vertikalen Abstand hinzu */
@@ -277,14 +288,19 @@
     .own-message {
         flex-direction: row-reverse;
         justify-content: flex-end; /* Richtet eigene Nachrichten am rechten Rand aus */
+        margin-right: 0; /* Setzt den rechten Rand auf 0, sodass es am Rand anliegt */
+        margin-left: auto; /* Setzt den linken Rand auf auto, sodass es sich nach rechts verschiebt */
     }
 
     .other-message {
         flex-direction: row;
         justify-content: flex-start; /* Richtet fremde Nachrichten am linken Rand aus */
+        margin-left: 0; /* Setzt den linken Rand auf 0, sodass es am Rand anliegt */
+        margin-right: auto; /* Setzt den rechten Rand auf auto, sodass es sich nach links verschiebt */
     }
 
     .content {
+        margin-left: 15px;
         flex-grow: 1;
         overflow: hidden;
         padding: 10px;
