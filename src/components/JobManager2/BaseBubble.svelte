@@ -272,7 +272,7 @@
     }
 
     .bubble {
-        width: auto; /* Ermöglicht es der Bubble, die Größe basierend auf ihrem Inhalt zu ändern */
+        width: 80%; /* Ermöglicht es der Bubble, die Größe basierend auf ihrem Inhalt zu ändern */
         min-width: 0; /* Verhindert, dass die Bubble zu klein wird */
         max-width: calc(100% - 20px);
         position: relative;
@@ -288,14 +288,14 @@
     .own-message {
         flex-direction: row-reverse;
         justify-content: flex-end; /* Richtet eigene Nachrichten am rechten Rand aus */
-        margin-right: 0; /* Setzt den rechten Rand auf 0, sodass es am Rand anliegt */
+        margin-right: 2%; /* Setzt den rechten Rand auf 0, sodass es am Rand anliegt */
         margin-left: auto; /* Setzt den linken Rand auf auto, sodass es sich nach rechts verschiebt */
     }
 
     .other-message {
         flex-direction: row;
         justify-content: flex-start; /* Richtet fremde Nachrichten am linken Rand aus */
-        margin-left: 0; /* Setzt den linken Rand auf 0, sodass es am Rand anliegt */
+        margin-left: 2%; /* Setzt den linken Rand auf 0, sodass es am Rand anliegt */
         margin-right: auto; /* Setzt den rechten Rand auf auto, sodass es sich nach links verschiebt */
     }
 
