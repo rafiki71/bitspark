@@ -11,7 +11,7 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { onDestroy } from "svelte";
-  import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+  import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
 
   export let category;
 
@@ -21,9 +21,7 @@
   async function fetchAndDisplayIdeas() {
     let criteria = {
       kinds: [NOSTR_KIND_IDEA],
-      tags: {
-        s: ["bitspark"],
-      },
+      tags: { s: ["bitspark"] },
     };
 
     if (category) {
@@ -31,17 +29,39 @@
     }
 
     const fetchedEvents = await $nostrCache.getEventsByCriteria(criteria);
+    const authorPubkeys = fetchedEvents.map((idea) => idea.pubkey);
 
-    verifiedCards = [];
-    unverifiedCards = [];
-    fetchedEvents.forEach((idea) => {
-      const card = transformIdeaToCard(idea);
-      if (idea.Symbol && idea.Symbol(verified)) {
-        verifiedCards.push(card);
-      } else {
-        unverifiedCards.push(card);
-      }
+    $nostrManager.subscribeToEvents({
+      kinds: [0], // Profil-Events
+      authors: authorPubkeys,
     });
+
+    const tempVerifiedCards = [];
+    const tempUnverifiedCards = [];
+
+    await Promise.all(
+      fetchedEvents.map(async (idea) => {
+        const card = transformIdeaToCard(idea);
+        const authorProfileEvents = await $nostrCache.getEventsByCriteria({
+          kinds: [0],
+          authors: [idea.pubkey],
+        });
+
+        let isAuthorVerified =
+          authorProfileEvents.length > 0 &&
+          authorProfileEvents.some((event) => event.profileData?.verified);
+
+        if (isAuthorVerified) {
+          tempVerifiedCards.push(card);
+        } else {
+          tempUnverifiedCards.push(card);
+        }
+      }),
+    );
+
+    // Zuweisen der temporären Arrays zu den reaktiven Arrays für das UI-Rendering
+    verifiedCards = tempVerifiedCards;
+    unverifiedCards = tempUnverifiedCards;
   }
 
   function transformIdeaToCard(idea) {
@@ -78,8 +98,11 @@
   });
 
   $: fetchAndDisplayIdeas(), category;
-  $: fetchAndDisplayIdeas(), $nostrCache;
   $: initialize(), $nostrManager;
+
+  $: if ($nostrManager && $nostrCache) {
+    fetchAndDisplayIdeas();
+  }
 
   let contentContainerClass = $sidebarOpen
     ? "content-container sidebar-open"
@@ -94,7 +117,7 @@
   <Menu />
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
-    <ToolBar/>
+    <ToolBar />
     <div class={contentContainerClass}>
       <section class="content-container relative py-16">
         <div class="content-container">

@@ -1,5 +1,6 @@
 // NostrCacheStore.js
 import { writable } from 'svelte/store';
+const { nip19 } = window.NostrTools;
 
 // Definiert die Struktur des Cache-Objekts
 class NostrEventCache {
@@ -9,8 +10,52 @@ class NostrEventCache {
     this.authorIndex = new Map();
   }
 
+  // Methode in der NostrEventCache-Klasse
+ // Methode in der NostrEventCache-Klasse
+updateEventAfterAsyncProcessing(eventId, updateFunction) {
+  nostrCache.update(cache => {
+    const event = cache.events.get(eventId);
+    if (event) {
+      // Hier führen wir die übergebene Update-Funktion aus, die das Event modifiziert
+      updateFunction(event);
+
+      // Setze das aktualisierte Event zurück in den Cache
+      cache.events.set(eventId, event);
+    }
+    return cache;
+  });
+}
+
+
+
+  async validateGithubIdent(username, pubkey, proof) {
+    try {
+      const gistUrl = `https://api.github.com/gists/${proof}`;
+
+      const response = await fetch(gistUrl, { mode: 'cors' });
+      const data = await response.json();
+
+      const nPubKey = nip19.npubEncode(pubkey);
+
+      const expectedText = `${nPubKey}`;
+
+      for (const file in data.files) {
+        if (data.files[file].content.includes(expectedText) &&
+          data.files[file].raw_url.includes(username)) {
+          console.log(username, "verified!")
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error(`Error in validateGithubIdent: ${error}`);
+      return false;
+    }
+  }
+
   // Hilfsmethode zur Verarbeitung von Profil-Events
-  processProfileEvent(event) {
+  async processProfileEvent(event) {
     // Frühzeitige Rückkehr, wenn es sich nicht um ein Profil-Event handelt
     if (event.kind !== 0) {
       return;
@@ -25,13 +70,30 @@ class NostrEventCache {
     }
 
     event.profileData.pubkey = event.pubkey;
-    
+
     // Extrahieren der GitHub-Informationen aus den Tags
+    event.verified = false;
+
+    // GitHub-Verifikation ausführen, wenn vorhanden
     const githubTag = event.tags.find(tag => tag[0] === "i" && tag[1].startsWith("github:"));
     if (githubTag) {
       const githubParts = githubTag[1].split(":");
       event.profileData.githubUsername = githubParts[1];
       event.profileData.githubProof = githubTag[2];
+      
+      //helper function
+      function updateProfileVerification(event, isValid) {
+        event.profileData.verified = isValid;
+      }
+
+      // Rufe die validateGithubIdent-Funktion im Hintergrund auf
+      this.validateGithubIdent(githubParts[1], event.pubkey, githubTag[2])
+        .then(isValid => {
+           this.updateEventAfterAsyncProcessing(event.id, event => updateProfileVerification(event, isValid));
+        })
+        .catch(error => {
+          console.error("GitHub-Verifikation fehlgeschlagen", error);
+        });
     }
 
     // Weitere spezifische Verarbeitung kann hier hinzugefügt werden
