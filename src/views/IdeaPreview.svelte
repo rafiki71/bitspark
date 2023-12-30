@@ -1,36 +1,16 @@
 <!-- IdeaDetail.svelte -->
 <script>
-  import { onMount } from "svelte";
-  import { Link } from "svelte-routing";
-  import { sendSatsLNurl } from "../LNHelper.js";
   import ProfileImg from "../components/ProfileImg.svelte";
-  import { helperStore } from "../helperStore.js"; // Import the store
   import { previewStore } from "../previewStore.js";
   import Menu from "../components/Menu.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
   import ToolBar from "../components/ToolBar.svelte";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
 
   let comments = [];
   let newComment = "";
-  let creator_profile = null;
-
-  onMount(async () => {
-    await fetchData();
-  });
-
-  async function fetchData() {
-    try {
-      creator_profile = await $helperStore.getProfile($helperStore.publicKey);
-    } catch (error) {
-      console.error("Error fetching idea data:", error);
-    }
-  }
-
-  async function supportIdea() {
-    await sendSatsLNurl($previewStore.lnAdress);
-  }
 
   async function submitComment() {}
 
@@ -59,7 +39,7 @@
     />
     <ToolBar
       lnAddress={$previewStore.lightningAddress}
-      pubkey={$helperStore.publicKey}
+      pubkey={$nostrManager.publicKey}
       githubRepo={$previewStore.githubRepo}
     />
     
