@@ -10,6 +10,7 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { sidebarOpen } from "../helperStore.js";
   import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
+  import ZapWidget from '../components/ZapWidget.svelte';
 
   export let id;
   let showOfferPopup = false;
@@ -177,7 +178,7 @@
           </div>
         </div>
       </div>
-      <!-- Closing div that was missing -->
+      <ZapWidget eventId={id} />
       <div class="single-card container">
         <CommentWidget {id} />
       </div>

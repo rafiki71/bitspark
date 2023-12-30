@@ -1,10 +1,7 @@
 <!-- IdeaDetail.svelte -->
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { Link } from "svelte-routing";
-  import { sendSatsLNurl } from "../LNHelper.js";
   import Menu from "../components/Menu.svelte";
-  import ProfileImg from "../components/ProfileImg.svelte";
   import CommentWidget from "../components/CommentWidget.svelte";
   import JobWidget from "../components/JobWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
@@ -14,6 +11,7 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+  import ZapWidget from '../components/ZapWidget.svelte';
 
   export let id;
 
@@ -155,6 +153,7 @@
           </div>
         </div>
       </div>
+        <ZapWidget eventId={id} />
       <div class="single-card container">
         <JobWidget ideaID={id} creatorPubKey={idea.pubkey} />
       </div>
