@@ -32,3 +32,10 @@ export const job_categories = [
     "Frontend",
     "Backend",
 ];
+
+export const coding_language = [
+    "Python",
+    "c++",
+    "svelte",
+    "css",
+];

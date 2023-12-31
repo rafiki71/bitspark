@@ -9,17 +9,15 @@
     import Banner from "../components/Banner.svelte";
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
-
+    import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
+    import {
+        job_categories,
+        coding_language,
+    } from "../constants/categories.js";
 
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
-
-    let categories = [
-        "a",
-        "b",
-        "c",
-        "d"];
+    $previewJobStore.selectedCodingLanguages = [];
 
     function autoResizeTextarea(e) {
         e.target.style.height = "";
@@ -33,7 +31,8 @@
             $previewJobStore.jobTitle &&
             $previewJobStore.jBannerUrl &&
             $previewJobStore.jobDescription &&
-            $previewJobStore.jobCategories.length
+            $previewJobStore.jobCategories.length &&
+            $previewJobStore.selectedCodingLanguages.length
         ) {
             let tags = [
                 ["t", "job"],
@@ -42,7 +41,14 @@
                 ["sats", $previewJobStore.sats],
                 ["jbUrl", $previewJobStore.jBannerUrl],
                 ["e", $previewJobStore.ideaId],
-                ...$previewJobStore.jobCategories.map(category => ["c", category])
+                ...$previewJobStore.jobCategories.map((category) => [
+                    "c",
+                    category,
+                ]),
+                ...$previewJobStore.selectedCodingLanguages.map((lang) => [
+                    "l",
+                    lang,
+                ]),
             ];
 
             // Senden des Job-Events über nostrManager
@@ -50,7 +56,7 @@
                 await $nostrManager.sendEvent(
                     NOSTR_KIND_JOB, // Der Kind-Wert für Jobs
                     $previewJobStore.jobDescription,
-                    tags
+                    tags,
                 );
             }
 
@@ -86,7 +92,7 @@
     <Menu />
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
-        <ToolBar/>
+        <ToolBar />
         <div class={contentContainerClass}>
             <div
                 class="container bg-card relative flex flex-col min-w-0 break-words"
@@ -141,8 +147,14 @@
 
                             <div class="mb-4 mt-4" style="width: 100%;">
                                 <MultiSelectDropdown
-                                    {categories}
+                                    categories={job_categories}
                                     bind:selected={$previewJobStore.jobCategories}
+                                />
+                            </div>
+                            <div class="mb-4 mt-4" style="width: 100%;">
+                                <MultiSelectDropdown
+                                    categories={coding_language}
+                                    bind:selected={$previewJobStore.selectedCodingLanguages}
                                 />
                             </div>
                         </div>
