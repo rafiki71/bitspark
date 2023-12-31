@@ -4,11 +4,14 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { Link } from "svelte-routing";
-    import { job_categories } from "../../constants/categories.js";
+    import {
+        job_categories,
+        coding_language,
+    } from "../../constants/categories.js";
     import { NOSTR_KIND_JOB } from "../../constants/nostrKinds.js";
     import SelectionModal from "../Modals/SelectionModal.svelte";
     import Modal, { bind } from "svelte-simple-modal";
-    import { jobFilterStore } from "../../filterStore.js";
+    import { jobFilterStore, langFilterStore } from "../../filterStore.js";
     import ProfileImg from "../ProfileImg.svelte";
     import { navigate } from "svelte-routing";
 
@@ -18,6 +21,7 @@
 
     let jobs = [];
     let selectedCategories = [];
+    let selectedLangs = [];
 
     function initialize() {
         subscribeToJobs();
@@ -32,6 +36,10 @@
 
             if (selectedCategories.length) {
                 eventCriteria["#c"] = selectedCategories;
+            }
+
+            if (selectedLangs.length) {
+                eventCriteria["#l"] = selectedLangs;
             }
 
             $nostrManager.subscribeToEvents(eventCriteria);
@@ -59,19 +67,32 @@
     }
 
     function updateJobs() {
+        // Erstelle ein Kriterien-Objekt für die Abfrage
         const criteria = {
             kinds: [NOSTR_KIND_JOB],
-            tags: selectedCategories.length ? { c: selectedCategories } : {},
+            tags: {},
         };
+
+        // Füge Kategorien hinzu, falls ausgewählt
+        if (selectedCategories.length) {
+            criteria.tags["c"] = selectedCategories;
+        }
+
+        // Füge Programmiersprachen hinzu, falls ausgewählt
+        if (selectedLangs.length) {
+            criteria.tags["l"] = selectedLangs;
+        }
+
+        // Führe die Abfrage aus und lade die Jobs
         jobs = $nostrCache.getEventsByCriteria(criteria);
+
+        // Lade die Profile der Autoren der Jobs
         loadProfiles();
     }
 
     function openCategoryModal() {
-        console.log("job_categories:", job_categories);
         jobFilterStore.set(
             bind(SelectionModal, {
-                title: "Select Job Categories",
                 categories: job_categories,
                 initialSelectedCategories: selectedCategories,
                 onConfirm: handleCategoryConfirm,
@@ -81,6 +102,21 @@
 
     function handleCategoryConfirm(categories) {
         selectedCategories = categories;
+        subscribeToJobs();
+    }
+
+    function openLangModal() {
+        langFilterStore.set(
+            bind(SelectionModal, {
+                categories: coding_language,
+                initialSelectedCategories: selectedLangs,
+                onConfirm: handleLangConfirm,
+            }),
+        );
+    }
+
+    function handleLangConfirm(categories) {
+        selectedLangs = categories;
         subscribeToJobs();
     }
 
@@ -116,11 +152,19 @@
 </script>
 
 <div class="job-market-widget single-card container">
-    <Modal show={$jobFilterStore}>
-        <button class="font-bold py-1 plus-button" on:click={openCategoryModal}
-            >+</button
-        >
-    </Modal>
+    <div class="modal-buttons-container">
+        <Modal show={$jobFilterStore}>
+            <button class="modal-button" on:click={openCategoryModal}>
+                <i class="fas fa-filter"></i> Filter by Category
+            </button>
+        </Modal>
+        <Modal show={$langFilterStore}>
+            <button class="modal-button" on:click={openLangModal}>
+                <i class="fas fa-code"></i> Filter by Language
+            </button>
+        </Modal>
+    </div>
+
     {#each jobs as job}
         <div class="job-entry">
             {#if job.profile}
@@ -138,7 +182,11 @@
                     >
                 </h2>
             </div>
-            <button class="view-idea-button" on:click={() => navigateToIdea(job.tags.find((tag) => tag[0] === "e")[1])}>
+            <button
+                class="view-idea-button"
+                on:click={() =>
+                    navigateToIdea(job.tags.find((tag) => tag[0] === "e")[1])}
+            >
                 View Idea
             </button>
         </div>
@@ -146,6 +194,34 @@
 </div>
 
 <style>
+    .modal-buttons-container {
+        display: flex;
+        justify-content: flex-end; /* Rechtsbündig */
+        padding: 10px; /* Abstand von oben und rechts */
+    }
+
+    .modal-button {
+        background-color: #f7931a; /* Bitcoin-Orange */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        margin-left: 10px; /* Abstand zwischen den Buttons */
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center; /* Icon und Text vertikal zentrieren */
+        transition: background-color 0.2s ease;
+    }
+
+    .modal-button i {
+        margin-right: 5px; /* Abstand zwischen Icon und Text */
+    }
+
+    .modal-button:hover {
+        background-color: #e6830b; /* Dunkleres Orange beim Hover */
+    }
+
     .view-idea-button {
         padding: 10px 20px;
         background-color: #f7931a; /* Bitcoin-Orange for the button */
