@@ -176,6 +176,12 @@
                     /> Spark Idea
                 </button>
             </li>
+            <li>
+                <button class={linkStyle} on:click={() => navigate("/jobmarket")}>
+                    <i class="fas fa-search" style="color: #223d6d; margin-right: 10px;"></i>
+                    Job Market
+                </button>
+            </li>
             {#if $menuState.logged_in}
                 <hr class="divider-line" />
                 <li>
@@ -207,12 +213,6 @@
                     <button class={linkStyle} on:click={() => navigate("/jobmanager")}>
                         <i class="fas fa-briefcase" style="color: #223d6d; margin-right: 10px;"></i>
                         Job Manager
-                    </button>
-                </li>
-                <li>
-                    <button class={linkStyle} on:click={() => navigate("/jobmarket")}>
-                        <i class="fas fa-search" style="color: #223d6d; margin-right: 10px;"></i>
-                        Job Market
                     </button>
                 </li>
                 <hr class="divider-line" />
