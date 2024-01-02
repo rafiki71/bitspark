@@ -11,6 +11,7 @@
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import ReviewWidget from "../components/ReviewWidget.svelte";
 
     export let profile_id;
 
@@ -33,7 +34,6 @@
         }
     });
 
-    
     function initialize() {
         if ($nostrManager) {
             $nostrManager.subscribeToEvents({
@@ -44,13 +44,13 @@
             updateProfile();
         }
     }
-    
+
     onDestroy(() => {
         if ($nostrManager) {
             $nostrManager.unsubscribeAll();
         }
     });
-    
+
     $: $nostrManager, initialize();
     $: $nostrCache, updateProfile();
 
@@ -131,10 +131,8 @@
                     </div>
                 </div>
             </div>
-
-            <div class="single-card container">
-                <UserIdeas {profile_id} />
-            </div>
+            <UserIdeas {profile_id} />
+            <ReviewWidget userPubKey={profile_id} />
         </div>
         <Footer />
     </div>

@@ -84,7 +84,7 @@
     }
 </script>
 
-<div class="w-full">
+<div class="single-card container w-full">
     <div style="width: 100%;">
         <div class="px-6 py-6">
             {#if profile}
