@@ -10,6 +10,7 @@
 
     let reviewEvents = [];
     let profile = ""; // Variable für den Namen des Benutzers
+    let averageRating = 0; // Durchschnittliche Bewertung
 
     function initialize() {
         if ($nostrManager) {
@@ -33,6 +34,18 @@
         }
 
         fetchProfileName();
+        calculateAverageRating();
+    }
+
+    function calculateAverageRating() {
+        const totalRating = reviewEvents.reduce((sum, event) => {
+            const ratingTag = event.tags.find((tag) => tag[0] === "rating");
+            return sum + (ratingTag ? parseInt(ratingTag[1], 10) : 0);
+        }, 0);
+        averageRating =
+            reviewEvents.length > 0
+                ? (totalRating / reviewEvents.length).toFixed(2)
+                : 0;
     }
 
     async function fetchProfileName() {
@@ -62,12 +75,22 @@
 
     $: $nostrCache && fetchReviews();
     $: $nostrManager && initialize();
+
+    $: averageStars = Array(5).fill().map((_, i) => ({
+        active: i < Math.round(averageRating),
+    }));
 </script>
 
 <div class="single-card container review-widget-container">
     <h1 class="relative flex text-4xl font-bold text-black ml-6 mb-6">
         {profile.name}'s Reviews
     </h1>
+    <div class="review-stats-header">
+        {#each averageStars as star}
+            <span class={`average-star ${star.active ? 'active' : ''}`}>★</span>
+        {/each}
+        <span class="average-rating-text">({averageRating}/5)</span>
+    </div>
     <div class="reviews-wrapper">
         {#each reviewEvents as event}
             <div class="review-bubble-wrapper">
@@ -78,6 +101,35 @@
 </div>
 
 <style>
+     .review-stats-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .average-star {
+        font-size: 1.4em;
+        color: #cccccc;
+        margin-right: 5px;
+    }
+
+    .average-star.active {
+        color: #ffcc00;
+    }
+
+    .average-rating-text {
+        font-size: 1em;
+        color: #333;
+    }
+
+    .reviews-header {
+        margin-bottom: 15px;
+        font-size: 1.2em;
+        color: #333;
+        text-align: center;
+    }
+
     .review-widget-container {
         background-color: #fff;
         border-radius: 10px;

@@ -15,13 +15,19 @@
         const ratingTag = event.tags.find((tag) => tag[0] === "rating");
         rating = ratingTag ? parseInt(ratingTag[1], 10) : 0;
     }
+
+    // Berechnen Sie die Sterndarstellung
+    $: stars = Array(5).fill().map((_, i) => ({
+        filled: i < rating,
+        size: rating > 0 ? `calc(1em + ${rating * 0.4 }em)` : '1em',
+    }));
 </script>
 
 <BaseBubble event={event} showRatingButton={false} {backgroundColor} {textColor}>
     <div class="review-content">
         <div class="rating-display">
-            {#each Array(5) as _, i}
-                <span class={`star ${i < rating ? 'filled' : ''}`}>★</span>
+            {#each stars as star, i}
+                <span class="star" style="font-size: {star.size}; color: {star.filled ? '#ffcc00' : '#cccccc'}">★</span>
             {/each}
         </div>
         <p>{reviewContent}</p>
@@ -32,7 +38,7 @@
      :global() {
         --textColor: {textColor};
     }
-
+    
     .review-content {
         display: flex;
         flex-direction: column;
@@ -43,25 +49,14 @@
     .review-content p {
         margin-top: 0;
         line-height: 1.4;
-        color: var(--textColor); /* Dynamische Textfarbe */
+        color: var(--textColor);
     }
     
     .rating-display {
-        color: #ffd700; /* Goldfarbe für Sterne */
         margin-bottom: 5px;
     }
 
     .star {
-        font-size: 1.2em;
-    }
-
-    .star.filled {
-        color: #f39c12; /* Dunklere Goldfarbe für gefüllte Sterne */
-    }
-
-    .review-content p {
-        margin-top: 0;
-        line-height: 1.4;
-        color: textColor;
+        transition: transform 0.3s ease, font-size 0.3s ease;
     }
 </style>
