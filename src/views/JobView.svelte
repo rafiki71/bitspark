@@ -9,12 +9,13 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { sidebarOpen } from "../helperStore.js";
-  import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
-  import ZapWidget from '../components/ZapWidget.svelte';
+  import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
+  import ZapWidget from "../components/ZapWidget.svelte";
 
   export let id;
   let showOfferPopup = false;
   let developerBid = "";
+  let requiredTime = "";
   let developerIntro = "";
   let job = null;
   let creator_profile = null;
@@ -43,7 +44,13 @@
       job = {
         title:
           latestJobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
-          "Unbekannter Titel",
+          "Unknown Title",
+        abstract:
+          latestJobEvent.tags.find((tag) => tag[0] === "jAbstract")?.[1] ||
+          "Unknown Abstract",
+        requirements:
+          latestJobEvent.tags.find((tag) => tag[0] === "jReq")?.[1] ||
+          "Unknown Requierements",
         sats:
           latestJobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
         bannerImage:
@@ -92,6 +99,7 @@
       ["t", "offer"],
       ["e", id], // Die ID des Jobs
       ["sats", developerBid], // Gebot in Sats
+      ["reqTime", requiredTime], // Gebot in Sats
     ];
 
     try {
@@ -135,6 +143,8 @@
 
   $: $nostrCache && fetchJob();
   $: $nostrManager && initialize();
+  $: $nostrCache && $nostrManager && fetchJob();
+
 </script>
 
 <main class="overview-page">
@@ -162,12 +172,18 @@
 
         <div class="px-6">
           <div class="text-center mt-6">
-            <h2 class="base-h2">
-              {job?.title}
-            </h2>
-            <hr class="my-6" />
+            <h2 class="section-title">Abstract</h2>
+            <p class="html-content job-requirements">
+              {@html job?.abstract}
+            </p>
+            <h2 class="section-title">User Story</h2>
             <p class="html-content">
               {@html job?.description}
+            </p>
+            <hr class="my-6" />
+            <h2 class="section-title">Requirements</h2>
+            <p class="html-content job-requirements">
+              {@html job?.requirements}
             </p>
             <button
               class="post-offer-btn"
@@ -193,6 +209,10 @@
           <input bind:value={developerBid} type="text" placeholder={job.sats} />
         </label>
         <label>
+          Required Time:
+          <input bind:value={requiredTime} type="text" placeholder="2 Weeks" />
+        </label>
+        <label>
           Message:
           <textarea bind:value={developerIntro} placeholder="Your Message..." />
         </label>
@@ -207,6 +227,10 @@
 </main>
 
 <style>
+  .job-requirements {
+    white-space: pre-line;
+  }
+
   /* Variables */
   :root {
     --primary-bg-color: #e2e8f0;
@@ -221,6 +245,15 @@
     font-weight: 700;
     color: var(--primary-text-color);
     margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 3rem; /* Anpassung der Schriftgröße */
+    font-weight: 600; /* Semi-fett */
+    color: #2c5282; /* Dunkelblau, passend zur übrigen Farbgebung */
+    margin: 1rem 0; /* Abstand oben und unten */
+    padding: 0.5rem 0; /* Leichter Abstand innen */
+    text-align: center; /* Zentrierung des Titels */
   }
 
   .idea-description {

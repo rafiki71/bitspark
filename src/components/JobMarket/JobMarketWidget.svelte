@@ -186,9 +186,9 @@
             {/if}
             <div class="job-title">
                 <h2>
-                    <Link to={`/job/${job.id}`}
-                        >{job.tags.find((tag) => tag[0] === "jTitle")[1]}</Link
-                    >
+                    <Link to={`/job/${job.id}`}>
+                        {job.tags.find((tag) => tag[0] === "jTitle")?.[1]}
+                    </Link>
                 </h2>
             </div>
             <button

@@ -3,12 +3,13 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
 
     export let event;
 
     let sats = 0;
-    let offerMsg = "Kein Text";
+    let offerMsg = "No Message";
+    let reqTime = "No required time";
     let backgroundColor = "#E8F4FA"; // Ein sanftes Blau
     let textColor = "#333333"; // Dunkelgrau für guten Kontrast
     let satsColor = "#4A90E2"; // Hervorstechendes Blau für Sats
@@ -57,7 +58,7 @@
             ["e", jobId],
             ["o", offerId],
             ["s", "bitspark"],
-            ["witness", witnessEventString]
+            ["witness", witnessEventString],
         ];
 
         try {
@@ -91,6 +92,13 @@
         }
     }
 
+    function formatReqTime(time) {
+        if (!time || time === "No required time") {
+            return `<span class="time-default">Keine Zeitangabe</span>`;
+        }
+        return `<span class="time-value"><i class="fas fa-clock"></i> ${time}</span>`;
+    }
+
     // Reaktive Anweisungen für die Event-Daten
     $: if (event && event.tags) {
         const sats_info = event.tags.find((tag) => tag[0] === "sats");
@@ -99,23 +107,38 @@
 
     $: if (event) {
         offerMsg = event.content || "Keine Beschreibung verfügbar.";
+        reqTime =
+            event.tags.find((tag) => tag[0] === "reqTime")?.[1] ||
+            "No required time";
     }
 
     // Reaktive Anweisungen
     $: $nostrCache && checkOfferStatus();
-    $: backgroundColor = offerStatus === 'accepted' ? '#E8F4FA' : (offerStatus === 'declined' ? '#FDE8E8' : '#F5F5F5');
-    $: borderColor = offerStatus === 'accepted' ? '#76C79E' : (offerStatus === 'declined' ? '#F28482' : '#FFAD60');
-    $: textColor = '#333333'; // Dunkelgrau für guten Kontrast
-    $: satsColor = '#34568B'; // Dunkelblau für Sats
-    $: acceptButtonColor = '#76C79E'; // Grün für Akzeptieren
-    $: declineButtonColor = '#F28482'; // Rot für Ablehnen
-    $: statusTextColor = '#FFFFFF'; // Weiß für Status-Text
+    $: backgroundColor =
+        offerStatus === "accepted"
+            ? "#E8F4FA"
+            : offerStatus === "declined"
+              ? "#FDE8E8"
+              : "#F5F5F5";
+    $: borderColor =
+        offerStatus === "accepted"
+            ? "#76C79E"
+            : offerStatus === "declined"
+              ? "#F28482"
+              : "#FFAD60";
+    $: textColor = "#333333"; // Dunkelgrau für guten Kontrast
+    $: satsColor = "#34568B"; // Dunkelblau für Sats
+    $: acceptButtonColor = "#76C79E"; // Grün für Akzeptieren
+    $: declineButtonColor = "#F28482"; // Rot für Ablehnen
+    $: statusTextColor = "#FFFFFF"; // Weiß für Status-Text
 
     //$: $nostrManager && initialize();
 </script>
+
 <BaseBubble {event} {backgroundColor} {textColor} {borderColor} {status}>
     <div class="offer-content">
         <h3 class="sats-amount" style="color: {satsColor};">{sats} Sats</h3>
+        <p class="offer-time">{@html formatReqTime(reqTime)}</p>
         <p class="offer-msg">{offerMsg}</p>
         {#if isJobCreator && offerStatus === "pending"}
             <div class="offer-actions">
@@ -135,6 +158,24 @@
 </BaseBubble>
 
 <style>
+    .offer-time {
+        margin-top: 0;
+        line-height: 1.4;
+    }
+
+    .time-value {
+        color: #4a90e2; /* Farbe des Textes */
+        font-weight: bold;
+    }
+
+    .time-value i {
+        margin-right: 5px;
+    }
+
+    .time-default {
+        color: #777; /* Farbe für 'Keine Zeitangabe' */
+    }
+
     .offer-content {
         display: flex;
         flex-direction: column;
