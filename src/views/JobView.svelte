@@ -44,6 +44,9 @@
         title:
           latestJobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
           "Unknown Title",
+        abstract:
+          latestJobEvent.tags.find((tag) => tag[0] === "jAbstract")?.[1] ||
+          "Unknown Abstract",
         requirements:
           latestJobEvent.tags.find((tag) => tag[0] === "jReq")?.[1] ||
           "Unknown Requierements",
@@ -138,6 +141,8 @@
 
   $: $nostrCache && fetchJob();
   $: $nostrManager && initialize();
+  $: $nostrCache && $nostrManager && fetchJob();
+
 </script>
 
 <main class="overview-page">
@@ -165,16 +170,16 @@
 
         <div class="px-6">
           <div class="text-center mt-6">
-            <h2 class="base-h2">
-              {job?.title}
-            </h2>
-            <hr class="my-6" />
-            <h2 class="requirements-title">User Story</h2>
+            <h2 class="section-title">Abstract</h2>
+            <p class="html-content job-requirements">
+              {@html job?.abstract}
+            </p>
+            <h2 class="section-title">User Story</h2>
             <p class="html-content">
               {@html job?.description}
             </p>
             <hr class="my-6" />
-            <h2 class="requirements-title">Requirements</h2>
+            <h2 class="section-title">Requirements</h2>
             <p class="html-content job-requirements">
               {@html job?.requirements}
             </p>
@@ -236,8 +241,8 @@
     margin-bottom: 1rem;
   }
 
-  .requirements-title {
-    font-size: 2rem; /* Anpassung der Schriftgröße */
+  .section-title {
+    font-size: 3rem; /* Anpassung der Schriftgröße */
     font-weight: 600; /* Semi-fett */
     color: #2c5282; /* Dunkelblau, passend zur übrigen Farbgebung */
     margin: 1rem 0; /* Abstand oben und unten */

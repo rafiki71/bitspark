@@ -32,6 +32,7 @@
             $previewJobStore.jBannerUrl &&
             $previewJobStore.jobDescription &&
             $previewJobStore.jobRequirements &&
+            $previewJobStore.jobAbstract &&
             $previewJobStore.jobCategories.length &&
             $previewJobStore.selectedCodingLanguages.length
         ) {
@@ -39,6 +40,7 @@
                 ["t", "job"],
                 ["s", "bitspark"],
                 ["jTitle", $previewJobStore.jobTitle],
+                ["jAbstract", $previewJobStore.jobAbstract],
                 ["jReq", $previewJobStore.jobRequirements],
                 ["sats", $previewJobStore.sats],
                 ["jbUrl", $previewJobStore.jBannerUrl],
@@ -132,6 +134,17 @@
                                     placeholder="Banner URL"
                                     class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                     bind:value={$previewJobStore.jBannerUrl}
+                                    style="width: 100%;"
+                                />
+                            </div>
+
+                            <div class="mb-4">
+                                <textarea
+                                    rows="1"
+                                    placeholder="Abstract"
+                                    class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
+                                    bind:value={$previewJobStore.jobAbstract}
+                                    on:input={autoResizeTextarea}
                                     style="width: 100%;"
                                 />
                             </div>
