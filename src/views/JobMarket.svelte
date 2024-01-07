@@ -1,6 +1,6 @@
 <!-- JobMarket.svelte -->
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import Menu from "../components/Menu.svelte";
   import JobMarket from "../components/JobMarket/JobMarketWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
@@ -55,4 +55,3 @@
     margin: 1rem auto;
   }
 </style>
-

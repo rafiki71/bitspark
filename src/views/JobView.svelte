@@ -183,7 +183,6 @@
         <CommentWidget {id} />
       </div>
     </div>
-    <Footer />
   </div>
   {#if showOfferPopup}
     <div class="offer-popup-overlay">
@@ -204,6 +203,7 @@
       </div>
     </div>
   {/if}
+  <Footer />
 </main>
 
 <style>

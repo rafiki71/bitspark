@@ -57,6 +57,6 @@
     {:else}
       <div>Loading...</div>
     {/if}
-    <Footer />
   </div>
+  <Footer />
 </main>

@@ -134,6 +134,6 @@
             <UserIdeas {profile_id} />
             <ReviewWidget userPubKey={profile_id} />
         </div>
-        <Footer />
     </div>
+    <Footer />
 </main>

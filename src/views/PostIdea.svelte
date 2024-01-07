@@ -1,6 +1,6 @@
 <script>
     import { navigate } from "svelte-routing";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import Menu from "../components/Menu.svelte";
     import { previewStore } from "../previewStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
@@ -8,18 +8,17 @@
     import Banner from "../components/Banner.svelte";
     import SelectionModal from "../components/Modals/SelectionModal.svelte";
     import Modal, { bind } from "svelte-simple-modal";
-    import { filterStore } from "../filterStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
-    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+    import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
+    import { writable } from "svelte/store";
 
     function navigateTo(route) {
         navigate(route);
     }
-
+    let categoryModal = writable(null);
     function openCategoryModal() {
-        // Pass the current selected categories to the modal
-        filterStore.set(
+        categoryModal.set(
             bind(SelectionModal, {
                 categories: categories,
                 initialSelectedCategories: $previewStore.categories,
@@ -32,7 +31,12 @@
         $previewStore.categories = selectedCategories;
     }
 
-    onMount(async () => {});
+    onMount(() => {
+        // filterStore.set(false);
+    });
+    onDestroy(() => {
+        categoryModal.set(false);
+    });
     let categories = [
         "Art & Design",
         "Bitcoin & P2P",
@@ -140,7 +144,7 @@
     <Menu />
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
-        <ToolBar/>
+        <ToolBar />
         <div class={contentContainerClass}>
             <div class="single-card container">
                 <div class="text-center mt-6 px-6">
@@ -194,7 +198,7 @@
                         <h5 class="base-h5 text-color-df">Categories</h5>
 
                         <div class="category-container">
-                            <Modal show={$filterStore}>
+                            <Modal show={$categoryModal}>
                                 <button
                                     class="font-bold py-1 plus-button"
                                     on:click={openCategoryModal}>+</button
@@ -227,8 +231,8 @@
                 </div>
             </div>
         </div>
-        <Footer />
     </div>
+    <Footer />
 </main>
 
 <style>

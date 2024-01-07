@@ -203,7 +203,6 @@
                         Job Manager
                     </button>
                 </li>
-                <hr class="divider-line" />
             {/if}
             <li>
                 <hr class="divider-line" />
