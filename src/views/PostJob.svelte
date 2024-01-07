@@ -31,6 +31,7 @@
             $previewJobStore.jobTitle &&
             $previewJobStore.jBannerUrl &&
             $previewJobStore.jobDescription &&
+            $previewJobStore.jobRequirements &&
             $previewJobStore.jobCategories.length &&
             $previewJobStore.selectedCodingLanguages.length
         ) {
@@ -38,6 +39,7 @@
                 ["t", "job"],
                 ["s", "bitspark"],
                 ["jTitle", $previewJobStore.jobTitle],
+                ["jReq", $previewJobStore.jobRequirements],
                 ["sats", $previewJobStore.sats],
                 ["jbUrl", $previewJobStore.jBannerUrl],
                 ["e", $previewJobStore.ideaId],
@@ -137,9 +139,20 @@
                             <div class="mb-4">
                                 <textarea
                                     rows="1"
-                                    placeholder="Job Description"
+                                    placeholder="User Story"
                                     class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
                                     bind:value={$previewJobStore.jobDescription}
+                                    on:input={autoResizeTextarea}
+                                    style="width: 100%;"
+                                />
+                            </div>
+
+                            <div class="mb-4">
+                                <textarea
+                                    rows="1"
+                                    placeholder="Requirements"
+                                    class="flex justify-center block rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none overflow-hidden"
+                                    bind:value={$previewJobStore.jobRequirements}
                                     on:input={autoResizeTextarea}
                                     style="width: 100%;"
                                 />

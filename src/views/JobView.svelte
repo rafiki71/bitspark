@@ -9,8 +9,8 @@
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { sidebarOpen } from "../helperStore.js";
-  import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
-  import ZapWidget from '../components/ZapWidget.svelte';
+  import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
+  import ZapWidget from "../components/ZapWidget.svelte";
 
   export let id;
   let showOfferPopup = false;
@@ -43,7 +43,10 @@
       job = {
         title:
           latestJobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
-          "Unbekannter Titel",
+          "Unknown Title",
+        requirements:
+          latestJobEvent.tags.find((tag) => tag[0] === "jReq")?.[1] ||
+          "Unknown Requierements",
         sats:
           latestJobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
         bannerImage:
@@ -166,8 +169,14 @@
               {job?.title}
             </h2>
             <hr class="my-6" />
+            <h2 class="requirements-title">User Story</h2>
             <p class="html-content">
               {@html job?.description}
+            </p>
+            <hr class="my-6" />
+            <h2 class="requirements-title">Requirements</h2>
+            <p class="html-content job-requirements">
+              {@html job?.requirements}
             </p>
             <button
               class="post-offer-btn"
@@ -207,6 +216,10 @@
 </main>
 
 <style>
+  .job-requirements {
+    white-space: pre-line;
+  }
+
   /* Variables */
   :root {
     --primary-bg-color: #e2e8f0;
@@ -221,6 +234,15 @@
     font-weight: 700;
     color: var(--primary-text-color);
     margin-bottom: 1rem;
+  }
+
+  .requirements-title {
+    font-size: 2rem; /* Anpassung der Schriftgröße */
+    font-weight: 600; /* Semi-fett */
+    color: #2c5282; /* Dunkelblau, passend zur übrigen Farbgebung */
+    margin: 1rem 0; /* Abstand oben und unten */
+    padding: 0.5rem 0; /* Leichter Abstand innen */
+    text-align: center; /* Zentrierung des Titels */
   }
 
   .idea-description {
