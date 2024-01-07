@@ -15,6 +15,7 @@
   export let id;
   let showOfferPopup = false;
   let developerBid = "";
+  let requiredTime = "";
   let developerIntro = "";
   let job = null;
   let creator_profile = null;
@@ -98,6 +99,7 @@
       ["t", "offer"],
       ["e", id], // Die ID des Jobs
       ["sats", developerBid], // Gebot in Sats
+      ["reqTime", requiredTime], // Gebot in Sats
     ];
 
     try {
@@ -206,6 +208,10 @@
         <label>
           Sats:
           <input bind:value={developerBid} type="text" placeholder={job.sats} />
+        </label>
+        <label>
+          Required Time:
+          <input bind:value={requiredTime} type="text" placeholder="2 Weeks" />
         </label>
         <label>
           Message:
