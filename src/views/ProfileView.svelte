@@ -1,16 +1,17 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
     import { sendSatsLNurl } from "../LNHelper.js";
     import Menu from "../components/Menu.svelte";
-    import { helperStore } from "../helperStore.js"; // Import the store
-    import UserIdeas from "../components/UserIdeas.svelte"; // Import UserIdeas
+    import UserIdeas from "../components/UserIdeas.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
-    import "../styles/global.css";
     import ToolBar from "../components/ToolBar.svelte";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
+    import ReviewWidget from "../components/ReviewWidget.svelte";
 
     export let profile_id;
 
@@ -22,30 +23,58 @@
     let ghUser = "";
     let lnAddress = "";
 
-    onMount(async () => {
-        fetchData();
+    onMount(() => {
+        if ($nostrManager) {
+            $nostrManager.subscribeToEvents({
+                kinds: [0],
+                authors: [profile_id],
+                "#s": ["bitspark"],
+            });
+            updateProfile();
+        }
     });
 
-    async function fetchData() {
-        try {
-            profile = await $helperStore.getProfile(profile_id);
-            if (profile) {
-                name = profile.name;
-                about = profile.dev_about;
-                picture = profile.picture;
-                banner = profile.banner;
-                ghUser = profile.githubUsername;
-                lnAddress = profile.lud16;
-            }
-        } catch (error) {
-            console.error("Error fetching profile:", error);
+    function initialize() {
+        if ($nostrManager) {
+            $nostrManager.subscribeToEvents({
+                kinds: [0],
+                authors: [profile_id],
+                "#s": ["bitspark"],
+            });
+            updateProfile();
         }
-        console.log("lnAddress changed:", lnAddress);
     }
 
-    async function supportProfile() {
-        await sendSatsLNurl(lnAddress);
+    onDestroy(() => {
+        if ($nostrManager) {
+            $nostrManager.unsubscribeAll();
+        }
+    });
+
+    $: $nostrManager, initialize();
+    $: $nostrCache, updateProfile();
+
+    async function updateProfile() {
+        const profileEvents = $nostrCache.getEventsByCriteria({
+            kinds: [0],
+            authors: [profile_id],
+            tags: {
+                s: ["bitspark"],
+            },
+        });
+
+        if (profileEvents && profileEvents.length > 0) {
+            profileEvents.sort((a, b) => b.created_at - a.created_at);
+            profile = profileEvents[0].profileData; // Nutzen der neuen Struktur
+            name = profile.name;
+            about = profile.dev_about;
+            picture = profile.picture;
+            banner = profile.banner;
+            ghUser = profile.githubUsername;
+            lnAddress = profile.lud16;
+        }
     }
+
     let contentContainerClass = "combined-content-container";
 
     $: {
@@ -55,9 +84,6 @@
             contentContainerClass = "combined-content-container";
         }
     }
-    $: fetchData(), $helperStore;
-    $: fetchData(), profile_id;
-    $: lnAddress;
 </script>
 
 <main class="overview-page">
@@ -105,10 +131,8 @@
                     </div>
                 </div>
             </div>
-
-            <div class="single-card container">
-                <UserIdeas {profile_id} />
-            </div>
+            <UserIdeas {profile_id} />
+            <ReviewWidget userPubKey={profile_id} />
         </div>
         <Footer />
     </div>

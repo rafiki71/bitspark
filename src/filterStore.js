@@ -2,3 +2,5 @@
 import { writable } from 'svelte/store';
 
 export const filterStore = writable(null);
+export const jobFilterStore = writable(null);
+export const langFilterStore = writable(null);

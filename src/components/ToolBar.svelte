@@ -1,8 +1,9 @@
 <script>
     import { onMount } from "svelte";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import { helperStore } from "../helperStore.js";
     import { sendSatsLNurl } from "../LNHelper.js";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
 
     export let lnAddress;
     export let pubkey;
@@ -11,35 +12,58 @@
     let creator_profile = null;
     let profile = null;
 
-    onMount(async () => {
-        console.log("On mount:", lnAddress);
-    });
-
-    // Reactive statement to watch for changes in lnAddress
-    $: {
-        console.log("lnAddress changed:", lnAddress);
-    }
-
-    async function fetchData() {
-        try {
-            profile = await $helperStore.getProfile($helperStore.publicKey);
-        } catch (error) {
-            console.error("Error fetching profile:", error);
+    function ensureHttpScheme(url) {
+        if (!url) return url;
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return "https://" + url;
         }
-        console.log("lnAddress changed:", lnAddress);
+        return url;
     }
-    $: fetchData(), $helperStore;
 
-    // Reactive statement to fetch the profile when the pubkey changes
-    $: if (pubkey) {
-        async function fetchProfile() {
-            try {
-                creator_profile = await $helperStore.getProfile(pubkey);
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
+    $: formattedGithubRepo = ensureHttpScheme(githubRepo);
+
+    // Reaktive Anweisung, die auf Änderungen im nostrManager und nostrCache hört
+    $: $nostrManager, $nostrCache, fetchProfiles();
+
+    async function fetchProfiles() {
+        if ($nostrManager) {
+            // Profile des Erstellers abrufen, wenn pubkey vorhanden ist
+            if (pubkey) {
+                fetchCreatorProfile();
             }
+            // Eigenes Profil abrufen
+            fetchOwnProfile();
         }
-        fetchProfile();
+    }
+
+    async function fetchCreatorProfile() {
+        try {
+            const creatorEvents = $nostrCache.getEventsByCriteria({
+                kinds: [0],
+                authors: [pubkey],
+            });
+            if (creatorEvents.length > 0) {
+                creatorEvents.sort((a, b) => b.created_at - a.created_at);
+                creator_profile = creatorEvents[0].profileData;
+            }
+        } catch (error) {
+            console.error("Error fetching creator profile:", error);
+        }
+    }
+
+    async function fetchOwnProfile() {
+        try {
+            const ownEvents = $nostrCache.getEventsByCriteria({
+                kinds: [0],
+                authors: [$nostrManager.publicKey],
+            });
+            if (ownEvents.length > 0) {
+                ownEvents.sort((a, b) => b.created_at - a.created_at);
+                profile = ownEvents[0].profileData;
+            }
+        } catch (error) {
+            console.error("Error fetching own profile:", error);
+        }
     }
 </script>
 
@@ -68,16 +92,24 @@
                     />
                 {/if}
                 {#if githubRepo}
-                    <a href={githubRepo} target="_blank" style="line-height: 30px">
-                        <i class="fab fa-github text-white github-icon-size" />
+                    <a
+                        href={formattedGithubRepo}
+                        target="_blank"
+                        style="line-height: 30px"
+                    >
+                        <i class="fab fa-github text-white github-icon-size"
+                        ></i>
                     </a>
                 {/if}
-                {#if (lnAddress || (creator_profile && creator_profile.picture) || githubRepo) && (profile && profile.picture)}
-                    <span class="vertical-separator" style="margin: 0px 0px; border-left: 2px solid white; height: 40px;"></span>
+                {#if (lnAddress || (creator_profile && creator_profile.picture) || githubRepo) && profile && profile.picture}
+                    <span
+                        class="vertical-separator"
+                        style="margin: 0px 0px; border-left: 2px solid white; height: 40px;"
+                    ></span>
                 {/if}
                 {#if profile && profile.picture}
                     <ProfileImg
-                        profile={profile}
+                        {profile}
                         style={{ width: "40px", height: "40px" }}
                     />
                 {/if}

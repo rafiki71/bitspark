@@ -3,21 +3,21 @@
     import { onMount } from "svelte";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
     import Menu from "../components/Menu.svelte";
-    import { helperStore } from "../helperStore.js";
     import { previewJobStore } from "../previewJobStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
     import ToolBar from "../components/ToolBar.svelte";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
+    import {
+        job_categories,
+        coding_language,
+    } from "../constants/categories.js";
 
     export let ideaID; // Empfange die ideaID direkt von der Route
     $previewJobStore.ideaId = ideaID;
-
-    let categories = [
-        "a",
-        "b",
-        "c",
-        "d"];
+    $previewJobStore.selectedCodingLanguages = [];
 
     function autoResizeTextarea(e) {
         e.target.style.height = "";
@@ -31,23 +31,41 @@
             $previewJobStore.jobTitle &&
             $previewJobStore.jBannerUrl &&
             $previewJobStore.jobDescription &&
-            $previewJobStore.jobCategories.length
+            $previewJobStore.jobCategories.length &&
+            $previewJobStore.selectedCodingLanguages.length
         ) {
-            await $helperStore.postJob(
-                $previewJobStore.ideaId,
-                $previewJobStore.sats,
-                $previewJobStore.jobTitle,
-                $previewJobStore.jBannerUrl,
-                $previewJobStore.jobDescription,
-                $previewJobStore.jobCategories
+            let tags = [
+                ["t", "job"],
+                ["s", "bitspark"],
+                ["jTitle", $previewJobStore.jobTitle],
+                ["sats", $previewJobStore.sats],
+                ["jbUrl", $previewJobStore.jBannerUrl],
+                ["e", $previewJobStore.ideaId],
+                ...$previewJobStore.jobCategories.map((category) => [
+                    "c",
+                    category,
+                ]),
+                ...$previewJobStore.selectedCodingLanguages.map((lang) => [
+                    "l",
+                    lang,
+                ]),
+            ];
+
+            // Senden des Job-Events über nostrManager
+            if ($nostrManager && $nostrManager.write_mode) {
+                await $nostrManager.sendEvent(
+                    NOSTR_KIND_JOB, // Der Kind-Wert für Jobs
+                    $previewJobStore.jobDescription,
+                    tags,
                 );
+            }
 
             // Zurücksetzen des Zustands
             for (let key in $previewJobStore) {
                 if (Array.isArray($previewJobStore[key])) {
-                    previewJobStore[key] = [];
+                    $previewJobStore[key] = [];
                 } else {
-                    previewJobStore[key] = "";
+                    $previewJobStore[key] = "";
                 }
             }
             navigate(`/idea/${ideaID}`);
@@ -74,7 +92,7 @@
     <Menu />
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
-        <ToolBar/>
+        <ToolBar />
         <div class={contentContainerClass}>
             <div
                 class="container bg-card relative flex flex-col min-w-0 break-words"
@@ -129,8 +147,14 @@
 
                             <div class="mb-4 mt-4" style="width: 100%;">
                                 <MultiSelectDropdown
-                                    {categories}
+                                    categories={job_categories}
                                     bind:selected={$previewJobStore.jobCategories}
+                                />
+                            </div>
+                            <div class="mb-4 mt-4" style="width: 100%;">
+                                <MultiSelectDropdown
+                                    categories={coding_language}
+                                    bind:selected={$previewJobStore.selectedCodingLanguages}
                                 />
                             </div>
                         </div>

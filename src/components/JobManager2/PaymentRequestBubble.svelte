@@ -1,0 +1,190 @@
+<!-- PaymentRequestBubble.svelte -->
+<script>
+    import BaseBubble from "./BaseBubble.svelte";
+    import { onMount } from "svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { sendZap } from "../../LNHelper.js"; // Importieren Sie die sendZap Funktion
+
+    export let event;
+    let offerEvent = null;
+    let offerCreatorProfile = null;
+    let satsAmount = 0;
+    let lnAddress = "";
+    let zaps = [];
+    let totalReceivedSats = 0;
+    let progressPercentage = 0;
+
+    $: if ($nostrCache && offerEvent) {
+        fetchZaps();
+    }
+
+    $: if ($nostrCache) {
+        const offerId = event.tags.find((tag) => tag[0] === "o")?.[1];
+        if (offerId) {
+            loadOfferEvent(offerId);
+        }
+    }
+
+    $: offerEvent, loadOfferCreatorProfile();
+
+    async function fetchZaps() {
+        const offerId = offerEvent.id;
+        zaps = $nostrCache.getEventsByCriteria({
+            kinds: [9735], // Annahme, dass 9734 das Kind für Zap-Events ist
+            tags: { e: [offerId] },
+        });
+
+        // Konsolenausgabe zur Überprüfung, ob Zaps gefunden wurden
+        console.log("Gefundene Zaps für das Angebot:", zaps);
+        totalReceivedSats = zaps.reduce((sum, zap) => {
+            const descriptionTag = zap.tags.find(tag => tag[0] === 'description');
+            if (descriptionTag) {
+                try {
+                    const descriptionData = JSON.parse(descriptionTag[1]);
+                    const amountMillisats = parseInt(descriptionData.tags.find(tag => tag[0] === 'amount')?.[1], 10);
+                    return sum + (amountMillisats / 1000); // Umrechnung in Sats
+                } catch (error) {
+                    console.error('Fehler beim Parsen der Zap-Description:', error);
+                }
+            }
+            return sum;
+        }, 0);
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        progressPercentage = (totalReceivedSats / satsAmount) * 100;
+        if (progressPercentage > 100) {
+            progressPercentage = 100; // Begrenzen Sie den Fortschritt auf 100%
+        }
+    }
+
+    onMount(async () => {
+        const offerId = event.tags.find((tag) => tag[0] === "o")?.[1];
+        if (offerId) {
+            await loadOfferEvent(offerId);
+        }
+    });
+
+    async function loadOfferEvent(offerId) {
+        offerEvent = $nostrCache.getEventById(offerId);
+        satsAmount = offerEvent.tags.find((tag) => tag[0] === "sats")?.[1] || 0;
+    }
+
+    async function loadOfferCreatorProfile() {
+        if (offerEvent) {
+            const profileEvents = $nostrCache.getEventsByCriteria({
+                kinds: [0],
+                authors: [offerEvent.pubkey],
+            });
+
+            if (profileEvents.length > 0) {
+                profileEvents.sort((a, b) => b.created_at - a.created_at);
+                offerCreatorProfile = profileEvents[0].profileData;
+                lnAddress = offerCreatorProfile.lud16 || "No LN Address";
+            }
+        }
+    }
+
+    function handleSendSats() {
+        // Hier rufen Sie sendZap statt sendSatsLNurl auf
+        if (lnAddress && satsAmount > 0) {
+            sendZap(
+                lnAddress,
+                satsAmount,
+                "Zahlung für Angebot",
+                ["wss://relay.damus.io", "wss://relay.plebstr.com"],
+                offerEvent.id,
+            )
+                .then((response) => {
+                    console.log(
+                        "Zap erfolgreich gesendet, Preimage:",
+                        response.preimage,
+                    );
+                })
+                .catch((error) => {
+                    console.error("Fehler beim Senden des Zaps:", error);
+                });
+        } else {
+            console.error("Keine gültige Lightning-Adresse oder Sats-Menge");
+        }
+    }
+</script>
+
+<BaseBubble {event} backgroundColor="#fddb3a" textColor="#000">
+    <div class="payment-request-content">
+        <p class="sats-amount">{satsAmount} Sats requested</p>
+        <button class="send-sats-button" on:click={handleSendSats}>
+            <i class="fas fa-bolt"></i> Send Sats
+        </button>
+        <div class="progress-bar">
+            <div class="progress" style="width: {progressPercentage}%;"></div>
+        </div>
+    </div>
+</BaseBubble>
+
+<style>
+    .progress-bar {
+        width: 100%;
+        background-color: #000;
+        border-radius: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 10px;
+        background: repeating-linear-gradient(
+            45deg,
+            #ffd700,
+            #ffd700 10px,
+            #ffeb3b 10px,
+            #ffeb3b 20px
+        );
+        border-radius: 5px;
+        animation: progressAnimation 2s infinite linear;
+    }
+
+    @keyframes progressAnimation {
+        0% { background-position: 0 0; }
+        100% { background-position: 40px 0; }
+    }
+
+    .payment-request-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #fddb3a;
+    }
+
+    .sats-amount {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: #000;
+    }
+
+    .send-sats-button {
+        background-color: #000;
+        color: #fddb3a;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .send-sats-button:hover {
+        background-color: #fddb3a;
+        color: #000;
+    }
+
+    .send-sats-button i {
+        margin-right: 5px;
+    }
+</style>

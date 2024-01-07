@@ -1,3 +1,4 @@
+<!-- JobDetails.svelte -->
 <script>
     import { navigate } from "svelte-routing";
     export let job;

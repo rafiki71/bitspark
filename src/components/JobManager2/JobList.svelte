@@ -1,0 +1,139 @@
+<!-- JobList.svelte -->
+<script>
+    import { onMount, onDestroy } from "svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { createEventDispatcher } from "svelte";
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+
+    const dispatch = createEventDispatcher();
+    let jobs = [];
+    let jobIdsFromOffers = new Set();
+
+    // Abonnieren von eigenen Job-Postings und Offers
+    function subscribeToJobsAndOffers() {
+        if ($nostrManager && $nostrManager.publicKey) {
+            // Eigene Job-Postings
+            $nostrManager.subscribeToEvents({
+                kinds: [NOSTR_KIND_JOB],
+                authors: [$nostrManager.publicKey],
+                "#t": ["job"],
+                "#s": ["bitspark"],
+            });
+
+            // Eigene Offers
+            $nostrManager.subscribeToEvents({
+                kinds: [NOSTR_KIND_JOB], // Kind für Offers
+                authors: [$nostrManager.publicKey],
+                "#t": ["offer"],
+                "#s": ["bitspark"],
+            });
+        }
+    }
+
+    // Abrufen von Jobs und Offers aus dem Cache
+    function fetchJobsAndOffers() {
+        if ($nostrCache && $nostrManager && $nostrManager.publicKey) {
+            // Jobs abrufen
+            jobs = $nostrCache.getEventsByCriteria({
+                kinds: [NOSTR_KIND_JOB],
+                authors: [$nostrManager.publicKey],
+                tags: { s: ["bitspark"], t: ["job"] },
+            });
+
+            // Offers abrufen und Job-IDs extrahieren
+            const offers = $nostrCache.getEventsByCriteria({
+                kinds: [NOSTR_KIND_JOB],
+                authors: [$nostrManager.publicKey],
+                tags: { s: ["bitspark"], t: ["offer"] },
+            });
+
+            offers.forEach((offer) => {
+                const jobIdTag = offer.tags.find((tag) => tag[0] === "e");
+                if (jobIdTag) {
+                    jobIdsFromOffers.add(jobIdTag[1]);
+                }
+            });
+
+            // Jobs für extrahierte Job-IDs abonnieren
+            jobIdsFromOffers.forEach((jobId) => {
+                $nostrManager.subscribeToEvents({
+                    kinds: [NOSTR_KIND_JOB],
+                    ids: [jobId],
+                    "#s": ["bitspark"],
+                    "#t": ["job"],
+                });
+            });
+
+            let uniqueJobsMap = new Map();
+
+            // Jobs zu Map hinzufügen (Duplikate werden entfernt)
+            jobs.forEach((job) => {
+                uniqueJobsMap.set(job.id, job);
+            });
+
+            // Jobs aus Job-IDs von Offers hinzufügen
+            jobIdsFromOffers.forEach((jobId) => {
+                const job = $nostrCache.getEventById(jobId);
+                if (job) {
+                    uniqueJobsMap.set(job.id, job);
+                }
+            });
+
+            // Umwandeln der Map in Array und Sortierung
+            jobs = Array.from(uniqueJobsMap.values());
+            jobs.sort((a, b) => b.created_at - a.created_at);
+        }
+    }
+
+    onMount(() => {
+        if ($nostrManager) {
+            subscribeToJobsAndOffers();
+        }
+    });
+
+    onDestroy(() => {
+        $nostrManager.unsubscribeAll();
+    });
+
+    function selectJob(job) {
+        dispatch("selectJob", { job });
+    }
+
+    // Reaktive Anweisungen
+    $: $nostrManager, subscribeToJobsAndOffers();
+    $: $nostrCache, fetchJobsAndOffers();
+</script>
+
+<div class="job-list">
+    {#each jobs as job}
+        <div class="job-item" on:click={() => selectJob(job)}>
+            {job.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
+                "Unbekannter Job"}
+        </div>
+    {/each}
+</div>
+
+<style>
+    .job-list {
+        max-height: 100%; /* Begrenzt auf die Höhe des übergeordneten Containers */
+        overflow-y: auto; /* Ermöglicht Scrollen innerhalb der Komponente */
+    }
+
+    .job-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        transition:
+            background-color 0.3s,
+            color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .job-item:hover {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+</style>

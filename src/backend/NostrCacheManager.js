@@ -1,6 +1,7 @@
+// NostrCacheManager.js
 import 'websocket-polyfill'
 import { addOrUpdateEvent } from './NostrCacheStore.js';
-const { SimplePool, generatePrivateKey, getPublicKey, getEventHash, signEvent, validateEvent, verifySignature, nip19 } = window.NostrTools;
+const { SimplePool } = window.NostrTools;
 
 
 export class NostrCacheManager {
@@ -9,6 +10,18 @@ export class NostrCacheManager {
         this.relays = relays;
         this.subscriptions = new Map();
         this.write_mode = write_mode;
+    }
+
+    async extensionAvailable() {
+        if ("nostr" in window) {
+            return true;
+        }
+        return false;
+    }
+
+    async getPublicRelaysString() {
+        return ["wss://relay.damus.io",
+            "wss://nostr-pub.wellorder.net"];
     }
 
     async initialize() {
@@ -22,7 +35,6 @@ export class NostrCacheManager {
         else {
             this.write_mode = false;
             this.publicKey = null;
-            this.relays = await this.getPublicRelaysString(); //fetch from the public first
         }
         console.log("used relays:", this.relays);
     }
@@ -56,7 +68,7 @@ export class NostrCacheManager {
             tags,
         };
 
-        event.tags.push(["s", "bitspark"]);
+        //event.tags.push(["s", "bitspark"]);
         event = await window.nostr.signEvent(event);
 
         event.tags = this.uniqueTags(event.tags);
@@ -76,28 +88,29 @@ export class NostrCacheManager {
             console.log('Subscription:', criteria);
         }
 
-        let sub;
         try {
-            sub = this.pool.sub(this.relays, [criteria]);
+            const sub = this.pool.subscribeMany(
+                this.relays,
+                [criteria],
+                {
+                    onevent: (event) => {
+                        try {
+                            addOrUpdateEvent(event);
+                        } catch (error) {
+                            console.error('Error updating event in store:', error);
+                        }
+                    },
+                    onclose: () => {
+                        console.log(`Sub ${subscriptionKey} closed.`);
+                        this.subscriptions.delete(subscriptionKey);
+                    }
+                }
+            );
+            this.subscriptions.set(subscriptionKey, sub);
         } catch (error) {
             console.error('Failed to subscribe to events:', error);
             return;
         }
-
-        sub.on('event', event => {
-            try {
-                addOrUpdateEvent(event);
-            } catch (error) {
-                console.error('Error updating event in store:', error);
-            }
-        });
-
-        sub.on('error', error => {
-            console.error('Error with subscription:', error);
-            this.subscriptions.delete(subscriptionKey);
-        });
-
-        this.subscriptions.set(subscriptionKey, sub);
     }
 
     // Generiert einen eindeutigen Schlüssel für die Subscription
@@ -107,7 +120,14 @@ export class NostrCacheManager {
 
     // Methode zum Beenden aller Abonnements
     unsubscribeAll() {
-        this.subscriptions.forEach(sub => sub.unsub());
+        this.subscriptions.forEach(sub => {
+            try {
+                sub.close();
+            } catch (error) {
+                console.error('Error closing subscription:', error);
+            }
+        });
         this.subscriptions.clear();
     }
+    
 }

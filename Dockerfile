@@ -10,6 +10,7 @@ COPY . .
 # Installieren Sie die notwendigen Abhängigkeiten
 RUN npm install --legacy-peer-deps
 RUN npm install nostr-tools
+RUN npm install @getalby/lightning-tools
 # Tailwind CSS und FontAwesome bauen
 RUN npm run build:tailwind
 RUN npm run build:fontawesome

@@ -1,81 +1,121 @@
 <!-- JobView.svelte -->
 <script>
-  import { onMount } from "svelte";
-  import { helperStore, sidebarOpen } from "../helperStore.js";
+  import { onMount, onDestroy } from "svelte";
   import Menu from "../components/Menu.svelte";
   import CommentWidget from "../components/CommentWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
   import Banner from "../components/Banner.svelte";
   import ToolBar from "../components/ToolBar.svelte";
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { sidebarOpen } from "../helperStore.js";
+  import { NOSTR_KIND_JOB } from '../constants/nostrKinds';
+  import ZapWidget from '../components/ZapWidget.svelte';
 
   export let id;
   let showOfferPopup = false;
   let developerBid = "";
   let developerIntro = "";
-  let profiles = {};
+  let job = null;
   let creator_profile = null;
 
-  let job = {
-    bannerImage:
-      "https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80",
-    id: 0,
-    description: "Eine detaillierte Beschreibung des Jobs.",
-    title: "Job Title",
-    company: "Unternehmen XYZ",
-  };
-
-  async function deleteJob() {
-    const confirmDelete = confirm("Möchten Sie diesen Job wirklich löschen?");
-    if (confirmDelete) {
-      try {
-        await $helperStore.deleteEvent(id);
-      } catch (error) {
-        console.error("Error deleting job:", error);
-      }
+  function initialize() {
+    if ($nostrManager) {
+      $nostrManager.subscribeToEvents({
+        kinds: [NOSTR_KIND_JOB],
+        ids: [id],
+        "#t": ["job"],
+        "#s": ["bitspark"],
+      });
+      fetchJob();
     }
   }
 
-  onMount(async () => {
-    await fetchData();
-  });
+  async function fetchJob() {
+    const jobEvents = $nostrCache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      ids: [id],
+      tags: { s: ["bitspark"] },
+    });
 
-  async function fetchData() {
-    if (!$helperStore) {
-      return;
-    }
-
-    try {
-      const fetchedJob = await $helperStore.getEvent(id);
-      console.log("Fetched Job:", fetchedJob);
-      const tags = fetchedJob.tags.reduce(
-        (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-        {}
-      );
-
+    if (jobEvents.length > 0) {
+      const latestJobEvent = jobEvents[0];
       job = {
-        id: fetchedJob.id,
-        title: tags.jTitle,
-        sats: tags.sats,
-        company: tags.jCompany,
-        bannerImage: tags.jbUrl,
-        description: fetchedJob.content,
-        pubkey: fetchedJob.pubkey,
+        title:
+          latestJobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
+          "Unbekannter Titel",
+        sats:
+          latestJobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
+        bannerImage:
+          latestJobEvent.tags.find((tag) => tag[0] === "jbUrl")?.[1] ||
+          "default_image_url",
+        description: latestJobEvent.content,
       };
 
-      creator_profile = await $helperStore.getProfile(fetchedJob.pubkey);
-      profiles[creator_profile.pubkey] = creator_profile;
-    } catch (error) {
-      console.error("Error fetching job data:", error);
+      fetchProfile(latestJobEvent.pubkey);
+    }
+  }
+
+  async function fetchProfile(pubkey) {
+    $nostrManager.subscribeToEvents({
+      kinds: [0],
+      authors: [pubkey],
+      "#s": ["bitspark"],
+    });
+
+    const profileEvents = $nostrCache.getEventsByCriteria({
+      kinds: [0],
+      authors: [pubkey],
+      tags: { s: ["bitspark"] },
+    });
+
+    if (profileEvents.length > 0) {
+      profileEvents.sort((a, b) => b.created_at - a.created_at);
+      creator_profile = profileEvents[0].profileData;
     }
   }
 
   async function postOffer() {
+    if (!developerIntro || !developerBid) {
+      console.log("Please fill all fields.");
+      return;
+    }
+
+    // Stellen Sie sicher, dass $nostrManager vorhanden und im Schreibmodus ist
+    if (!$nostrManager || !$nostrManager.write_mode) {
+      console.log("Nostr manager not available or not in write mode");
+      return;
+    }
+
+    const tags = [
+      ["s", "bitspark"],
+      ["t", "offer"],
+      ["e", id], // Die ID des Jobs
+      ["sats", developerBid], // Gebot in Sats
+    ];
+
     try {
-      await $helperStore.postOffer(job.id, developerIntro, developerBid);
+      await $nostrManager.sendEvent(
+        NOSTR_KIND_JOB, // Der Kind-Wert für Jobs
+        developerIntro,
+        tags,
+      );
+
       console.log("Offer submitted successfully");
-      showOfferPopup = false; // Schließen Sie das Popup, wenn das Angebot erfolgreich abgegeben wurde
+
+      // Zurücksetzen der Werte und Schließen des Popups
+      developerBid = "";
+      developerIntro = "";
+      showOfferPopup = false;
     } catch (error) {
       console.error("Error submitting offer:", error);
+    }
+  }
+
+  async function deleteJob() {
+    const confirmDelete = confirm("Do you really want to delete this idea?");
+    if (confirmDelete) {
+      await $nostrManager.sendEvent(5, "", [["e", id]]);
     }
   }
 
@@ -83,16 +123,27 @@
     ? "combined-content-container sidebar-open"
     : "combined-content-container";
 
-  $: fetchData(), $helperStore;
+  onMount(() => {
+    initialize();
+  });
+
+  onDestroy(() => {
+    if ($nostrManager) {
+      $nostrManager.unsubscribeAll();
+    }
+  });
+
+  $: $nostrCache && fetchJob();
+  $: $nostrManager && initialize();
 </script>
 
 <main class="overview-page">
   <Menu />
   <div class="flex-grow">
     <Banner
-      bannerImage={job.bannerImage}
-      title={job.title}
-      subtitle={`${job.sats} Sats`}
+      bannerImage={job?.bannerImage}
+      title={job?.title}
+      subtitle={`${job?.sats} Sats`}
       show_right_text={false}
     />
 
@@ -100,7 +151,7 @@
 
     <div class={contentContainerClass}>
       <div class="container bg-card relative flex flex-col min-w-0 break-words">
-        {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+        {#if creator_profile && creator_profile.pubkey === $nostrManager?.publicKey}
           <button
             on:click={deleteJob}
             class="absolute top-4 right-4 text-gray-400"
@@ -112,11 +163,11 @@
         <div class="px-6">
           <div class="text-center mt-6">
             <h2 class="base-h2">
-              {job.title}
+              {job?.title}
             </h2>
             <hr class="my-6" />
             <p class="html-content">
-              {@html job.description}
+              {@html job?.description}
             </p>
             <button
               class="post-offer-btn"
@@ -127,7 +178,7 @@
           </div>
         </div>
       </div>
-      <!-- Closing div that was missing -->
+      <ZapWidget eventId={id} />
       <div class="single-card container">
         <CommentWidget {id} />
       </div>
@@ -135,26 +186,24 @@
     <Footer />
   </div>
   {#if showOfferPopup}
-  <div class="offer-popup-overlay">
-    <div class="offer-popup">
-      <h3>Send Offer</h3>
-      <label>
-        Sats:
-        <input bind:value={developerBid} type="text" placeholder={job.sats} />
-      </label>
-      <label>
-        Message:
-        <textarea bind:value={developerIntro} placeholder="Your Message..." />
-      </label>
-      <div class="offer-popup-buttons">
-        <button on:click={() => (showOfferPopup = false)}>Cancel</button>
-        <button on:click={postOffer}>
-          Submit
-        </button>
+    <div class="offer-popup-overlay">
+      <div class="offer-popup">
+        <h3>Send Offer</h3>
+        <label>
+          Sats:
+          <input bind:value={developerBid} type="text" placeholder={job.sats} />
+        </label>
+        <label>
+          Message:
+          <textarea bind:value={developerIntro} placeholder="Your Message..." />
+        </label>
+        <div class="offer-popup-buttons">
+          <button on:click={() => (showOfferPopup = false)}>Cancel</button>
+          <button on:click={postOffer}> Submit </button>
+        </div>
       </div>
     </div>
-  </div>
-{/if}
+  {/if}
 </main>
 
 <style>

@@ -1,12 +1,13 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import { helperStore } from "../helperStore.js"; // Import the store
     import Footer from "../components/Footers/FooterBS.svelte";
     import Menu from "../components/Menu.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
 
     export let profile_id;
 
@@ -21,89 +22,164 @@
     let relays = [];
     let newRelay = "";
 
-    onMount(async () => {
-        try {
-            profile = await $helperStore.getProfile(profile_id);
-
-            if (profile) {
-                name = profile.name;
-                dev_about = profile.dev_about;
-                picture = profile.picture;
-                banner = profile.banner;
-                lud16 = profile.lud16;
-
-                // Get GitHub username and proof from profile
-                git_username = profile.githubUsername || "";
-                git_proof = profile.githubProof || "";
-                relays = await $helperStore.clientRelays;
-            }
-        } catch (error) {
-            console.error("Error fetching profile:", error);
+    onMount(() => {
+        if ($nostrManager) {
+            initialize();
         }
     });
 
-    const updateProfile = async () => {
+    $: $nostrManager, initialize();
+
+    function initialize() {
+        if ($nostrManager) {
+            $nostrManager.subscribeToEvents({
+                kinds: [0],
+                authors: [profile_id],
+                "#s": ["bitspark"],
+            });
+            fetchProfile();
+        }
+    }
+
+    onDestroy(() => {
+        $nostrManager.unsubscribeAll();
+    });
+
+    async function fetchProfile() {
+        const profileEvents = await $nostrCache.getEventsByCriteria({
+            kinds: [0],
+            authors: [profile_id],
+            tags: {
+                s: ["bitspark"],
+            },
+        });
+
+        if (profileEvents && profileEvents.length > 0) {
+            profileEvents.sort((a, b) => b.created_at - a.created_at);
+            profile = profileEvents[0].profileData;
+
+            name = profile.name;
+            dev_about = profile.dev_about;
+            picture = profile.picture;
+            banner = profile.banner;
+            lud16 = profile.lud16;
+            git_username = profile.githubUsername;
+            git_proof = profile.githubProof;
+        }
+    }
+
+    async function updateProfile() {
+        if (!$nostrManager || !$nostrManager.write_mode) return;
+
+        const profileEvent = {
+            kind: 0,
+            content: JSON.stringify({ name, picture, banner, dev_about, lud16 }),
+            tags: [
+                ["i", `github:${git_username}`, git_proof],
+                ["s", "bitspark"]
+            ]
+        };
+
         try {
-            const updatedIdentities =
-                profile && profile.identities
-                    ? [
-                          ...profile.identities.filter(
-                              (identity) => identity.platform !== "github"
-                          ),
-                          {
-                              platform: "github",
-                              identity: git_username,
-                              proof: git_proof,
-                          },
-                      ]
-                    : [
-                          {
-                              platform: "github",
-                              identity: git_username,
-                              proof: git_proof,
-                          },
-                      ];
-            await $helperStore.updateProfile(
-                name,
-                picture,
-                banner,
-                dev_about,
-                lud16,
-                updatedIdentities
+            await $nostrManager.sendEvent(
+                profileEvent.kind,
+                profileEvent.content,
+                profileEvent.tags,
             );
-            await navigate("/overview"); // navigate back to home page after saving
+            console.log("Profile updated successfully");
         } catch (error) {
             console.error("Error updating profile:", error);
         }
-    };
+    }
 
     function autoResizeTextarea(e) {
         e.target.style.height = "";
         e.target.style.height = e.target.scrollHeight + "px";
     }
 
-    const deleteRelay = async (relay) => {
+    // Funktion zum Löschen eines Relays
+    async function deleteRelay(relayUrl) {
+        if (!$nostrManager || !$nostrManager.write_mode) return;
+
+        // Holen Sie die aktuellen Relays aus dem Cache
+        const existingRelays = await fetchRelays();
+
+        // Relay aus dem Array entfernen
+        const updatedRelays = existingRelays.filter(
+            (relay) => relay !== relayUrl,
+        );
+
+        // Event für die Aktualisierung der Relay-Liste erstellen
+        const relayEvent = createRelayEvent(updatedRelays);
+
+        // Event senden
         try {
-            await $helperStore.deleteRelay(relay);
-            relays = relays.filter((r) => r !== relay);
-            // Remove relay from relays array
+            await $nostrManager.sendEvent(
+                relayEvent.kind,
+                relayEvent.content,
+                relayEvent.tags,
+            );
+            console.log("Relay deleted successfully");
         } catch (error) {
             console.error("Error deleting relay:", error);
         }
-    };
+    }
 
-    const addRelay = async () => {
+    // Funktion zum Hinzufügen eines Relays
+    async function addRelay() {
+        if (!$nostrManager || !$nostrManager.write_mode) return;
+
+        // Holen Sie die aktuellen Relays aus dem Cache
+        const existingRelays = await fetchRelays();
+        console.log("existingRelays:", existingRelays);
+        
+        // Überprüfen, ob das Relay bereits existiert
+        if (existingRelays.includes(newRelay)) return;
+        
+        // Relay zum Array hinzufügen
+        const updatedRelays = [...existingRelays, newRelay];
+        console.log("updatedRelays:", updatedRelays);
+        
+        // Event für die Aktualisierung der Relay-Liste erstellen
+        const relayEvent = createRelayEvent(updatedRelays);
+        console.log("relayEvent:", relayEvent);
+
+        // Event senden
         try {
-            if (newRelay.trim()) {
-                await $helperStore.addRelay(newRelay);
-                // Add the new relay to the local list
-                relays = [...$helperStore.clientRelays];
-                newRelay = "";
-            }
+            await $nostrManager.sendEvent(
+                relayEvent.kind,
+                relayEvent.content,
+                relayEvent.tags,
+            );
+            console.log("Relay added successfully");
         } catch (error) {
             console.error("Error adding relay:", error);
         }
-    };
+    }
+
+    // Hilfsfunktion zum Erstellen eines Relay-Events
+    function createRelayEvent(relays) {
+        const content = ""; // Leerer Inhalt für Relay-Liste
+        const tags = relays.map((relay) => ["r", relay]);
+
+        return {
+            kind: 10002, // Kind für Relay-Liste
+            content,
+            tags,
+        };
+    }
+
+    // Hilfsfunktion zum Abrufen der aktuellen Relay-Liste aus dem Cache
+    async function fetchRelays() {
+        const relayEvents = await $nostrCache.getEventsByCriteria({
+            kinds: [10002],
+            authors: [$nostrManager.publicKey],
+        });
+
+        return relayEvents.flatMap((event) =>
+            event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
+        );
+    }
 
     let contentContainerClass = "combined-content-container";
 
@@ -270,7 +346,7 @@
                                                             class="bg-red-500 w-5 h-5 rounded-full flex justify-center items-center"
                                                             on:click={() =>
                                                                 deleteRelay(
-                                                                    relay
+                                                                    relay,
                                                                 )}
                                                         >
                                                             X

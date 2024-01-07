@@ -1,86 +1,96 @@
 <!-- IdeaDetail.svelte -->
 <script>
-  import { onMount } from "svelte";
-  import { Link } from "svelte-routing";
-  import { sendSatsLNurl } from "../LNHelper.js";
+  import { onMount, onDestroy } from "svelte";
   import Menu from "../components/Menu.svelte";
-  import ProfileImg from "../components/ProfileImg.svelte";
   import CommentWidget from "../components/CommentWidget.svelte";
   import JobWidget from "../components/JobWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
-  import { helperStore } from "../helperStore.js"; // Import the store
-  import { sidebarOpen } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
   import ToolBar from "../components/ToolBar.svelte";
+  import { sidebarOpen } from "../helperStore.js";
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+  import ZapWidget from '../components/ZapWidget.svelte';
 
   export let id;
 
-  let idea = {
-    bannerImage:
-      "https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80",
-    id: 0,
-    message: "Eine innovative App, die das Leben der Menschen verbessert.",
-    name: "Innovative App",
-    subtitle: "Idea Engine",
-  };
-
-  let profiles = {};
+  let idea = {};
   let creator_profile = null;
+
+  async function initialize() {
+    if ($nostrManager) {
+      $nostrManager.subscribeToEvents({
+        kinds: [NOSTR_KIND_IDEA],
+        "#s": ["bitspark"],
+        ids: [id],
+      });
+
+      $nostrManager.subscribeToEvents({
+        kinds: [0],
+        authors: [idea.pubkey],
+      });
+    }
+  }
+
+  function fetchIdea() {
+    const fetchedIdea = $nostrCache.getEventById(id);
+    if (fetchedIdea) {
+      idea = transformIdea(fetchedIdea);
+    }
+  }
+
+  function transformIdea(event) {
+    const tags = event.tags.reduce(
+      (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
+      {},
+    );
+
+    return {
+      id: event.id,
+      name: tags.iName,
+      subtitle: tags.iSub,
+      bannerImage: tags.ibUrl || "default_image_url",
+      message: event.content,
+      githubRepo: tags.gitrepo,
+      lnAdress: tags.lnadress,
+      pubkey: event.pubkey,
+      abstract: tags.abstract,
+    };
+  }
+
+  function fetchCreatorProfile() {
+    let criteria = {
+      kinds: [0],
+      authors: [idea.pubkey],
+      tags: {
+        s: ["bitspark"],
+      },
+    };
+
+    const profileEvents = $nostrCache.getEventsByCriteria(criteria);
+
+    if (profileEvents && profileEvents.length > 0) {
+      creator_profile = profileEvents[0].profileData;
+    }
+  }
 
   async function deleteIdea() {
     const confirmDelete = confirm("Do you really want to delete this idea?");
     if (confirmDelete) {
-      try {
-        await $helperStore.deleteEvent(id);
-      } catch (error) {
-        console.error("Error deleting idea:", error);
-      }
+      await $nostrManager.sendEvent(5, "", [["e", id]]);
     }
   }
 
-  onMount(async () => {
-    await fetchData();
+  onMount(() => {
+    initialize();
   });
 
-  async function fetchData() {
-    if (!$helperStore) {
-      return;
-    }
-
-    try {
-      const fetchedIdea = await $helperStore.getEvent(id);
-
-      // Konvertiere die Tags in ein einfacher zu handhabendes Objekt
-      const tags = fetchedIdea.tags.reduce(
-        (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-        {}
-      );
-
-      idea = {
-        id: fetchedIdea.id,
-        name: tags.iName,
-        subtitle: tags.iSub,
-        bannerImage: tags.ibUrl,
-        message: fetchedIdea.content,
-        githubRepo: tags.gitrepo,
-        lnAdress: tags.lnadress,
-        pubkey: fetchedIdea.pubkey,
-        abstract: tags.abstract,
-      };
-      // Laden Sie das Profil des Erstellers der Idee
-      creator_profile = await $helperStore.getProfile(fetchedIdea.pubkey);
-      profiles[creator_profile.pubkey] = creator_profile;
-    } catch (error) {
-      console.error("Error fetching idea data:", error);
-    }
-  }
-
-  async function supportIdea() {
-    await sendSatsLNurl(idea.lnAdress);
-  }
+  onDestroy(() => {
+    $nostrManager.unsubscribeAll();
+  });
 
   let contentContainerClass = "combined-content-container";
-
   $: {
     if ($sidebarOpen) {
       contentContainerClass = "combined-content-container sidebar-open";
@@ -88,7 +98,17 @@
       contentContainerClass = "combined-content-container";
     }
   }
-  $: fetchData(), $helperStore;
+
+  $: if ($nostrCache) {
+    fetchIdea();
+    if (idea && idea.pubkey) {
+      fetchCreatorProfile();
+    }
+  }
+
+  $: if ($nostrManager) {
+    initialize();
+  }
 </script>
 
 <main class="overview-page">
@@ -108,7 +128,7 @@
 
     <div class={contentContainerClass}>
       <div class="single-card container">
-        {#if creator_profile && creator_profile.pubkey === $helperStore.publicKey}
+        {#if creator_profile && creator_profile.pubkey === $nostrManager.publicKey}
           <button
             on:click={deleteIdea}
             class="absolute top-4 right-4 text-gray-400"
@@ -133,8 +153,9 @@
           </div>
         </div>
       </div>
+        <ZapWidget eventId={id} />
       <div class="single-card container">
-        <JobWidget ideaID={id} creatorPubKey={idea.pubkey}/>
+        <JobWidget ideaID={id} creatorPubKey={idea.pubkey} />
       </div>
       <div class="single-card container">
         <CommentWidget {id} />

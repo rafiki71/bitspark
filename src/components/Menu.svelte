@@ -1,15 +1,16 @@
 <!-- Menu.svelte -->
 <script>
-    import { onMount, onDestroy } from "svelte";
-    import { slide } from "svelte/transition";
-    import { Link, navigate } from "svelte-routing";
-    import NostrHelper from "../NostrHelper.js";
+    import { onMount } from "svelte";
+    import { navigate } from "svelte-routing";
     import { writable } from "svelte/store";
-    import { helperStore } from "../helperStore.js"; // Import the store
     import { sidebarOpen } from "../helperStore.js";
-    import { construct_svelte_component } from "svelte/internal";
     import tutorials from "../Tutorials.js";
     import "../styles/global.css";
+    import {
+        nostrManager,
+        initializeNostrManager,
+    } from "../backend/NostrManagerStore.js";
+    import { idea_categories } from "../constants/categories.js";
 
     function toggleSidebar() {
         sidebarOpen.update((value) => !value);
@@ -19,35 +20,6 @@
 
     let optionText = "getAlby";
     let link = "https://www.getalby.com";
-    export let nostrHelper = null;
-
-    let categories = [
-        "Art & Design",
-        "Bitcoin & P2P",
-        "Comics & Graphic Novels",
-        "Crafts & DIY",
-        "Fashion & Beauty",
-        "Film, Video & Animation",
-        "Food & Beverages",
-        "Games & Gaming",
-        "Health & Fitness",
-        "Journalism & News",
-        "Music & Audio",
-        "Photography & Visual Arts",
-        "Publishing & Writing",
-        "Technology & Software",
-        "Education & Learning",
-        "Environment & Sustainability",
-        "Sports & Outdoors",
-        "Travel & Tourism",
-        "Non-Profit & Social Causes",
-        "Business & Entrepreneurship",
-        "Science & Research",
-        "Home & Lifestyle",
-        "Automotive & Transportation",
-        "Pets & Animals",
-        "Parenting & Family",
-    ];
 
     let tutorial_titles = tutorials.map((tutorial) => tutorial.title);
 
@@ -95,23 +67,22 @@
     }
 
     async function login() {
-        // Warten Sie darauf, dass NostrHelper.create aufgelöst ist, bevor Sie fortfahren
         console.log("Logging in...");
-        await NostrHelper.create(true);
+        await initializeNostrManager(true, false);
         menuState.update((state) => ({ ...state, logged_in: true }));
     }
 
     async function logout() {
         console.log("Logging out...");
-        await NostrHelper.create(false);
+        await initializeNostrManager(false, false);
         menuState.update((state) => ({ ...state, logged_in: false }));
     }
 
     onMount(async () => {
-        nostrHelper = await NostrHelper.create();
-        const loggedIn = (await nostrHelper.publicKey) != null;
-        console.log("nostrhelper pk", loggedIn);
-        const usingExtension = await nostrHelper.extensionAvailable();
+        await initializeNostrManager(false, true);
+        const loggedIn = $nostrManager.publicKey != null;
+        console.log("Logged in:", loggedIn);
+        const usingExtension = await $nostrManager.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
 
@@ -179,13 +150,25 @@
                     /> Spark Idea
                 </button>
             </li>
+            <li>
+                <button
+                    class={linkStyle}
+                    on:click={() => navigate("/jobmarket")}
+                >
+                    <i
+                        class="fas fa-search"
+                        style="color: #223d6d; margin-right: 10px;"
+                    ></i>
+                    Job Market
+                </button>
+            </li>
             {#if $menuState.logged_in}
                 <hr class="divider-line" />
                 <li>
                     <button
                         class={linkStyle}
                         on:click={() =>
-                            navigate(`/profile/${nostrHelper.publicKey}`)}
+                            navigate(`/profile/${$nostrManager.publicKey}`)}
                     >
                         <i
                             class="fas fa-user"
@@ -198,7 +181,9 @@
                     <button
                         class={linkStyle}
                         on:click={() =>
-                            navigate(`/edit_profile/${nostrHelper.publicKey}`)}
+                            navigate(
+                                `/edit_profile/${$nostrManager.publicKey}`,
+                            )}
                     >
                         <i
                             class="fas fa-cog"
@@ -206,6 +191,19 @@
                         /> Edit Profile
                     </button>
                 </li>
+                <li>
+                    <button
+                        class={linkStyle}
+                        on:click={() => navigate("/jobmanager")}
+                    >
+                        <i
+                            class="fas fa-briefcase"
+                            style="color: #223d6d; margin-right: 10px;"
+                        ></i>
+                        Job Manager
+                    </button>
+                </li>
+                <hr class="divider-line" />
             {/if}
             <li>
                 <hr class="divider-line" />
@@ -285,7 +283,7 @@
 >
     <div class="categories-outer">
         <div class="categories">
-            {#each categories as category}
+            {#each idea_categories as category}
                 <button
                     class={categoryStyle}
                     on:click={() => navigate(`/overview/${category}`)}
@@ -400,7 +398,9 @@
         padding: 10px 0;
         box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3);
         border-radius: 20px;
-        transition: opacity 0.3s, visibility 0.3s;
+        transition:
+            opacity 0.3s,
+            visibility 0.3s;
         opacity: 1;
         visibility: visible;
         z-index: 50;

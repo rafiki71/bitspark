@@ -1,27 +1,72 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { Link } from "svelte-routing";
-    import { helperStore } from "../helperStore.js";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+
     export let profile_id;
 
     let ideas = [];
     let profile = null;
 
-    onMount(async () => {
-        fetch_ideas();
+    // Reaktive Anweisung, um bei Änderungen des Managers Daten zu aktualisieren
+    $: $nostrManager && fetchData();
+    $: $nostrManager && initialize();
+
+    // Reaktive Anweisung, um bei Änderungen des Caches Daten zu aktualisieren
+    $: $nostrCache && fetchData();
+
+    onMount(() => {
+        // Initialisierung, wenn der Manager bereits existiert
+        if ($nostrManager) {
+            initialize();
+        }
     });
 
-    async function fetch_ideas() {
-        console.log("fetchd user ideas:");
+    function initialize() {
+        // Abonnieren der Events für das Profil und die Ideen
+        $nostrManager.subscribeToEvents({
+            kinds: [0, NOSTR_KIND_IDEA], // Profil und Ideen
+            authors: [profile_id],
+            "#s": ["bitspark"],
+        });
+    }
+
+    onDestroy(() => {
+        // Beenden der Abonnements bei Zerstörung der Komponente
+        $nostrManager.unsubscribeAll();
+    });
+
+    async function fetchData() {
         try {
-            profile = await $helperStore.getProfile(profile_id);
-            const ideas_ = await $helperStore.getUserIdeas(profile_id);
-            console.log(profile);
-            console.log(ideas_);
-            ideas = ideas_.map((idea) => {
+            // Abrufen des Profils aus dem Cache
+            const profileEvents = $nostrCache.getEventsByCriteria({
+                kinds: [0],
+                authors: [profile_id],
+                tags: {
+                    s: ["bitspark"],
+                },
+            });
+
+            if (profileEvents && profileEvents.length > 0) {
+                profileEvents.sort((a, b) => b.created_at - a.created_at);
+                profile = profileEvents[0].profileData; // Nutzung der neuen Profilstruktur
+            }
+
+            // Abrufen der Ideen des Benutzers
+            const ideaEvents = $nostrCache.getEventsByCriteria({
+                kinds: [NOSTR_KIND_IDEA],
+                authors: [profile_id],
+                tags: {
+                    s: ["bitspark"],
+                },
+            });
+
+            ideas = ideaEvents.map((idea) => {
                 const tags = idea.tags.reduce(
                     (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
-                    {}
+                    {},
                 );
 
                 return {
@@ -33,22 +78,13 @@
                     abstract: tags.abstract,
                 };
             });
-            console.log(ideas);
         } catch (error) {
             console.error("Error fetching user ideas:", error);
         }
     }
-
-    function test() {
-        console.log("Profile id changed");
-    }
-    $: fetch_ideas(), $helperStore;
-    // $: ideas;
-    $: fetch_ideas(), profile_id;
-    // $: profile;
 </script>
 
-<div class="w-full">
+<div class="single-card container w-full">
     <div style="width: 100%;">
         <div class="px-6 py-6">
             {#if profile}

@@ -1,0 +1,115 @@
+1. Job Posting
+{
+  "id": "unique_job_id",
+  "kind": 1337,  // Angepasster Wert für Job-Posting
+  "pubkey": "publisher_public_key",
+  "created_at": timestamp,
+  "content": "Job description here",
+  "tags": [
+    ["t", "job"],
+    ["e", "ideaId"],
+    ["jTitle", "jobTitle"],
+    ["sats", "100000"],  // Satoshis für den Job
+    ["jbUrl", "jBannerUrl"],
+    ["c", "category1"],  // Kategorie
+    ["c", "category2"]   // Weitere Kategorie
+  ],
+  "sig": "signature"
+}
+
+2. Job Offers
+{
+  "id": "unique_offer_id",
+  "kind": 1337,  // Angepasster Wert für Jobangebote
+  "pubkey": "developer_public_key",
+  "created_at": timestamp,
+  "content": "Developer introduction and bid",
+  "tags": [
+    ["t", "offer"],
+    ["e", "jobId"],  // Verknüpfte Job-ID
+    ["sats", "90000"]  // Gebot in Satoshis
+  ],
+  "sig": "signature"
+}
+
+3. Job Acceptance/Decline
+{
+  "id": "unique_response_id",
+  "kind": 1337,  // Angepasster Wert für Angebot-Antworten
+  "pubkey": "job_creator_public_key",
+  "created_at": timestamp,
+  "content": "Response to offer",
+  "tags": [
+    ["t", "ao"],  // "ao" für Akzeptanz, "do" für Ablehnung
+    ["e", "jobId"],
+    ["o", "offerId"],
+    ["reason", "optional_reason"]
+  ],
+  "sig": "signature"
+}
+
+4. Pull Requests
+{
+  "id": "unique_pr_id",
+  "kind": 1337,  // Angepasster Wert für Pull Requests
+  "pubkey": "developer_public_key",
+  "created_at": timestamp,
+  "content": "Details about the Pull Request",
+  "tags": [
+    ["t", "pr"],
+    ["e", "jobId"],
+    ["o", "offerId"],
+    ["pr_url", "pullRequestId"],
+    ["p", "developerProfile"]
+  ],
+  "sig": "signature"
+}
+
+5. Pull Request Status
+{
+  "id": "unique_pr_status_id",
+  "kind": 1337,  // Angepasster Wert für PR-Status
+  "pubkey": "job_creator_public_key",
+  "created_at": timestamp,
+  "content": "PR status update",
+  "tags": [
+    ["t", "apr"],  // "apr" für Akzeptanz, "dpr" für Ablehnung
+    ["e", "pullRequestId"],
+    ["reason", "optional_reason"]
+  ],
+  "sig": "signature"
+}
+
+6. ZapReceive
+{
+  content: "Zahlung für Angebot"
+created_at: 1703626723
+id: "bba2d9660173167070ce40d08826f72dd77503362215ccfdf67021dc7a652e80"
+kind: 9735
+pubkey: "79f00d3f5a19ec806189fcab03c1be4ff81d18ee4f653c88fac41fe03570f432"
+sig: "b50719ea6b046b3e8d03ffd95304c23e17ed4d30c27a637b831305e939dd5846f2b2363e8945b1b643c2e513811c90b7457449dc4d2c7ee21767b7f7549c1b51"
+tags: 
+  0: ['p', '9d84e447c5e6f114b8738554ba07596cc3421a8d20e4456664a9cb89a63250d6']
+  1: ['e', '7684fe1dd8f114d67d98100e0080f23d4465185462abd167f3ac470eb8404b4c']
+  2: ['bolt11', 'lnbc1u1pjck3lzpp5vu7zwzgtzv6ztvtauvwt7vsx6mvan5a63…fv5stjyf5gntgsd9yex4ec7w54r9649af5z27fvcegq9htqud']
+  3: ['preimage', '062760273c3b0ee17cabc6210ded15f2f4eb9a6b46b4938aa3595604814701a1']
+  4: ['description', '{"pubkey":"9d84e447c5e6f114b8738554ba07596cc3421a8…93dee2e5aa8a232ee6dc0ad1f6e89de0ee4f5998cef29b3"}']
+
+}
+
+7. Reviews
+{
+  "id": "unique_review_id",
+  "kind": 1337,  // Angepasster Wert für Bewertungen
+  "pubkey": "reviewer_public_key",
+  "created_at": timestamp,
+  "content": "Review content",
+  "tags": [
+    ["t", "review"],
+    ["e", "offerId"],
+    ["p", "developerProfile"],
+    ["review", "reviewContent"],
+    ["rating", "5"]  // Bewertungszahl
+  ],
+  "sig": "signature"
+}

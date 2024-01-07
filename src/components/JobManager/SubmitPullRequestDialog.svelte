@@ -1,3 +1,4 @@
+<!-- SubmitPullRequestDialog.svelte -->
 <script>
     import { helperStore } from "../../helperStore.js";
     export let accept;

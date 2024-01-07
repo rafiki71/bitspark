@@ -2,7 +2,6 @@
     import { navigate } from "svelte-routing";
     import { onMount } from "svelte";
     import Menu from "../components/Menu.svelte";
-    import { helperStore } from "../helperStore.js";
     import { previewStore } from "../previewStore.js";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
@@ -10,7 +9,9 @@
     import SelectionModal from "../components/Modals/SelectionModal.svelte";
     import Modal, { bind } from "svelte-simple-modal";
     import { filterStore } from "../filterStore.js";
+    import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
+    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
 
     function navigateTo(route) {
         navigate(route);
@@ -23,7 +24,7 @@
                 categories: categories,
                 initialSelectedCategories: $previewStore.categories,
                 onConfirm: handleCategoryConfirm,
-            })
+            }),
         );
     }
 
@@ -76,17 +77,29 @@
             $previewStore.lightningAddress &&
             $previewStore.categories
         ) {
-            await $helperStore.postIdea(
-                $previewStore.name,
-                $previewStore.subtitle,
-                $previewStore.abstract,
-                $previewStore.message,
-                $previewStore.bannerUrl,
-                $previewStore.githubRepo,
-                $previewStore.lightningAddress,
-                $previewStore.categories
-            );
+            let tags = [
+                ["s", "bitspark"],
+                ["iName", $previewStore.name],
+                ["iSub", $previewStore.subtitle],
+                ["ibUrl", $previewStore.bannerUrl],
+                ["gitrepo", $previewStore.githubRepo],
+                ["lnadress", $previewStore.lightningAddress],
+                ["abstract", $previewStore.abstract],
+            ];
+            $previewStore.categories.forEach((category) => {
+                tags.push(["c", category]);
+            });
 
+            // Senden des Events über nostrManager
+            if ($nostrManager && $nostrManager.write_mode) {
+                await $nostrManager.sendEvent(
+                    NOSTR_KIND_IDEA,
+                    $previewStore.message,
+                    tags,
+                );
+            }
+
+            // Zurücksetzen der previewStore Werte
             $previewStore.name = "";
             $previewStore.subtitle = "";
             $previewStore.abstract = "";
@@ -117,7 +130,7 @@
 
     function removeCategory(category) {
         let selectedCategories = $previewStore.categories.filter(
-            (item) => item !== category
+            (item) => item !== category,
         );
         $previewStore.categories = selectedCategories;
     }
@@ -265,7 +278,7 @@
     .plus-button:hover {
         background-color: rgb(249 115 22);
         position: relative;
-        color:  #fff;
+        color: #fff;
     }
 
     .category-button:hover::after {
