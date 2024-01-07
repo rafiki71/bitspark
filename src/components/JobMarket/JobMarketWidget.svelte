@@ -11,17 +11,19 @@
     import { NOSTR_KIND_JOB } from "../../constants/nostrKinds.js";
     import SelectionModal from "../Modals/SelectionModal.svelte";
     import Modal, { bind } from "svelte-simple-modal";
-    import { jobFilterStore, langFilterStore } from "../../filterStore.js";
+    // import { jobFilterStore, langFilterStore } from "../../filterStore.js";
+    import { selectedCategories, selectedLangs } from "../../filterStore.js";
     import ProfileImg from "../ProfileImg.svelte";
     import { navigate } from "svelte-routing";
+    import { writable } from "svelte/store";
 
     function navigateToIdea(ideaId) {
         navigate(`/idea/${ideaId}`);
     }
 
     let jobs = [];
-    let selectedCategories = [];
-    let selectedLangs = [];
+    // let selectedCategories = [];
+    // let selectedLangs = [];
 
     function initialize() {
         subscribeToJobs();
@@ -34,12 +36,12 @@
                 "#t": ["job"],
             };
 
-            if (selectedCategories.length) {
-                eventCriteria["#c"] = selectedCategories;
+            if ($selectedCategories.length) {
+                eventCriteria["#c"] = $selectedCategories;
             }
 
-            if (selectedLangs.length) {
-                eventCriteria["#l"] = selectedLangs;
+            if ($selectedLangs.length) {
+                eventCriteria["#l"] = $selectedLangs;
             }
 
             $nostrManager.subscribeToEvents(eventCriteria);
@@ -73,14 +75,16 @@
             tags: {},
         };
 
+        criteria.tags["t"] = ["job"];
+
         // Füge Kategorien hinzu, falls ausgewählt
-        if (selectedCategories.length) {
-            criteria.tags["c"] = selectedCategories;
+        if ($selectedCategories.length) {
+            criteria.tags["c"] = $selectedCategories;
         }
 
         // Füge Programmiersprachen hinzu, falls ausgewählt
-        if (selectedLangs.length) {
-            criteria.tags["l"] = selectedLangs;
+        if ($selectedLangs.length) {
+            criteria.tags["l"] = $selectedLangs;
         }
 
         // Führe die Abfrage aus und lade die Jobs
@@ -90,33 +94,36 @@
         loadProfiles();
     }
 
+    let jobModal = writable(null);
+    let languageModal = writable(null);
+
     function openCategoryModal() {
-        jobFilterStore.set(
+        jobModal.set(
             bind(SelectionModal, {
                 categories: job_categories,
-                initialSelectedCategories: selectedCategories,
+                initialSelectedCategories: $selectedCategories,
                 onConfirm: handleCategoryConfirm,
             }),
         );
     }
 
     function handleCategoryConfirm(categories) {
-        selectedCategories = categories;
+        selectedCategories.set(categories);
         subscribeToJobs();
     }
 
     function openLangModal() {
-        langFilterStore.set(
+        languageModal.set(
             bind(SelectionModal, {
                 categories: coding_language,
-                initialSelectedCategories: selectedLangs,
+                initialSelectedCategories: $selectedLangs,
                 onConfirm: handleLangConfirm,
             }),
         );
     }
 
     function handleLangConfirm(categories) {
-        selectedLangs = categories;
+        selectedLangs.set(categories);
         subscribeToJobs();
     }
 
@@ -139,6 +146,8 @@
 
     onDestroy(() => {
         $nostrManager.unsubscribeAll();
+        jobModal.set(false);
+        languageModal.set(false);
     });
 
     $: if ($nostrManager) {
@@ -153,12 +162,12 @@
 
 <div class="job-market-widget single-card container">
     <div class="modal-buttons-container">
-        <Modal show={$jobFilterStore}>
+        <Modal show={$jobModal}>
             <button class="modal-button" on:click={openCategoryModal}>
                 <i class="fas fa-filter"></i> Filter by Category
             </button>
         </Modal>
-        <Modal show={$langFilterStore}>
+        <Modal show={$languageModal}>
             <button class="modal-button" on:click={openLangModal}>
                 <i class="fas fa-code"></i> Filter by Language
             </button>

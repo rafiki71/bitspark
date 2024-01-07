@@ -146,9 +146,9 @@
           </div>
         </div>
       </section>
-      <Footer />
     </div>
   </div>
+  <Footer />
 </main>
 
 <style>

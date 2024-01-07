@@ -10,6 +10,7 @@
 .overview-page {
     position: relative;
     display: flex;
+    flex-direction: column;
     background-color: rgb(71 85 105)
         /* background-color: #E2E8F0; Assuming you have this variable defined */
 }

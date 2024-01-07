@@ -170,8 +170,8 @@
                 </div>
             </div>
         </div>
-        <Footer />
     </div>
+    <Footer />
 </main>
 
 <style>
