@@ -22,6 +22,7 @@
     let banner = "";
     let ghUser = "";
     let lnAddress = "";
+    let githubRepo = "";
 
     onMount(() => {
         if ($nostrManager) {
@@ -53,6 +54,8 @@
 
     $: $nostrManager, initialize();
     $: $nostrCache, updateProfile();
+    $: profile_id, initialize();
+    $: profile_id, updateProfile();
 
     async function updateProfile() {
         const profileEvents = $nostrCache.getEventsByCriteria({
@@ -72,6 +75,11 @@
             banner = profile.banner;
             ghUser = profile.githubUsername;
             lnAddress = profile.lud16;
+        }
+        if (ghUser) {
+            githubRepo = "https://www.github.com/" + ghUser;
+        } else {
+            githubRepo = "";
         }
     }
 
@@ -98,7 +106,7 @@
 
         <ToolBar
             bind:lnAddress
-            githubRepo={"https://www.github.com/" + ghUser}
+            githubRepo={githubRepo}
         />
 
         <div class={contentContainerClass}>
