@@ -1,4 +1,4 @@
-<!-- TestCard.svelte -->
+<!-- IdeaCard.svelte -->
 <script>
   export let card;
   import { Link } from "svelte-routing";

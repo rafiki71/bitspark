@@ -1,3 +1,5 @@
+<!-- ToolBar.svelte -->
+
 <script>
     import { onMount } from "svelte";
     import ProfileImg from "../components/ProfileImg.svelte";
