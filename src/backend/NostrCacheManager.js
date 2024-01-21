@@ -82,7 +82,7 @@ export class NostrCacheManager {
         const subscriptionKey = this.generateSubscriptionKey(criteria);
 
         if (this.subscriptions.has(subscriptionKey)) {
-            console.warn('Subscription for these criteria already exists.');
+            //console.warn('Subscription for these criteria already exists.');
             return;
         } else {
             console.log('Subscription:', criteria);
@@ -112,13 +112,25 @@ export class NostrCacheManager {
             return;
         }
     }
+    
+    unsubscribeEvent(criteria) {
+        const subscriptionKey = this.generateSubscriptionKey(criteria);
+    
+        // Check if a subscription exists for these criteria.
+        if (this.subscriptions.has(subscriptionKey)) {
+            try {
+                // Close the subscription and remove it from the subscriptions map.
+                this.subscriptions.get(subscriptionKey).close();
+                this.subscriptions.delete(subscriptionKey);
+                console.log(`Unsubscribed successfully from criteria: ${subscriptionKey}`);
+            } catch (error) {
+                console.error('Error unsubscribing:', error);
+            }
+        }
 
-    // Generiert einen eindeutigen Schlüssel für die Subscription
-    generateSubscriptionKey(criteria) {
-        return JSON.stringify(criteria);
+        console.log("subscriptions:", this.subscriptions);
     }
 
-    // Methode zum Beenden aller Abonnements
     unsubscribeAll() {
         this.subscriptions.forEach(sub => {
             try {
@@ -129,5 +141,12 @@ export class NostrCacheManager {
         });
         this.subscriptions.clear();
     }
+
+    // Generiert einen eindeutigen Schlüssel für die Subscription
+    generateSubscriptionKey(criteria) {
+        return JSON.stringify(criteria);
+    }
+
+    // Methode zum Beenden aller Abonnements
     
 }
