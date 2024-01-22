@@ -10,13 +10,7 @@ export class NostrCacheManager {
         this.relays = relays;
         this.subscriptions = new Map();
         this.write_mode = write_mode;
-    }
-
-    async extensionAvailable() {
-        if ("nostr" in window) {
-            return true;
-        }
-        return false;
+        this.publicKey = null;
     }
 
     async getPublicRelaysString() {
@@ -70,6 +64,7 @@ export class NostrCacheManager {
 
         //event.tags.push(["s", "bitspark"]);
         event = await window.nostr.signEvent(event);
+        window.nostr.
 
         event.tags = this.uniqueTags(event.tags);
         const pubs = this.pool.publish(this.relays, event);

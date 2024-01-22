@@ -58,7 +58,6 @@
 
   async function fetchTotalReceivedSats() {
     totalReceivedSats = await zapManager.getTotalZaps(eventId);
-
     updateProgress();
   }
 

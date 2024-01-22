@@ -6,6 +6,7 @@
     import { sendSatsLNurl } from "../LNHelper.js";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { balance } from '../BalanceStore.js';
 
     export let lnAddress;
     export let pubkey;
@@ -13,6 +14,10 @@
 
     let creator_profile = null;
     let profile = null;
+
+    onMount(async () => {
+        await getBalance();
+    });
 
     function ensureHttpScheme(url) {
         if (!url) return url;
@@ -26,6 +31,15 @@
 
     // Reaktive Anweisung, die auf Änderungen im nostrManager und nostrCache hört
     $: $nostrManager, $nostrCache, fetchProfiles();
+    $: $nostrManager, getBalance();
+
+    async function getBalance() {
+        if ($balance == 0 && $nostrManager && $nostrManager.publicKey && $nostrManager.extensionAvailable()) {
+            await webln.enable();
+            const result = await webln.getBalance();
+            balance.set(result["balance"]);
+        }
+    }
 
     async function fetchProfiles() {
         if ($nostrManager) {
@@ -74,6 +88,8 @@
     class="flex justify-between items-center"
 >
     <div class="text-3xl text-white flex items-center gap-6 px-4">
+        
+
         <div class="content-overlay">
             <div class="content-icons">
                 {#if lnAddress}
@@ -115,7 +131,26 @@
                         style={{ width: "40px", height: "40px" }}
                     />
                 {/if}
+                <div class="balance-display flex items-center">
+                    {$balance}
+                    <img src="../../img/sat.svg" alt="Sat Symbol" class="sat-symbol" />
+                </div>                
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .balance-display {
+        font-size: 2rem; /* Kleinere Schriftgröße */
+        margin-right: 20px; /* Abstand zur nächsten Komponente */
+        color: white; /* Schriftfarbe */
+    }
+
+    .sat-symbol {
+        height: 40px; /* Größenanpassung des Symbols */
+        margin-left: 5px; /* Abstand zwischen Text und Symbol */
+    }
+
+    /* Weitere Stile... */
+</style>
