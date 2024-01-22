@@ -64,7 +64,6 @@ export class NostrCacheManager {
 
         //event.tags.push(["s", "bitspark"]);
         event = await window.nostr.signEvent(event);
-        window.nostr.
 
         event.tags = this.uniqueTags(event.tags);
         const pubs = this.pool.publish(this.relays, event);
