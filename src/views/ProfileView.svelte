@@ -104,10 +104,7 @@
             show_right_text={false}
         />
 
-        <ToolBar
-            bind:lnAddress
-            githubRepo={githubRepo}
-        />
+        <ToolBar bind:lnAddress {githubRepo} />
 
         <div class={contentContainerClass}>
             <div class="single-card container">
@@ -128,12 +125,13 @@
                         {/if}
                     </div>
                 </div>
-                <div class="text-center mt-6 px-6">
-                    <div style="top: -50px; position: relative">
-                        <h2 class="base-h2 text-color-df">
-                            {name}
-                        </h2>
-                    </div>
+                <div
+                    class="text-center mt-6 px-6"
+                    style="top: -90px; position: relative"
+                >
+                    <h2 class="base-h2 text-color-df">
+                        {name}
+                    </h2>
                     <div class="single-card-content text-color-df">
                         {@html about}
                     </div>
