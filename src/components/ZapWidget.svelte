@@ -3,6 +3,7 @@
   import { onMount, onDestroy } from "svelte";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { zapManager } from "../backend/ZapManager.js";
   import { sendZap } from "../LNHelper.js";
 
   export let eventId;
@@ -26,10 +27,7 @@
         });
       }
 
-      $nostrManager.subscribeToEvents({
-        kinds: [9735], // Kind für Zap-Events
-        "#e": [eventId],
-      });
+      zapManager.subscribeZaps(eventId)
     }
   }
 
@@ -59,29 +57,7 @@
   }
 
   async function fetchTotalReceivedSats() {
-    const zaps = $nostrCache.getEventsByCriteria({
-      kinds: [9735], // Annahme, dass 9734 das Kind für Zap-Events ist
-      tags: { e: [eventId] },
-    });
-
-    // Konsolenausgabe zur Überprüfung, ob Zaps gefunden wurden
-    totalReceivedSats = zaps.reduce((sum, zap) => {
-      const descriptionTag = zap.tags.find((tag) => tag[0] === "description");
-      if (descriptionTag) {
-        try {
-          const descriptionData = JSON.parse(descriptionTag[1]);
-          const amountMillisats = parseInt(
-            descriptionData.tags.find((tag) => tag[0] === "amount")?.[1],
-            10,
-          );
-          return sum + amountMillisats / 1000; // Umrechnung in Sats
-        } catch (error) {
-          console.error("Fehler beim Parsen der Zap-Description:", error);
-        }
-      }
-      return sum;
-    }, 0);
-
+    totalReceivedSats = await zapManager.getTotalZaps(eventId);
     updateProgress();
   }
 

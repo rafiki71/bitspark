@@ -30,7 +30,6 @@
       kinds: [jobKind], // Kind-Wert für Jobs
       "#e": [ideaID], // ID der Idee
       "#t": ["job"],
-      "#s": ["bitspark"]
     });
   }
 

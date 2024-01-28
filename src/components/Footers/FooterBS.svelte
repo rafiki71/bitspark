@@ -1,3 +1,4 @@
+<!-- Footer.svelte -->
 <script>
   // make dynamic date to be added to footer
   let date = new Date().getFullYear();

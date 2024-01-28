@@ -29,7 +29,6 @@
             $nostrManager.subscribeToEvents({
                 kinds: [0],
                 authors: [profile_id],
-                "#s": ["bitspark"],
             });
             updateProfile();
         }
@@ -40,7 +39,6 @@
             $nostrManager.subscribeToEvents({
                 kinds: [0],
                 authors: [profile_id],
-                "#s": ["bitspark"],
             });
             updateProfile();
         }
