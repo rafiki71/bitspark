@@ -29,12 +29,12 @@
     }
 
     const fetchedEvents = await $nostrCache.getEventsByCriteria(criteria);
-    const authorPubkeys = fetchedEvents.map((idea) => idea.pubkey);
+    // const authorPubkeys = fetchedEvents.map((idea) => idea.pubkey);
 
-    $nostrManager.subscribeToEvents({
-      kinds: [0], // Profil-Events
-      authors: authorPubkeys,
-    });
+    // $nostrManager.subscribeToEvents({
+    //   kinds: [0], // Profil-Events
+    //   authors: authorPubkeys,
+    // });
 
     const tempVerifiedCards = [];
     const tempUnverifiedCards = [];
@@ -76,6 +76,7 @@
       bannerImage: tags.ibUrl,
       message: idea.content,
       abstract: tags.abstract,
+      pubkey: idea.pubkey,
     };
   }
 
