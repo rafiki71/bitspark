@@ -51,7 +51,7 @@
                     </h2>
                 </div>
             </div>
-            <div class="absolute top-4 right-4 flex justify-end">
+            <div class="absolute right-4 flex justify-end" style="top: 4rem">
                 <div class="text-4xl font-light text-white">
                     {#if show_right_text}
                         <p
