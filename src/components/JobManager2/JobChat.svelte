@@ -45,8 +45,6 @@
 
     offerEvents.forEach((offer) => {
       const offerId = offer.id;
-      console.log("offerId:", offerId);
-
       $nostrManager.subscribeToEvents({
         kinds: [9735], // Kind für Zap-Events
         "#e": [offerId]

@@ -11,14 +11,14 @@ export async function sendSatsLNurl(lnurl) {
 export async function sendZap(lightningAddress, satoshi, comment, relays, eventId) {
   try {
     if (!lightningAddress) {
-      throw new Error("Keine gültige Lightning-Adresse angegeben.");
+      throw new Error("No valid lightning address provided.");
     }
 
     const ln = new LightningAddress(lightningAddress);
     await ln.fetch();
 
     if (!ln.nostrPubkey) {
-      throw new Error("Nostr-Pubkey für die Lightning-Adresse fehlt.");
+      throw new Error("Nostr pubkey missing for the lightning address.");
     }
 
     const zapArgs = {
@@ -30,16 +30,15 @@ export async function sendZap(lightningAddress, satoshi, comment, relays, eventI
 
     if (window.webln) {
       const ret = await ln.zap(zapArgs);
-      console.log("ret:", ret);
       return ret;
     } else {
-      // Alternatives Vorgehen, wenn WebLN nicht verfügbar ist
+      // Alternative approach if WebLN is not available
       const invoice = await ln.zapInvoice(zapArgs);
-      console.log("Zap-Rechnung generiert:", invoice.paymentRequest);
-      // Weitere Schritte zur Abwicklung der Zahlung
+      console.log("Zap invoice generated:", invoice.paymentRequest);
+      // Further steps for payment processing
     }
   } catch (error) {
-    console.error("Fehler beim Senden des Zaps:", error);
-    throw error; // oder benutzerdefinierten Fehler werfen
+    console.error("Error sending the Zap:", error);
+    throw error; // or throw custom error
   }
 }

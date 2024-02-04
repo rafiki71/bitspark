@@ -35,7 +35,6 @@
         });
 
         // Konsolenausgabe zur Überprüfung, ob Zaps gefunden wurden
-        console.log("Gefundene Zaps für das Angebot:", zaps);
         totalReceivedSats = zaps.reduce((sum, zap) => {
             const descriptionTag = zap.tags.find(tag => tag[0] === 'description');
             if (descriptionTag) {
@@ -98,10 +97,7 @@
                 offerEvent.id,
             )
                 .then((response) => {
-                    console.log(
-                        "Zap erfolgreich gesendet, Preimage:",
-                        response.preimage,
-                    );
+                    console.log("Zapped");
                 })
                 .catch((error) => {
                     console.error("Fehler beim Senden des Zaps:", error);
