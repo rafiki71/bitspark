@@ -151,23 +151,29 @@
                     <h2 class="base-h2 text-color-df">Spark Idea</h2>
                     <div class="single-card-content text-color-df">
                         <h5 class="base-h5 text-color-df">Idea Title</h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={$previewStore.name}
-                        />
-                        <h5 class="base-h5 text-color-df">Idea Subtitle</h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={$previewStore.subtitle}
-                        />
-                        <h5 class="base-h5 text-color-df">Abstract</h5>
-                        <textarea
-                            rows="1"
-                            class="input-style input-style-resize"
-                            on:input={autoResizeTextarea}
-                            bind:value={$previewStore.abstract}
+                        <div>
+                            <input
+                                type="text"
+                                class="input-style"
+                                bind:value={$previewStore.name}
+                            />
+                            <h5 class="base-h5 text-color-df">Idea Subtitle</h5>
+                            <input
+                                type="text"
+                                class="input-style"
+                                bind:value={$previewStore.subtitle}
+                            />
+                            <h5 class="base-h5 text-color-df">Abstract</h5>
+                            <textarea
+                                rows="1"
+                                class="input-style input-style-resize"
+                                on:input={autoResizeTextarea}
+                                bind:value={$previewStore.abstract}
+                            />
+                        </div>
+                        <hr
+                            class="text-blueGray-600"
+                            style="width: 90%; margin: auto; margin-top: 30pt"
                         />
                         <h5 class="base-h5 text-color-df">Description</h5>
                         <textarea
@@ -200,13 +206,13 @@
                         <div class="category-container">
                             <Modal show={$categoryModal}>
                                 <button
-                                    class="font-bold py-1 plus-button"
+                                    class="font-bold py-1 add-button"
                                     on:click={openCategoryModal}>+</button
                                 >
                             </Modal>
                             {#each $previewStore.categories as category}
                                 <button
-                                    class="category-button"
+                                    class="bs-blue remove-button"
                                     on:click={() => removeCategory(category)}
                                 >
                                     {category}
@@ -241,51 +247,8 @@
         flex-wrap: wrap; /* Allow the items to wrap as needed */
         gap: 8px; /* Adjust the gap between buttons as needed */
     }
-    .category-button {
-        /* Remove the flex-grow property if you don't want the buttons to grow */
-        padding: 4px 8px; /* Adjust padding to fit the text */
-        background-color: rgb(238, 238, 238);
-        border: none; /* Remove border if you don't need it */
-        cursor: pointer; /* Makes it clear the element is clickable */
-        white-space: nowrap; /* Prevent text inside the button from wrapping */
-        /* You can remove min-width if you want the button to only be as wide as its content plus padding */
-        /* min-width: 120px; */
-        margin: 2px; /* Provide some space around the buttons */
-        border-radius: 4px; /* If you want rounded corners */
-        /* Add text alignment and other styles as needed */
-        text-align: center;
-        font-size: 1rem; /* Adjust font size as needed */
-    }
 
-    .category-button:hover {
-        background-color: #223d6d;
-        position: relative;
-        color: #adadad;
-    }
-
-    .plus-button {
-        /* Remove the flex-grow property if you don't want the buttons to grow */
-        padding: 4px 8px; /* Adjust padding to fit the text */
-        background-color: rgb(238, 238, 238);
-        border: none; /* Remove border if you don't need it */
-        cursor: pointer; /* Makes it clear the element is clickable */
-        white-space: nowrap; /* Prevent text inside the button from wrapping */
-        /* You can remove min-width if you want the button to only be as wide as its content plus padding */
-        /* min-width: 120px; */
-        margin: 2px; /* Provide some space around the buttons */
-        border-radius: 4px; /* If you want rounded corners */
-        /* Add text alignment and other styles as needed */
-        text-align: center;
-        font-size: 1rem; /* Adjust font size as needed */
-    }
-
-    .plus-button:hover {
-        background-color: rgb(249 115 22);
-        position: relative;
-        color: #fff;
-    }
-
-    .category-button:hover::after {
+    .remove-button:hover::after {
         content: "×"; /* Unicode multiplication sign as 'x' */
         position: absolute;
         left: 50%;
@@ -294,9 +257,5 @@
         color: #fff; /* Color of the 'x', choose what stands out */
         font-size: 1.5rem; /* Size of the 'x', adjust as needed */
         pointer-events: none; /* Prevents the 'x' from interfering with button clicks */
-    }
-
-    .category-button:focus {
-        outline: none;
     }
 </style>

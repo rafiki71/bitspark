@@ -305,3 +305,62 @@ footer {
 .modal-button {
     font-size: 1.0rem;
 }
+
+.remove-button {
+    /* Remove the flex-grow property if you don't want the buttons to grow */
+    padding: 2px 8px;
+    /* Adjust padding to fit the text */
+    background-color: rgb(238, 238, 238);
+    border: none;
+    /* Remove border if you don't need it */
+    cursor: pointer;
+    /* Makes it clear the element is clickable */
+    white-space: nowrap;
+    /* Prevent text inside the button from wrapping */
+    /* You can remove min-width if you want the button to only be as wide as its content plus padding */
+    /* min-width: 120px; */
+    margin: 2px;
+    /* Provide some space around the buttons */
+    border-radius: 4px;
+    /* If you want rounded corners */
+    /* Add text alignment and other styles as needed */
+    text-align: center;
+    font-size: 1rem;
+    /* Adjust font size as needed */
+}
+
+.remove-button:hover {
+    background-color: #223d6d;
+    position: relative;
+    color: #adadad;
+}
+
+.remove-button:focus {
+    outline: none;
+}
+
+.add-button {
+    /* Remove the flex-grow property if you don't want the buttons to grow */
+    padding: 2px 8px; /* Adjust padding to fit the text */
+    background-color: rgb(238, 238, 238);
+    border: none; /* Remove border if you don't need it */
+    cursor: pointer; /* Makes it clear the element is clickable */
+    white-space: nowrap; /* Prevent text inside the button from wrapping */
+    /* You can remove min-width if you want the button to only be as wide as its content plus padding */
+    /* min-width: 120px; */
+    margin: 2px; /* Provide some space around the buttons */
+    border-radius: 4px; /* If you want rounded corners */
+    /* Add text alignment and other styles as needed */
+    text-align: center;
+    font-size: 1rem; /* Adjust font size as needed */
+}
+
+.add-button:hover {
+    background-color: rgb(249 115 22);
+    position: relative;
+    color: #fff;
+}
+
+.add-button:focus {
+    outline: none;
+}
