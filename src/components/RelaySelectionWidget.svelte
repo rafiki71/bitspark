@@ -1,40 +1,131 @@
 <script>
-  import { onMount } from "svelte";
-  import { createEventDispatcher } from "svelte";
-  const dispatch = createEventDispatcher();
+  import { onMount, onDestroy } from "svelte";
+  import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { nostrCache } from "../backend/NostrCacheStore.js";
+
+  export let profile_id;
 
   let default_relays = [
     "wss://relay.damus.io",
     "wss://relay.plebstr.com",
     "wss://nostr.wine",
   ];
-  export let relays = [];
+  let relays = [];
   let newRelay = "";
+
+  onMount(() => {
+    if ($nostrManager) {
+      initialize();
+    }
+  });
+  $: $nostrManager, initialize();
+
+  async function initialize() {
+    if ($nostrManager) {
+      $nostrManager.subscribeToEvents({
+        kinds: [10002],
+        authors: [profile_id],
+      });
+      relays = await fetchRelays();
+      console.log("existingRelays:", relays);
+    }
+  }
+  async function fetchRelays() {
+    const relayEvents = await $nostrCache.getEventsByCriteria({
+      kinds: [10002],
+      authors: [$nostrManager.publicKey],
+    });
+
+    return relayEvents.flatMap((event) =>
+      event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
+    );
+  }
+  onDestroy(() => {
+    $nostrManager.unsubscribeAll();
+  });
 
   function addRelay() {
     if (newRelay.trim() && !relays.includes(newRelay)) {
       relays = [...relays, newRelay];
       newRelay = "";
-      dispatch("updateRelays", { relays }); // Dispatching the updated list
     }
   }
 
   function removeRelay(relayUrl) {
     relays = relays.filter((relay) => relay !== relayUrl);
-    dispatch("updateRelays", { relays }); // Dispatching the updated list
   }
 
   function addDefaults() {
     let mergedSet = new Set([...relays, ...default_relays]);
     relays = Array.from(mergedSet);
     console.log("default relays added");
-    dispatch("updateRelays", { relays });
   }
 
   function removeDefaults() {
     relays = relays.filter((relay) => !default_relays.includes(relay));
     console.log("default relays removed");
-    dispatch("updateRelays", { relays });
+  }
+
+  async function updateRelays() {
+    if (!$nostrManager || !$nostrManager.write_mode) return;
+    $nostrManager.updateRelays(relays);
+    sendUpdateRelaysEvent();
+  }
+
+  function areSetsEqual(set1, set2) {
+    if (set1.size !== set2.size) return false;
+    for (let item of set1) {
+      if (!set2.has(item)) return false;
+    }
+    return true;
+  }
+
+  async function sendUpdateRelaysEvent() {
+    if (!$nostrManager || !$nostrManager.write_mode) return;
+
+    // Holen Sie die aktuellen Relays aus dem Cache
+    const existingRelays = await fetchRelays();
+    console.log("existingRelays:", existingRelays);
+
+    const existingRelaysSet = new Set(existingRelays);
+    const relaysSet = new Set(relays);
+    if (existingRelaysSet.size == existingRelays.length) {
+      if (areSetsEqual(existingRelaysSet, relaysSet)) {
+        console.log("no relay update required");
+        return;
+      }
+    }
+    const updatedRelays = Array.from(relaysSet);
+    console.log("updatedRelays:", updatedRelays);
+    // Überprüfen, ob das Relay bereits existiert
+
+    // Event für die Aktualisierung der Relay-Liste erstellen
+    const relayEvent = createRelayEvent(updatedRelays);
+    console.log("relayEvent:", relayEvent);
+
+    // Event senden
+    try {
+      await $nostrManager.sendEvent(
+        relayEvent.kind,
+        relayEvent.content,
+        relayEvent.tags,
+      );
+      console.log("Relay added successfully");
+    } catch (error) {
+      console.error("Error adding relay:", error);
+    }
+  }
+
+  // Hilfsfunktion zum Erstellen eines Relay-Events
+  function createRelayEvent(relays) {
+    const content = ""; // Leerer Inhalt für Relay-Liste
+    const tags = relays.map((relay) => ["r", relay]);
+
+    return {
+      kind: 10002, // Kind für Relay-Liste
+      content,
+      tags,
+    };
   }
 </script>
 
@@ -80,6 +171,14 @@
   </ul>
   Remember, adjusting your relays changes where you see and share data. Keep it in
   mind to maintain your desired visibility.
+  <div class="mx-auto flex justify-end">
+    <button
+      class="bg-orange-500 text-white font-bold py-2 px-4 rounded"
+      on:click={updateRelays}
+    >
+      Update Relays
+    </button>
+  </div>
 </div>
 
 <style>
