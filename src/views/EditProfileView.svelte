@@ -1,6 +1,5 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
     import Menu from "../components/Menu.svelte";
@@ -8,6 +7,8 @@
     import Banner from "../components/Banner.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import ToolBar from "../components/ToolBar.svelte";
+    import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
 
     export let profile_id;
 
@@ -20,7 +21,10 @@
     let git_username = "";
     let git_proof = "";
     let relays = [];
-    let newRelay = "";
+
+    function handleRelayUpdate(event) {
+        relays = event.detail.relays;
+    }
 
     onMount(() => {
         if ($nostrManager) {
@@ -33,9 +37,8 @@
     function initialize() {
         if ($nostrManager) {
             $nostrManager.subscribeToEvents({
-                kinds: [0],
+                kinds: [0, 10002],
                 authors: [profile_id],
-                "#s": ["bitspark"],
             });
             fetchProfile();
         }
@@ -49,9 +52,6 @@
         const profileEvents = await $nostrCache.getEventsByCriteria({
             kinds: [0],
             authors: [profile_id],
-            tags: {
-                s: ["bitspark"],
-            },
         });
 
         if (profileEvents && profileEvents.length > 0) {
@@ -66,18 +66,24 @@
             git_username = profile.githubUsername;
             git_proof = profile.githubProof;
         }
+        relays = await fetchRelays();
+        console.log("existingRelays:", relays);
     }
 
     async function updateProfile() {
         if (!$nostrManager || !$nostrManager.write_mode) return;
+        $nostrManager.updateRelays(relays);
 
         const profileEvent = {
             kind: 0,
-            content: JSON.stringify({ name, picture, banner, dev_about, lud16 }),
-            tags: [
-                ["i", `github:${git_username}`, git_proof],
-                ["s", "bitspark"]
-            ]
+            content: JSON.stringify({
+                name,
+                picture,
+                banner,
+                dev_about,
+                lud16,
+            }),
+            tags: [["i", `github:${git_username}`, git_proof]],
         };
 
         try {
@@ -90,56 +96,32 @@
         } catch (error) {
             console.error("Error updating profile:", error);
         }
+        updateRelays();
     }
 
-    function autoResizeTextarea(e) {
-        e.target.style.height = "";
-        e.target.style.height = e.target.scrollHeight + "px";
-    }
-
-    // Funktion zum Löschen eines Relays
-    async function deleteRelay(relayUrl) {
-        if (!$nostrManager || !$nostrManager.write_mode) return;
-
-        // Holen Sie die aktuellen Relays aus dem Cache
-        const existingRelays = await fetchRelays();
-
-        // Relay aus dem Array entfernen
-        const updatedRelays = existingRelays.filter(
-            (relay) => relay !== relayUrl,
-        );
-
-        // Event für die Aktualisierung der Relay-Liste erstellen
-        const relayEvent = createRelayEvent(updatedRelays);
-
-        // Event senden
-        try {
-            await $nostrManager.sendEvent(
-                relayEvent.kind,
-                relayEvent.content,
-                relayEvent.tags,
-            );
-            console.log("Relay deleted successfully");
-        } catch (error) {
-            console.error("Error deleting relay:", error);
+    function areSetsEqual(set1, set2) {
+        if (set1.size !== set2.size) return false;
+        for (let item of set1) {
+            if (!set2.has(item)) return false;
         }
+        return true;
     }
 
-    // Funktion zum Hinzufügen eines Relays
-    async function addRelay() {
+    async function updateRelays() {
         if (!$nostrManager || !$nostrManager.write_mode) return;
 
         // Holen Sie die aktuellen Relays aus dem Cache
         const existingRelays = await fetchRelays();
         console.log("existingRelays:", existingRelays);
-        
-        // Überprüfen, ob das Relay bereits existiert
-        if (existingRelays.includes(newRelay)) return;
-        
+
+        const existingRelaysSet = new Set(existingRelays);
+        const relaysSet = new Set(relays);
         // Relay zum Array hinzufügen
-        const updatedRelays = [...existingRelays, newRelay];
+        const updatedRelays = relays;
         console.log("updatedRelays:", updatedRelays);
-        
+        // Überprüfen, ob das Relay bereits existiert
+        if (areSetsEqual(existingRelaysSet, relaysSet)) return;
+
         // Event für die Aktualisierung der Relay-Liste erstellen
         const relayEvent = createRelayEvent(updatedRelays);
         console.log("relayEvent:", relayEvent);
@@ -201,6 +183,9 @@
             subtitle={""}
             show_right_text={false}
         />
+
+        <ToolBar bind:lud16 githubRepo="" />
+
         <div class={contentContainerClass}>
             <div class="single-card container">
                 <div class="flex justify-center">
@@ -220,162 +205,75 @@
                         {/if}
                     </div>
                 </div>
-                <div class="mt-10 px-10">
-                    <div class="text-center mt-12">
-                        <div
-                            class="mb-2 text-blueGray-600 mt-10 w-full lg:w-9/12 px-4 mx-auto"
-                        >
-                            <label for="name" class="text-lg text-blueGray-400">
-                                Name
-                            </label>
-                            <input
-                                id="name"
-                                bind:value={name}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                            />
+                <div
+                    class="text-center mt-6 px-6 text-color-df"
+                    style="top: -90px; position: relative"
+                >
+                    <h2 class="base-h2 text-color-df">Edit Profile</h2>
+                    <div class="single-card-content text-color-df">
+                        <h5 class="base-h5 text-color-df">Name</h5>
+                        <input
+                            type="text"
+                            class="input-style"
+                            bind:value={name}
+                        />
+                        <h5 class="base-h5 text-color-df">About</h5>
+                        <input
+                            type="text"
+                            class="input-style"
+                            bind:value={dev_about}
+                        />
 
-                            <label
-                                for="about"
-                                class="text-lg text-blueGray-400"
-                            >
-                                About
-                            </label>
-                            <textarea
-                                id="about"
-                                bind:value={dev_about}
-                                on:input={autoResizeTextarea}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                            />
+                        <div class="flex space-x-4">
+                            <div style="width: 50%;">
+                                <h5 class="base-h5 text-color-df">
+                                    Github Username
+                                </h5>
+                                <input
+                                    type="text"
+                                    class="input-style"
+                                    bind:value={git_username}
+                                />
+                            </div>
 
-                            <label
-                                for="lnurl"
-                                class="text-lg text-blueGray-400"
-                            >
-                                LNUrl
-                            </label>
-                            <input
-                                id="lud16"
-                                bind:value={lud16}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                            />
-
-                            <div class="flex space-x-4">
-                                <div>
-                                    <label
-                                        for="git_username"
-                                        class="text-lg text-blueGray-400"
-                                        >Github Username</label
-                                    >
-                                    <input
-                                        id="git_username"
-                                        bind:value={git_username}
-                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label
-                                        for="git_proof"
-                                        class="text-lg text-blueGray-400"
-                                        >Github Proof</label
-                                    >
-                                    <input
-                                        id="git_proof"
-                                        bind:value={git_proof}
-                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                                    />
-                                </div>
+                            <div style="width: 50%;">
+                                <h5 class="base-h5 text-color-df">
+                                    Github Proof
+                                </h5>
+                                <input
+                                    type="text"
+                                    class="input-style"
+                                    bind:value={git_proof}
+                                />
                             </div>
                         </div>
-                    </div>
+                        <hr
+                            class="text-blueGray-600"
+                            style="width: 90%; margin: auto; margin-top: 30pt"
+                        />
+                        <h5 class="base-h5 text-color-df">
+                            Profile Picture URL
+                        </h5>
+                        <input
+                            type="text"
+                            class="input-style"
+                            bind:value={picture}
+                        />
+                        <h5 class="base-h5 text-color-df">Banner URL</h5>
+                        <input
+                            type="text"
+                            class="input-style"
+                            bind:value={banner}
+                        />
+                        <hr
+                            class="text-blueGray-600"
+                            style="width: 90%; margin: auto; margin-top: 30pt"
+                        />
 
-                    <div
-                        class="mt-10 py-10 border-t border-blueGray-200 text-center"
-                    >
-                        <div class="flex flex-wrap justify-center">
-                            <div class="w-full lg:w-9/12 px-4">
-                                <div class="mt-6">
-                                    <div class="mb-4">
-                                        <label
-                                            for="picture"
-                                            class="text-lg text-blueGray-400"
-                                        >
-                                            Profile Picture URL
-                                        </label>
-                                        <input
-                                            id="picture"
-                                            bind:value={picture}
-                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            for="banner"
-                                            class="text-lg text-blueGray-400"
-                                        >
-                                            Banner URL
-                                        </label>
-                                        <input
-                                            id="banner"
-                                            bind:value={banner}
-                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                class="mt-10 py-10 border-t border-blueGray-200 text-center w-full"
-                            >
-                                <div class="flex flex-wrap justify-center">
-                                    <div class="w-full lg:w-9/12 px-4">
-                                        <div class="mt-6">
-                                            <h2
-                                                class="text-lg text-blueGray-400 mb-4"
-                                            >
-                                                Relays
-                                            </h2>
-                                            <div class="flex flex-col gap-2">
-                                                {#each relays as relay}
-                                                    <div
-                                                        class="flex justify-between px-3 py-1 rounded-full bg-white-800 text-sm text-black shadow-md"
-                                                    >
-                                                        <div>
-                                                            {relay}
-                                                        </div>
-                                                        <button
-                                                            class="bg-red-500 w-5 h-5 rounded-full flex justify-center items-center"
-                                                            on:click={() =>
-                                                                deleteRelay(
-                                                                    relay,
-                                                                )}
-                                                        >
-                                                            X
-                                                            <!-- Sie können hier ein Kreuzsymbol verwenden, wenn Sie eines haben -->
-                                                        </button>
-                                                    </div>
-                                                {/each}
-
-                                                <div
-                                                    class="flex justify-between items-center mt-4"
-                                                >
-                                                    <input
-                                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                                        bind:value={newRelay}
-                                                        placeholder="Enter relay URL..."
-                                                    />
-                                                    <button
-                                                        class="bg-orange-500 text-white font-bold py-2 px-4 rounded ml-2"
-                                                        on:click={addRelay}
-                                                    >
-                                                        Add
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <RelaySelectionWidget
+                            {relays}
+                            on:updateRelays={handleRelayUpdate}
+                        />
                     </div>
                 </div>
                 <div class="container mx-auto px-4 py-4 flex justify-end">
