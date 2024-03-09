@@ -1,0 +1,1 @@
+docker build -f Dockerfile.umbrel --tag rafiki71/bitspark:v0.1 .
