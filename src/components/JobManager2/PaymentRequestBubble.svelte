@@ -3,6 +3,7 @@
     import BaseBubble from "./BaseBubble.svelte";
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
     import { sendZap } from "../../LNHelper.js"; // Importieren Sie die sendZap Funktion
 
     export let event;
@@ -73,16 +74,8 @@
 
     async function loadOfferCreatorProfile() {
         if (offerEvent) {
-            const profileEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [offerEvent.pubkey],
-            });
-
-            if (profileEvents.length > 0) {
-                profileEvents.sort((a, b) => b.created_at - a.created_at);
-                offerCreatorProfile = profileEvents[0].profileData;
-                lnAddress = offerCreatorProfile.lud16 || "No LN Address";
-            }
+            offerCreatorProfile = socialMediaManager.getProfile(offerEvent.pubkey);
+            lnAddress = offerCreatorProfile.lud16 || "No LN Address";
         }
     }
 

@@ -7,6 +7,7 @@
   import PaymentRequestBubble from "./PaymentRequestBubble.svelte";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { nostrManager } from "../../backend/NostrManagerStore.js";
+  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
   import ReviewBubble from "./ReviewBubble.svelte";
   import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
 
@@ -57,10 +58,7 @@
     // Überprüfen und Abonnieren des Autors des Jobs selbst
     if (selectedJob && selectedJob.pubkey && !authors.has(selectedJob.pubkey)) {
       authors.add(selectedJob.pubkey);
-      $nostrManager.subscribeToEvents({
-        kinds: [0],
-        authors: [selectedJob.pubkey],
-      });
+      socialMediaManager.subscribeProfile(selectedJob.pubkey);
     }
 
     // Abrufen und Abonnieren der Autoren verknüpfter Events
@@ -77,10 +75,7 @@
     relatedEvents.forEach((event) => {
       if (event.pubkey && !authors.has(event.pubkey)) {
         authors.add(event.pubkey);
-        $nostrManager.subscribeToEvents({
-          kinds: [0],
-          authors: [event.pubkey],
-        });
+        socialMediaManager.subscribeProfile(event.pubkey);
       }
     });
   }
@@ -101,10 +96,7 @@
     relatedEvents.forEach((event) => {
       if (event.pubkey && !authors.has(event.pubkey)) {
         authors.add(event.pubkey);
-        $nostrManager.subscribeToEvents({
-          kinds: [0],
-          authors: [event.pubkey],
-        });
+        socialMediaManager.subscribeProfile(event.pubkey);
       }
     });
 

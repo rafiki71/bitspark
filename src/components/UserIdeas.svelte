@@ -4,6 +4,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let profile_id;
 
@@ -41,18 +42,7 @@
     async function fetchData() {
         try {
             // Abrufen des Profils aus dem Cache
-            const profileEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [profile_id],
-                tags: {
-                    s: ["bitspark"],
-                },
-            });
-
-            if (profileEvents && profileEvents.length > 0) {
-                profileEvents.sort((a, b) => b.created_at - a.created_at);
-                profile = profileEvents[0].profileData; // Nutzung der neuen Profilstruktur
-            }
+            profile = await socialMediaManager.getProfile(profile_id);
 
             // Abrufen der Ideen des Benutzers
             const ideaEvents = $nostrCache.getEventsByCriteria({

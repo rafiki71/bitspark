@@ -154,6 +154,7 @@
     {backgroundColor}
     textColor="#ffffff"
 >
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="job-content" on:click={() => navigate(`/idea/${ideaId}`)}>
         <h3>{jobTitle}</h3>
         {@html jobDescription}

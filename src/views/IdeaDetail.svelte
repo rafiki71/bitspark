@@ -10,6 +10,7 @@
   import { sidebarOpen } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
   import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
   import ZapWidget from '../components/ZapWidget.svelte';
 
@@ -24,11 +25,6 @@
         kinds: [NOSTR_KIND_IDEA],
         "#s": ["bitspark"],
         ids: [id],
-      });
-
-      $nostrManager.subscribeToEvents({
-        kinds: [0],
-        authors: [idea.pubkey],
       });
     }
   }
@@ -60,19 +56,7 @@
   }
 
   function fetchCreatorProfile() {
-    let criteria = {
-      kinds: [0],
-      authors: [idea.pubkey],
-      tags: {
-        s: ["bitspark"],
-      },
-    };
-
-    const profileEvents = $nostrCache.getEventsByCriteria(criteria);
-
-    if (profileEvents && profileEvents.length > 0) {
-      creator_profile = profileEvents[0].profileData;
-    }
+    creator_profile = socialMediaManager.getProfile(idea.pubkey)
   }
 
   async function deleteIdea() {

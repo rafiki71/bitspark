@@ -5,6 +5,7 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import ProfileImg from "../components/ProfileImg.svelte";
   import { onMount, onDestroy } from "svelte";
+  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
   export let id;
 
@@ -33,10 +34,7 @@
 
   async function subscribeProfileEvents() {
     if (pubkeys.size > 0) {
-      $nostrManager.subscribeToEvents({
-        kinds: [0], // Profil-Events
-        authors: Array.from(pubkeys),
-      });
+      socialMediaManager.subscribeProfiles(Array.from(pubkeys));
     }
   }
 
@@ -53,18 +51,7 @@
     subscribeProfileEvents(); // Neu abonnieren für die aktualisierten pubkeys
 
     const profilePromises = commentEvents.map(async (event) => {
-      const profileEvents = await $nostrCache.getEventsByCriteria({
-        kinds: [0],
-        authors: [event.pubkey],
-      });
-
-      let profile = {};
-      if (profileEvents.length > 0) {
-        const latestProfileEvent = profileEvents.reduce((latest, current) =>
-          latest.created_at > current.created_at ? latest : current,
-        );
-        profile = latestProfileEvent.profileData || {};
-      }
+      let profile = await socialMediaManager.getProfile(event.pubkey);
 
       return {
         id: event.id,

@@ -5,6 +5,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let userPubKey;
 
@@ -49,18 +50,7 @@
     }
 
     async function fetchProfileName() {
-        const profileEvents = $nostrCache.getEventsByCriteria({
-            kinds: [0],
-            authors: [userPubKey],
-            tags: {
-                s: ["bitspark"],
-            },
-        });
-
-        if (profileEvents && profileEvents.length > 0) {
-            profileEvents.sort((a, b) => b.created_at - a.created_at);
-            profile = profileEvents[0].profileData; // Nutzung der neuen Profilstruktur
-        }
+        profile = await socialMediaManager.getProfile(userPubKey);
     }
 
     onMount(() => {

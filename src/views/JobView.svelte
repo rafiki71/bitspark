@@ -11,6 +11,7 @@
   import { sidebarOpen } from "../helperStore.js";
   import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
   import ZapWidget from "../components/ZapWidget.svelte";
+  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
   export let id;
   let showOfferPopup = false;
@@ -64,22 +65,7 @@
   }
 
   async function fetchProfile(pubkey) {
-    $nostrManager.subscribeToEvents({
-      kinds: [0],
-      authors: [pubkey],
-      "#s": ["bitspark"],
-    });
-
-    const profileEvents = $nostrCache.getEventsByCriteria({
-      kinds: [0],
-      authors: [pubkey],
-      tags: { s: ["bitspark"] },
-    });
-
-    if (profileEvents.length > 0) {
-      profileEvents.sort((a, b) => b.created_at - a.created_at);
-      creator_profile = profileEvents[0].profileData;
-    }
+    creator_profile = socialMediaManager.getProfile(pubkey);
   }
 
   async function postOffer() {

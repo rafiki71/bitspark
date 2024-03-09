@@ -7,6 +7,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { balance } from "../BalanceStore.js";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let lnAddress;
     export let pubkey;
@@ -59,14 +60,7 @@
 
     async function fetchCreatorProfile() {
         try {
-            const creatorEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [pubkey],
-            });
-            if (creatorEvents.length > 0) {
-                creatorEvents.sort((a, b) => b.created_at - a.created_at);
-                creator_profile = creatorEvents[0].profileData;
-            }
+            creator_profile = await socialMediaManager.getProfile(pubkey);
         } catch (error) {
             console.error("Error fetching creator profile:", error);
         }
@@ -74,14 +68,7 @@
 
     async function fetchOwnProfile() {
         try {
-            const ownEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [$nostrManager.publicKey],
-            });
-            if (ownEvents.length > 0) {
-                ownEvents.sort((a, b) => b.created_at - a.created_at);
-                profile = ownEvents[0].profileData;
-            }
+            profile = await socialMediaManager.getProfile($nostrManager.publicKey);
         } catch (error) {
             console.error("Error fetching own profile:", error);
         }

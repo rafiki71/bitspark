@@ -5,6 +5,7 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let event;
     export let backgroundColor = "#f0f0f0"; // Standardwert
@@ -73,17 +74,7 @@
 
     // Methode, um das Profil des Authors zu laden
     async function fetchProfile() {
-        if (!event || !event.pubkey) return;
-
-        const profileEvents = $nostrCache.getEventsByCriteria({
-            kinds: [0],
-            authors: [event.pubkey],
-        });
-
-        if (profileEvents.length > 0) {
-            profileEvents.sort((a, b) => b.created_at - a.created_at);
-            profile = profileEvents[0].profileData;
-        }
+        profile = await socialMediaManager.getProfile(event.pubkey);
     }
 
     // Reaktive Anweisung für das Datum
@@ -118,7 +109,7 @@
     class={`bubble ${isOwnMessage ? "own-message" : "other-message"} ${status}`}
     style="background-color: {backgroundColor}; color: {textColor}; border-radius: {borderRadius}; border-color: {borderColor};"
 >
-    {#if profile.picture}
+    {#if profile && profile.picture}
         <div class="profile-container">
             <ProfileImg
                 {profile}

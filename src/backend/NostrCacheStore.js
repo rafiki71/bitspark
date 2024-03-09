@@ -11,22 +11,34 @@ class NostrEventCache {
   }
 
   // Methode in der NostrEventCache-Klasse
- // Methode in der NostrEventCache-Klasse
-updateEventAfterAsyncProcessing(eventId, updateFunction) {
-  nostrCache.update(cache => {
-    const event = cache.events.get(eventId);
-    if (event) {
-      // Hier führen wir die übergebene Update-Funktion aus, die das Event modifiziert
-      updateFunction(event);
+  // Methode in der NostrEventCache-Klasse
+  updateEventAfterAsyncProcessing(eventId, updateFunction) {
+    nostrCache.update(cache => {
+      const event = cache.events.get(eventId);
+      if (event) {
+        // Hier führen wir die übergebene Update-Funktion aus, die das Event modifiziert
+        updateFunction(event);
 
-      // Setze das aktualisierte Event zurück in den Cache
-      cache.events.set(eventId, event);
+        // Setze das aktualisierte Event zurück in den Cache
+        cache.events.set(eventId, event);
+      }
+      return cache;
+    });
+  }
+
+  async fetchProfile(pubkey) {
+    if (!pubkey) return;
+    const profileEvents = this.getEventsByCriteria({
+      kinds: [0],
+      authors: [pubkey],
+    });
+
+    if (profileEvents.length > 0) {
+      profileEvents.sort((a, b) => b.created_at - a.created_at);
+      return profileEvents[0].profileData;
     }
-    return cache;
-  });
-}
 
-
+  }
 
   async validateGithubIdent(username, pubkey, proof) {
     try {
@@ -80,7 +92,7 @@ updateEventAfterAsyncProcessing(eventId, updateFunction) {
       const githubParts = githubTag[1].split(":");
       event.profileData.githubUsername = githubParts[1];
       event.profileData.githubProof = githubTag[2];
-      
+
       //helper function
       function updateProfileVerification(event, isValid) {
         event.profileData.verified = isValid;
@@ -89,7 +101,7 @@ updateEventAfterAsyncProcessing(eventId, updateFunction) {
       // Rufe die validateGithubIdent-Funktion im Hintergrund auf
       this.validateGithubIdent(githubParts[1], event.pubkey, githubTag[2])
         .then(isValid => {
-           this.updateEventAfterAsyncProcessing(event.id, event => updateProfileVerification(event, isValid));
+          this.updateEventAfterAsyncProcessing(event.id, event => updateProfileVerification(event, isValid));
         })
         .catch(error => {
           console.error("GitHub-Verifikation fehlgeschlagen", error);
