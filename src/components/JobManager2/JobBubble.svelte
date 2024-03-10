@@ -8,6 +8,7 @@
         NOSTR_KIND_IDEA,
     } from "../../constants/nostrKinds";
     import { navigate } from "svelte-routing";
+    import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     export let event;
 
@@ -25,86 +26,37 @@
     });
 
     function subscribeToIdea() {
-        if ($nostrManager) {
-            const ideaIdTag = event.tags.find((tag) => tag[0] === "e");
-            ideaId = ideaIdTag ? ideaIdTag[1] : null;
-
-            if (!ideaId) {
-                console.error("Keine Ideen-ID im Event gefunden.");
-                isIdeaCreator = false;
-                return;
-            }
-            // Eigene Job-Postings
-            $nostrManager.subscribeToEvents({
-                kinds: [NOSTR_KIND_IDEA],
-                ids: [ideaId],
-                "#s": ["bitspark"],
-            });
-        }
+        nostrJobManager.subscribeIdea(ideaId);
     }
 
     async function checkIdeaCreator() {
-        // Extrahiere die Ideen-ID aus den Event-Tags
         const ideaIdTag = event.tags.find((tag) => tag[0] === "e");
         ideaId = ideaIdTag ? ideaIdTag[1] : null;
 
         if (!ideaId) {
-            console.error("Keine Ideen-ID im Event gefunden.");
             isIdeaCreator = false;
             return;
         }
 
-        // Hole das Event, das die Idee repräsentiert, um den Pubkey des Erstellers zu ermitteln
-        const ideaEvent = await $nostrCache.getEventById(ideaId);
-        if (ideaEvent && $nostrManager.publicKey === ideaEvent.pubkey) {
-            isIdeaCreator = true;
-        } else {
-            isIdeaCreator = false;
-        }
+        isIdeaCreator = await nostrJobManager.isCreator(
+            ideaId,
+            $nostrManager.publicKey,
+        );
     }
 
     async function checkJobApprovalStatus() {
-        const responses = await $nostrCache.getEventsByCriteria({
-            kinds: [NOSTR_KIND_JOB],
-            tags: {
-                e: [event.id],
-                t: ["job_approved", "job_declined"],
-                s: ["bitspark"],
-            },
-        });
-
-        // Sortiere die Events nach ihrem Erstellungsdatum in aufsteigender Reihenfolge
-        const sortedResponses = responses.sort(
-            (a, b) => a.created_at - b.created_at,
+        // console.log("ideaId:", ideaId);
+        jobApprovalStatus = await nostrJobManager.getJobApprovalStatus(
+            event.id,
         );
-
-        // Filtere die Events, um nur jene zu behalten, die vom Ideen-Ersteller stammen
-        const ideaEvent = await $nostrCache.getEventById(
-            event.tags.find((tag) => tag[0] === "e")[1],
-        );
-        const ideaCreatorPubKey = ideaEvent ? ideaEvent.pubkey : null;
-
-        const validResponses = sortedResponses.filter(
-            (response) => response.pubkey === ideaCreatorPubKey,
-        );
-
-        // Verwende das erste gültige Genehmigungs- oder Ablehnungs-Event
-        if (validResponses.length > 0) {
-            const firstResponse = validResponses[0]; // Das erste gültige Event
-            jobApprovalStatus =
-                firstResponse.tags.find((tag) => tag[0] === "t")[1] ===
-                "job_approved"
-                    ? "approved"
-                    : "declined";
-        }
         updateColors();
     }
 
     function updateColors() {
         backgroundColor =
-            jobApprovalStatus === "approved"
+            jobApprovalStatus === "job_approved"
                 ? "#f7931a" // Bitcoin-Orange für "approved"
-                : jobApprovalStatus === "declined"
+                : jobApprovalStatus === "job_declined"
                   ? "#6c8cd5" // Gedämpftes Blau für "declined"
                   : "#9e9e9e"; // Sanftes Grau für "pending"
     }
@@ -117,29 +69,12 @@
             return;
         }
 
-        //const witnessEventString = btoa(JSON.stringify(event));
-        const tags = [
-            ["e", event.id],
-            ["t", approval ? "job_approved" : "job_declined"],
-            ["s", "bitspark"],
-            //  ["witness", witnessEventString]
-        ];
-
-        try {
-            jobApprovalStatus = approval ? "approved" : "declined";
-            await $nostrManager.sendEvent(
-                NOSTR_KIND_JOB,
-                jobApprovalStatus,
-                tags,
-            );
-            updateColors();
-        } catch (error) {
-            console.error("Error changing job approval status:", error);
-        }
+        nostrJobManager.setApprovalStatus(event.id, approval);
     }
 
     $: $nostrCache && checkJobApprovalStatus();
     $: $nostrCache && checkIdeaCreator();
+    $: $nostrManager && subscribeToIdea();
 
     $: if (event && event.tags) {
         const titleTag = event.tags.find((tag) => tag[0] === "jTitle");

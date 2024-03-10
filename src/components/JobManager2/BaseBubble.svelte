@@ -6,6 +6,7 @@
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
     import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     export let event;
     export let backgroundColor = "#f0f0f0"; // Standardwert
@@ -35,41 +36,7 @@
     }
 
     async function submitRating() {
-        if (!$nostrManager || !$nostrManager.write_mode) return;
-
-        // Extrahieren des Witness-Tags aus den Event-Tags
-        const witnessTag = event.tags.find((tag) => tag[0] === "witness");
-        if (!witnessTag) {
-            console.error("Witness-Tag fehlt im Event");
-            return;
-        }
-        const witnessedEventString = witnessTag[1];
-        const witnessedEvent = JSON.parse(atob(witnessedEventString));
-        const creatorPubkey = witnessedEvent.pubkey;
-
-        const jobIdTag = event.tags.find((tag) => tag[0] === "e"); // Job-ID
-        const offerIdTag = event.tags.find((tag) => tag[0] === "o"); // Offer-ID
-
-        const jobId = jobIdTag ? jobIdTag[1] : null;
-        const offerId = offerIdTag ? offerIdTag[1] : null;
-
-        const tags = [
-            ["t", "review"],
-            jobId ? ["e", jobId] : null,
-            offerId ? ["o", offerId] : null,
-            ["e", event.id], // Pubkey des Erstellers des originalen Events
-            ["p", creatorPubkey], // Pubkey des Erstellers des originalen Events
-            ["rating", rating.toString()],
-            ["s", "bitspark"],
-        ].filter(Boolean); // Entfernt null-Werte
-
-        try {
-            await $nostrManager.sendEvent(NOSTR_KIND_JOB, comment, tags);
-            console.log("Rating submitted successfully");
-            toggleRatingPopup();
-        } catch (error) {
-            console.error("Error submitting rating:", error);
-        }
+        nostrJobManager.submitRating(event, rating.toString(), comment);
     }
 
     // Methode, um das Profil des Authors zu laden
