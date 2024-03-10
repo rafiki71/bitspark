@@ -59,9 +59,6 @@
         const profileEvents = $nostrCache.getEventsByCriteria({
             kinds: [0],
             authors: [profile_id],
-            tags: {
-                s: ["bitspark"],
-            },
         });
 
         if (profileEvents && profileEvents.length > 0) {

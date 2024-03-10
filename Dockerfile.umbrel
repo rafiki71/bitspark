@@ -1,0 +1,19 @@
+FROM node:lts AS builder
+
+WORKDIR /build
+COPY . .
+RUN apt-get update
+RUN apt-get install -y git python3 build-essential
+
+RUN npm install
+
+FROM node:lts
+
+USER 1000
+WORKDIR /build
+COPY --from=builder /build .
+EXPOSE 5186
+ENV PORT=5186
+ENV HOST=0.0.0.0
+CMD ["npm", "start"]
+
