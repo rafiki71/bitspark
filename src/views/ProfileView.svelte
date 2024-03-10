@@ -46,7 +46,11 @@
     $: profile_id, updateProfile();
 
     async function updateProfile() {
-        profile = socialMediaManager.getProfile(profile_id);
+        profile = await socialMediaManager.getProfile(profile_id);
+        if(!profile) {
+            return;
+        }
+
         name = profile.name;
         about = profile.dev_about;
         picture = profile.picture;

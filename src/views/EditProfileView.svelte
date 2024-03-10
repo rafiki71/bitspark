@@ -31,8 +31,10 @@
 
     function initialize() {
         if ($nostrManager) {
+            socialMediaManager.subscribeProfile(profile_id);
+
             $nostrManager.subscribeToEvents({
-                kinds: [0, 10002],
+                kinds: [10002],
                 authors: [profile_id],
             });
             fetchProfile();
@@ -44,7 +46,11 @@
     });
 
     async function fetchProfile() {
-        profile = socialMediaManager.getProfile(profile_id)
+        profile = await socialMediaManager.getProfile(profile_id)
+        
+        if(!profile) {
+            return;
+        }
         name = profile.name;
         dev_about = profile.dev_about;
         picture = profile.picture;
