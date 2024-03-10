@@ -67,6 +67,10 @@
     }
 
     async function fetchOwnProfile() {
+        if (!$nostrManager.publicKey) {
+            return;
+        }
+
         try {
             profile = await socialMediaManager.getProfile($nostrManager.publicKey);
         } catch (error) {

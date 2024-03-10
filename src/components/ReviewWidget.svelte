@@ -10,8 +10,8 @@
     export let userPubKey;
 
     let reviewEvents = [];
-    let profile = ""; // Variable für den Namen des Benutzers
-    let averageRating = 0; // Durchschnittliche Bewertung
+    let profile = null;
+    let averageRating = 0;
 
     function initialize() {
         if ($nostrManager) {
@@ -66,18 +66,22 @@
     $: $nostrCache && fetchReviews();
     $: $nostrManager && initialize();
 
-    $: averageStars = Array(5).fill().map((_, i) => ({
-        active: i < Math.round(averageRating),
-    }));
+    $: averageStars = Array(5)
+        .fill()
+        .map((_, i) => ({
+            active: i < Math.round(averageRating),
+        }));
 </script>
 
 <div class="single-card container review-widget-container">
     <h1 class="relative flex text-4xl font-bold text-black ml-6 mb-6">
-        {profile.name}'s Reviews
+        {#if profile}
+            {profile.name}'s Reviews
+        {/if}
     </h1>
     <div class="review-stats-header">
         {#each averageStars as star}
-            <span class={`average-star ${star.active ? 'active' : ''}`}>★</span>
+            <span class={`average-star ${star.active ? "active" : ""}`}>★</span>
         {/each}
         <span class="average-rating-text">({averageRating}/5)</span>
     </div>
@@ -91,7 +95,7 @@
 </div>
 
 <style>
-     .review-stats-header {
+    .review-stats-header {
         display: flex;
         align-items: center;
         justify-content: center;

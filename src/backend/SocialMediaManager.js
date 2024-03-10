@@ -25,7 +25,7 @@ class SocialMediaManager {
 
   async getProfile(pubkey) {
     if (!pubkey) {
-      console.error("Public key is required to get a profile.");
+      console.error("Public key is required to get a profile.", pubkey);
       return null;
     }
 
