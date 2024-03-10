@@ -7,10 +7,9 @@
     import Banner from "../components/Banner.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
     import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
-
-    export let profile_id;
 
     let profile = null;
     let name = "";
@@ -28,15 +27,11 @@
     });
 
     $: $nostrManager, initialize();
+    $: $nostrCache, fetchProfile();
 
     function initialize() {
         if ($nostrManager) {
-            socialMediaManager.subscribeProfile(profile_id);
-
-            $nostrManager.subscribeToEvents({
-                kinds: [10002],
-                authors: [profile_id],
-            });
+            socialMediaManager.subscribeProfile($nostrManager.publicKey);
             fetchProfile();
         }
     }
@@ -46,9 +41,12 @@
     });
 
     async function fetchProfile() {
-        profile = await socialMediaManager.getProfile(profile_id)
-        
-        if(!profile) {
+        if (!$nostrManager) {
+            return;
+        }
+        profile = await socialMediaManager.getProfile($nostrManager.publicKey);
+
+        if (!profile) {
             return;
         }
         name = profile.name;
@@ -197,7 +195,7 @@
                             style="width: 90%; margin: auto; margin-top: 30pt"
                         />
 
-                        <RelaySelectionWidget {profile_id} />
+                        <RelaySelectionWidget />
                     </div>
                 </div>
                 <div class="container mx-auto px-4 py-4 flex justify-end">
