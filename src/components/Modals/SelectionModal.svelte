@@ -9,7 +9,7 @@
     function toggleCategory(category) {
         if (localSelectedCategories.includes(category)) {
             localSelectedCategories = localSelectedCategories.filter(
-                (c) => c !== category
+                (c) => c !== category,
             );
         } else {
             localSelectedCategories = [...localSelectedCategories, category];
@@ -32,7 +32,7 @@
         {#each categories as category}
             <button
                 class="category-button {localSelectedCategories.includes(
-                    category
+                    category,
                 )
                     ? 'selected'
                     : ''}"
@@ -78,7 +78,8 @@
         border-radius: 4px; /* If you want rounded corners */
         /* Add text alignment and other styles as needed */
         text-align: center;
-        font-size: 1.0rem; /* Adjust font size as needed */
+        font-size: 1rem; /* Adjust font size as needed */
+        border: 1px solid rgb(238, 238, 238);
     }
 
     .category-button:focus {
@@ -88,6 +89,11 @@
     .category-button.selected {
         /* Styles for selected buttons */
         background-color: rgb(249 115 22);
-        color: white
+        color: white;
+        border: 1px solid rgb(249 115 22);
+    }
+
+    .category-button:hover {
+        border: 1px solid black;
     }
 </style>

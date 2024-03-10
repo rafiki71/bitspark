@@ -13,6 +13,11 @@ export class NostrCacheManager {
         this.publicKey = null;
     }
 
+    updateRelays(new_relays) {
+        this.relays = new_relays;
+        console.log("new relays:", this.relays);
+    }
+
     async getPublicRelaysString() {
         return ["wss://relay.damus.io",
             "wss://nostr-pub.wellorder.net"];
@@ -30,7 +35,6 @@ export class NostrCacheManager {
             this.write_mode = false;
             this.publicKey = null;
         }
-        console.log("used relays:", this.relays);
     }
 
     async extensionAvailable() {
@@ -68,6 +72,7 @@ export class NostrCacheManager {
         event.tags = this.uniqueTags(event.tags);
         const pubs = this.pool.publish(this.relays, event);
         console.log("send event:", event);
+        console.log("used relays:", this.relays);
         return event.id;
     }
 
