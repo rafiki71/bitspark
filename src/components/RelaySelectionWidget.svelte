@@ -3,8 +3,6 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
 
-  export let profile_id;
-
   let default_relays = [
     "wss://relay.damus.io",
     "wss://relay.plebstr.com",
@@ -13,29 +11,34 @@
   let relays = [];
   let newRelay = "";
 
-  onMount(() => {
-    if ($nostrManager) {
-      initialize();
-    }
+  onMount(async () => {
+    await initialize();
+    setFetchedRelays();
   });
-  $: $nostrManager, initialize();
+
+  function setFetchedRelays() {
+    if ($nostrManager) {
+      relays = fetchRelays();
+    }
+  }
 
   async function initialize() {
     if ($nostrManager) {
       $nostrManager.subscribeToEvents({
         kinds: [10002],
-        authors: [profile_id],
+        authors: [$nostrManager.publicKey],
       });
-      relays = await fetchRelays();
-      console.log("existingRelays:", relays);
     }
   }
-  async function fetchRelays() {
-    const relayEvents = await $nostrCache.getEventsByCriteria({
+
+  $: $nostrManager, initialize();
+  $: $nostrCache, setFetchedRelays();
+
+  function fetchRelays() {
+    const relayEvents = $nostrCache.getEventsByCriteria({
       kinds: [10002],
       authors: [$nostrManager.publicKey],
     });
-
     return relayEvents.flatMap((event) =>
       event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
     );
