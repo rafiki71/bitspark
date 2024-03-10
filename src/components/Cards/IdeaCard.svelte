@@ -5,6 +5,7 @@
   import { nostrManager } from "../..//backend/NostrManagerStore.js";
   import { nostrCache } from "../../backend/NostrCacheStore.js";
   import { onMount, onDestroy } from "svelte";
+  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
   function truncateMessage(message, maxLength) {
     const strippedMessage = message.replace(/<[^>]+>/g, "");
@@ -17,43 +18,11 @@
     initialize();
   });
 
-  function checkCache() {
-    if ($nostrManager) {
-      const ideaEvents = $nostrCache.getEventsByCriteria({
-        kinds: [0],
-        authors: [card.pubkey],
-      });
-      if (ideaEvents && ideaEvents.length > 0) {
-        $nostrManager.unsubscribeEvent({
-          kinds: [0],
-          authors: [card.pubkey],
-        });
-      }
-    }
-  }
-
   function initialize() {
-    if ($nostrManager) {
-      const profileEvent = $nostrCache.getEventsByCriteria({
-        kinds: [0],
-        authors: [card.pubkey],
-      });
-
-      if (profileEvent && profileEvent.length > 0) {
-        return;
-      }
-    }
-
-    if ($nostrManager) {
-      $nostrManager.subscribeToEvents({
-        kinds: [0],
-        authors: [card.pubkey],
-      });
-    }
+    socialMediaManager.getProfile(card.pubkey);
   }
 
   $: $nostrManager, initialize();
-  $: $nostrCache, checkCache();
 </script>
 
 <div

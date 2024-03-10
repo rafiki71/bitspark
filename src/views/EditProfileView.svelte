@@ -5,10 +5,10 @@
     import Menu from "../components/Menu.svelte";
     import { sidebarOpen } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
-    import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
     import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
+    import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
     export let profile_id;
 
@@ -44,23 +44,14 @@
     });
 
     async function fetchProfile() {
-        const profileEvents = await $nostrCache.getEventsByCriteria({
-            kinds: [0],
-            authors: [profile_id],
-        });
-
-        if (profileEvents && profileEvents.length > 0) {
-            profileEvents.sort((a, b) => b.created_at - a.created_at);
-            profile = profileEvents[0].profileData;
-
-            name = profile.name;
-            dev_about = profile.dev_about;
-            picture = profile.picture;
-            banner = profile.banner;
-            lud16 = profile.lud16;
-            git_username = profile.githubUsername;
-            git_proof = profile.githubProof;
-        }
+        profile = socialMediaManager.getProfile(profile_id)
+        name = profile.name;
+        dev_about = profile.dev_about;
+        picture = profile.picture;
+        banner = profile.banner;
+        lud16 = profile.lud16;
+        git_username = profile.githubUsername;
+        git_proof = profile.githubProof;
     }
 
     async function updateProfile() {

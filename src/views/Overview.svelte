@@ -10,6 +10,7 @@
   import { sidebarOpen } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
   import { onDestroy } from "svelte";
   import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
 
@@ -29,12 +30,6 @@
     }
 
     const fetchedEvents = await $nostrCache.getEventsByCriteria(criteria);
-    // const authorPubkeys = fetchedEvents.map((idea) => idea.pubkey);
-
-    // $nostrManager.subscribeToEvents({
-    //   kinds: [0], // Profil-Events
-    //   authors: authorPubkeys,
-    // });
 
     const tempVerifiedCards = [];
     const tempUnverifiedCards = [];
@@ -42,16 +37,10 @@
     await Promise.all(
       fetchedEvents.map(async (idea) => {
         const card = transformIdeaToCard(idea);
-        const authorProfileEvents = await $nostrCache.getEventsByCriteria({
-          kinds: [0],
-          authors: [idea.pubkey],
-        });
 
-        let isAuthorVerified =
-          authorProfileEvents.length > 0 &&
-          authorProfileEvents.some((event) => event.profileData?.verified);
+        let profile = socialMediaManager.getProfile(idea.pubkey);
 
-        if (isAuthorVerified) {
+        if (profile.verified) {
           tempVerifiedCards.push(card);
         } else {
           tempUnverifiedCards.push(card);

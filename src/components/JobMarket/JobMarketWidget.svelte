@@ -16,6 +16,7 @@
     import ProfileImg from "../ProfileImg.svelte";
     import { navigate } from "svelte-routing";
     import { writable } from "svelte/store";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     function navigateToIdea(ideaId) {
         navigate(`/idea/${ideaId}`);
@@ -47,10 +48,7 @@
             $nostrManager.subscribeToEvents(eventCriteria);
 
             jobs.forEach((job) => {
-                $nostrManager.subscribeToEvents({
-                    kinds: [0], // Profil-Kind
-                    authors: [job.pubkey],
-                });
+                socialMediaManager.subscribeProfile(job.pubkey);
             });
 
             updateJobs();
@@ -60,10 +58,7 @@
     function subscribeToAuthors() {
         if ($nostrManager) {
             jobs.forEach((job) => {
-                $nostrManager.subscribeToEvents({
-                    kinds: [0], // Profil-Kind
-                    authors: [job.pubkey],
-                });
+                socialMediaManager.subscribeProfile(job.pubkey);
             });
         }
     }
@@ -129,15 +124,7 @@
 
     function loadProfiles() {
         jobs = jobs.map((job) => {
-            const profileEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [job.pubkey],
-            });
-
-            if (profileEvents.length > 0) {
-                profileEvents.sort((a, b) => b.created_at - a.created_at);
-                job.profile = profileEvents[0].profileData;
-            }
+            job.profile = socialMediaManager.getProfile(job.pubkey);
             return job;
         });
     }

@@ -5,6 +5,7 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { zapManager } from "../backend/ZapManager.js";
   import { sendZap } from "../LNHelper.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
   export let eventId;
   export let satGoal = null;
@@ -20,11 +21,7 @@
     loadEvent();
     if ($nostrManager) {
       if (eventDetails) {
-        $nostrManager.subscribeToEvents({
-          kinds: [0],
-          authors: [eventDetails.pubkey],
-          "#s": ["bitspark"],
-        });
+        socialMediaManager.subscribeProfile(eventDetails.pubkey);
       }
 
       zapManager.subscribeZaps(eventId)
@@ -45,14 +42,8 @@
 
   async function loadProfile() {
     if (eventDetails) {
-      const profileEvents = $nostrCache.getEventsByCriteria({
-        kinds: [0],
-        authors: [eventDetails.pubkey],
-      });
-      if (profileEvents && profileEvents.length > 0) {
-        creatorProfile = profileEvents[0].profileData;
-        fetchTotalReceivedSats();
-      }
+      creatorProfile = await socialMediaManager.getProfile(eventDetails.pubkey)
+      fetchTotalReceivedSats();
     }
   }
 

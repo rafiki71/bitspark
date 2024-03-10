@@ -3,6 +3,7 @@
     import BaseBubble from "./BaseBubble.svelte";
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
     import { sendZap } from "../../LNHelper.js"; // Importieren Sie die sendZap Funktion
 
     export let event;
@@ -35,7 +36,6 @@
         });
 
         // Konsolenausgabe zur Überprüfung, ob Zaps gefunden wurden
-        console.log("Gefundene Zaps für das Angebot:", zaps);
         totalReceivedSats = zaps.reduce((sum, zap) => {
             const descriptionTag = zap.tags.find(tag => tag[0] === 'description');
             if (descriptionTag) {
@@ -74,16 +74,8 @@
 
     async function loadOfferCreatorProfile() {
         if (offerEvent) {
-            const profileEvents = $nostrCache.getEventsByCriteria({
-                kinds: [0],
-                authors: [offerEvent.pubkey],
-            });
-
-            if (profileEvents.length > 0) {
-                profileEvents.sort((a, b) => b.created_at - a.created_at);
-                offerCreatorProfile = profileEvents[0].profileData;
-                lnAddress = offerCreatorProfile.lud16 || "No LN Address";
-            }
+            offerCreatorProfile = socialMediaManager.getProfile(offerEvent.pubkey);
+            lnAddress = offerCreatorProfile.lud16 || "No LN Address";
         }
     }
 
@@ -98,10 +90,7 @@
                 offerEvent.id,
             )
                 .then((response) => {
-                    console.log(
-                        "Zap erfolgreich gesendet, Preimage:",
-                        response.preimage,
-                    );
+                    console.log("Zapped");
                 })
                 .catch((error) => {
                     console.error("Fehler beim Senden des Zaps:", error);
