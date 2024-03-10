@@ -5,7 +5,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
-    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
     export let userPubKey;
 

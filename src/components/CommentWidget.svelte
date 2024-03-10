@@ -5,7 +5,7 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import ProfileImg from "../components/ProfileImg.svelte";
   import { onMount, onDestroy } from "svelte";
-  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
   export let id;
 

@@ -11,7 +11,7 @@
   import { sidebarOpen } from "../helperStore.js";
   import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
   import ZapWidget from "../components/ZapWidget.svelte";
-  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
   export let id;
   let showOfferPopup = false;

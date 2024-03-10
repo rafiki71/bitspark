@@ -7,7 +7,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { balance } from "../BalanceStore.js";
-    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
     export let lnAddress;
     export let pubkey;

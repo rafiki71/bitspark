@@ -1,8 +1,6 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import { Link, navigate } from "svelte-routing";
     import ProfileImg from "../components/ProfileImg.svelte";
-    import { sendSatsLNurl } from "../LNHelper.js";
     import Menu from "../components/Menu.svelte";
     import UserIdeas from "../components/UserIdeas.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
@@ -11,6 +9,7 @@
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
+    import { socialMediaManager } from "../backend/SocialMediaManager.js";
     import ReviewWidget from "../components/ReviewWidget.svelte";
 
     export let profile_id;
@@ -25,21 +24,12 @@
     let githubRepo = "";
 
     onMount(() => {
-        if ($nostrManager) {
-            $nostrManager.subscribeToEvents({
-                kinds: [0],
-                authors: [profile_id],
-            });
-            updateProfile();
-        }
+        initialize()
     });
 
     function initialize() {
         if ($nostrManager) {
-            $nostrManager.subscribeToEvents({
-                kinds: [0],
-                authors: [profile_id],
-            });
+            socialMediaManager.subscribeProfile(profile_id);
             updateProfile();
         }
     }
@@ -56,21 +46,13 @@
     $: profile_id, updateProfile();
 
     async function updateProfile() {
-        const profileEvents = $nostrCache.getEventsByCriteria({
-            kinds: [0],
-            authors: [profile_id],
-        });
-
-        if (profileEvents && profileEvents.length > 0) {
-            profileEvents.sort((a, b) => b.created_at - a.created_at);
-            profile = profileEvents[0].profileData; // Nutzen der neuen Struktur
-            name = profile.name;
-            about = profile.dev_about;
-            picture = profile.picture;
-            banner = profile.banner;
-            ghUser = profile.githubUsername;
-            lnAddress = profile.lud16;
-        }
+        profile = socialMediaManager.getProfile(profile_id);
+        name = profile.name;
+        about = profile.dev_about;
+        picture = profile.picture;
+        banner = profile.banner;
+        ghUser = profile.githubUsername;
+        lnAddress = profile.lud16;
         if (ghUser) {
             githubRepo = "https://www.github.com/" + ghUser;
         } else {

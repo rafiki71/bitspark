@@ -5,7 +5,7 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { zapManager } from "../backend/ZapManager.js";
   import { sendZap } from "../LNHelper.js";
-  import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+  import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
   export let eventId;
   export let satGoal = null;
