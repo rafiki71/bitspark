@@ -69,7 +69,11 @@
     async function login() {
         console.log("Logging in...");
         await initializeNostrManager(true, false);
-        menuState.update((state) => ({ ...state, logged_in: true }));
+        let login_success = $nostrManager.publicKey !== null;
+        menuState.update((state) => ({
+            ...state,
+            logged_in: login_success,
+        }));
     }
 
     async function logout() {
