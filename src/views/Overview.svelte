@@ -13,6 +13,7 @@
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
   import { onDestroy } from "svelte";
   import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
+  import { relaysStore } from '../backend/RelayStore.js';
 
   export let category;
 
@@ -38,8 +39,9 @@
       fetchedEvents.map(async (idea) => {
         const card = transformIdeaToCard(idea);
 
-        let profile = await socialMediaManager.getProfile(idea.pubkey);
-        if (profile && profile.verified) {
+        let profile = socialMediaManager.getProfile(idea.pubkey);
+
+        if (profile.verified) {
           tempVerifiedCards.push(card);
         } else {
           tempUnverifiedCards.push(card);
@@ -88,6 +90,7 @@
 
   $: fetchAndDisplayIdeas(), category;
   $: initialize(), $nostrManager;
+  $: fetchAndDisplayIdeas(), $relaysStore;
 
   $: if ($nostrManager && $nostrCache) {
     fetchAndDisplayIdeas();

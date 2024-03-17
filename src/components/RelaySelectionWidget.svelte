@@ -3,8 +3,6 @@
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
 
-  export let profile_id;
-
   let default_relays = [
     "wss://relay.damus.io",
     "wss://relay.plebstr.com",
@@ -13,36 +11,18 @@
   let relays = [];
   let newRelay = "";
 
-  onMount(() => {
-    if ($nostrManager) {
-      initialize();
-    }
+  onMount(async () => {
+    await initialize();
   });
-  $: $nostrManager, initialize();
 
   async function initialize() {
     if ($nostrManager) {
-      $nostrManager.subscribeToEvents({
-        kinds: [10002],
-        authors: [profile_id],
-      });
-      relays = await fetchRelays();
-      console.log("existingRelays:", relays);
+      relays = $nostrManager.relays;
     }
   }
-  async function fetchRelays() {
-    const relayEvents = await $nostrCache.getEventsByCriteria({
-      kinds: [10002],
-      authors: [$nostrManager.publicKey],
-    });
 
-    return relayEvents.flatMap((event) =>
-      event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
-    );
-  }
-  onDestroy(() => {
-    $nostrManager.unsubscribeAll();
-  });
+  $: $nostrManager, initialize();
+  $: $nostrCache, initialize();
 
   function addRelay() {
     if (newRelay.trim() && !relays.includes(newRelay)) {
@@ -68,7 +48,6 @@
 
   async function updateRelays() {
     if (!$nostrManager || !$nostrManager.write_mode) return;
-    $nostrManager.updateRelays(relays);
     sendUpdateRelaysEvent();
   }
 
@@ -84,8 +63,7 @@
     if (!$nostrManager || !$nostrManager.write_mode) return;
 
     // Holen Sie die aktuellen Relays aus dem Cache
-    const existingRelays = await fetchRelays();
-    console.log("existingRelays:", existingRelays);
+    const existingRelays = $nostrManager.relays;
 
     const existingRelaysSet = new Set(existingRelays);
     const relaysSet = new Set(relays);
@@ -96,12 +74,11 @@
       }
     }
     const updatedRelays = Array.from(relaysSet);
-    console.log("updatedRelays:", updatedRelays);
+    $nostrManager.updateRelays(updatedRelays);
     // Überprüfen, ob das Relay bereits existiert
 
     // Event für die Aktualisierung der Relay-Liste erstellen
     const relayEvent = createRelayEvent(updatedRelays);
-    console.log("relayEvent:", relayEvent);
 
     // Event senden
     try {

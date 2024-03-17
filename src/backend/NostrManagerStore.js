@@ -13,7 +13,8 @@ export async function initializeNostrManager(login, init) {
   })(); // Abonnieren und sofort kündigen, um den aktuellen Wert zu erhalten
   
   if (!init || currentValue === null) {  // Überprüfe, ob der aktuelle Wert des Stores null ist
-    const manager = new NostrCacheManager(['wss://relay.damus.io', 'wss://relay.plebstr.com', 'wss://nostr.wine'], login);
+    const manager = new NostrCacheManager(login);
+    manager.updateRelays(['wss://relay.damus.io', 'wss://relay.plebstr.com', 'wss://nostr.wine'])
     await manager.initialize();
     nostrManager.set(manager); // Setzen des Stores erst nach der Initialisierung
   }

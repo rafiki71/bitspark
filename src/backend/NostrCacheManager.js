@@ -2,20 +2,24 @@
 import 'websocket-polyfill'
 import { addOrUpdateEvent } from './NostrCacheStore.js';
 const { SimplePool } = window.NostrTools;
+import { relaysStore } from './RelayStore.js';
 
 
 export class NostrCacheManager {
-    constructor(relays, write_mode) {
+    constructor(write_mode) {
         this.pool = new SimplePool();
-        this.relays = relays;
         this.subscriptions = new Map();
         this.write_mode = write_mode;
         this.publicKey = null;
-    }
+        this.relays = [];
 
+        relaysStore.subscribe(value => {
+            this.relays = value;
+        });
+    }
     updateRelays(new_relays) {
-        this.relays = new_relays;
-        console.log("new relays:", this.relays);
+        relaysStore.set(new_relays);
+        console.log("new relays:", new_relays);
     }
 
     async getPublicRelaysString() {
@@ -111,10 +115,10 @@ export class NostrCacheManager {
             return;
         }
     }
-    
+
     unsubscribeEvent(criteria) {
         const subscriptionKey = this.generateSubscriptionKey(criteria);
-    
+
         // Check if a subscription exists for these criteria.
         if (this.subscriptions.has(subscriptionKey)) {
             try {
@@ -147,5 +151,5 @@ export class NostrCacheManager {
     }
 
     // Methode zum Beenden aller Abonnements
-    
+
 }
