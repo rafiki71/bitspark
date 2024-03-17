@@ -1,6 +1,5 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import ProfileImg from "../components/ProfileImg.svelte";
     import Menu from "../components/Menu.svelte";
     import UserIdeas from "../components/UserIdeas.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
@@ -11,20 +10,19 @@
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
     import ReviewWidget from "../components/ReviewWidget.svelte";
+    import ProfileWidget from "../components/ProfileWidget.svelte";
 
     export let profile_id;
 
     let profile = null;
     let name = "";
-    let about = "";
-    let picture = "";
     let banner = "";
     let ghUser = "";
     let lnAddress = "";
     let githubRepo = "";
 
     onMount(() => {
-        initialize()
+        initialize();
     });
 
     function initialize() {
@@ -47,13 +45,11 @@
 
     async function updateProfile() {
         profile = await socialMediaManager.getProfile(profile_id);
-        if(!profile) {
+        if (!profile) {
             return;
         }
 
         name = profile.name;
-        about = profile.dev_about;
-        picture = profile.picture;
         banner = profile.banner;
         ghUser = profile.githubUsername;
         lnAddress = profile.lud16;
@@ -88,36 +84,7 @@
         <ToolBar bind:lnAddress {githubRepo} />
 
         <div class={contentContainerClass}>
-            <div class="single-card container">
-                <div class="flex justify-center">
-                    <div class="single-card-profile-img">
-                        {#if profile && profile.picture}
-                            <ProfileImg
-                                {profile}
-                                style={{
-                                    position: "absolute",
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    top: "0",
-                                    left: "0",
-                                }}
-                            />
-                        {/if}
-                    </div>
-                </div>
-                <div
-                    class="text-center mt-6 px-6"
-                    style="top: -90px; position: relative"
-                >
-                    <h2 class="base-h2 text-color-df">
-                        {name}
-                    </h2>
-                    <div class="single-card-content text-color-df">
-                        {@html about}
-                    </div>
-                </div>
-            </div>
+            <ProfileWidget userPubKey={profile_id} />
             <UserIdeas {profile_id} />
             <ReviewWidget userPubKey={profile_id} />
         </div>
