@@ -1,6 +1,6 @@
 <!-- Menu.svelte -->
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { navigate } from "svelte-routing";
     import { writable } from "svelte/store";
     import { sidebarOpen } from "../helperStore.js";
@@ -10,6 +10,7 @@
         nostrManager,
         initializeNostrManager,
     } from "../backend/NostrManagerStore.js";
+    import { nostrCache } from "../backend/NostrCacheStore.js";
     import { idea_categories } from "../constants/categories.js";
 
     function toggleSidebar() {
@@ -69,7 +70,37 @@
     async function login() {
         console.log("Logging in...");
         await initializeNostrManager(true, false);
-        menuState.update((state) => ({ ...state, logged_in: true }));
+        let login_success = $nostrManager.publicKey !== null;
+        if (login_success) {
+            $nostrManager.subscribeToEvents({
+                kinds: [10002],
+                authors: [$nostrManager.publicKey],
+            });
+            updateRelays();
+        }
+        menuState.update((state) => ({
+            ...state,
+            logged_in: login_success,
+        }));
+    }
+
+    function updateRelays() {
+        if ($nostrManager && $nostrManager.publicKey !== null) {
+            let relayEvents = $nostrCache.getEventsByCriteria({
+                kinds: [10002],
+                authors: [$nostrManager.publicKey],
+            });
+
+            if (relayEvents.length > 0) {
+                relayEvents.sort((a, b) => b.created_at - a.created_at);
+                let relay = relayEvents[0];
+
+                relay = relay.tags
+                    .filter((tag) => tag[0] === "r")
+                    .map((tag) => tag[1]);
+                $nostrManager.updateRelays(relay);
+            }
+        }
     }
 
     async function logout() {
@@ -85,6 +116,9 @@
         const usingExtension = await $nostrManager.extensionAvailable();
         menuState.set({ logged_in: loggedIn, use_extension: usingExtension });
     });
+    onDestroy(() => {
+        $nostrManager.unsubscribeAll();
+    });
 
     let linkStyle = "block menu-item";
     let categoryStyle = "category-style";
@@ -95,6 +129,7 @@
 
     $: $menuState;
     $: print_menu_state(), $menuState;
+    $: $nostrCache, updateRelays();
 </script>
 
 <!-- <button on:click={toggleSidebar}>Toggle Sidebar</button> -->
