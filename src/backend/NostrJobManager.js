@@ -280,12 +280,18 @@ class NostrJobManager {
       return;
     }
 
+    const jobId = await this.getJobId(offerId);
+    if (!jobId) {
+      console.error("Unable to retrieve job ID from offer ID:", offerId);
+      return;
+    }
+
     const witnessEventString = btoa(JSON.stringify(approvalEvent));
 
     const tags = [
       ["s", "bitspark"],
       ["t", "pr"],
-      ["e", approvalEvent.tags.find(tag => tag[0] === 'e')[1]], // Job ID
+      ["e", jobId], // Job ID
       ["o", offerId], // Offer ID
       ["pr_url", prUrl], // URL des Pull Requests
       ["witness", witnessEventString], // Zeuge des genehmigten Angebots

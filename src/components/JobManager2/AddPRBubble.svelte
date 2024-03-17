@@ -7,6 +7,7 @@
 
     export let event;
     let offer;
+    let offerId;
     let isOfferCreator = false;
     let prUrl = "";
 
@@ -16,7 +17,7 @@
     });
 
     async function loadOffer() {
-        const offerId = event.tags.find(tag => tag[0] === 'o')[1];
+        offerId = event.tags.find(tag => tag[0] === 'o')[1];
         offer = await nostrJobManager.loadOffer(offerId);
     }
 
@@ -34,11 +35,8 @@
             return;
         }
 
-        const o = event.tags.find(tag => tag[0] === 'o')[1];
-        const e = event.tags.find(tag => tag[0] === 'e')[1];
-
         try {
-            await nostrJobManager.sendPR(o, prUrl);
+            await nostrJobManager.sendPR(offerId, prUrl);
             prUrl = ""; // URL-Feld zurücksetzen
         } catch (error) {
             console.error("Error sending PR:", error);
