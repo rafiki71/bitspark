@@ -48,7 +48,6 @@
 
   async function updateRelays() {
     if (!$nostrManager || !$nostrManager.write_mode) return;
-    $nostrManager.updateRelays(relays);
     sendUpdateRelaysEvent();
   }
 
@@ -65,7 +64,6 @@
 
     // Holen Sie die aktuellen Relays aus dem Cache
     const existingRelays = $nostrManager.relays;
-    console.log("existingRelays:", existingRelays);
 
     const existingRelaysSet = new Set(existingRelays);
     const relaysSet = new Set(relays);
@@ -76,12 +74,11 @@
       }
     }
     const updatedRelays = Array.from(relaysSet);
-    console.log("updatedRelays:", updatedRelays);
+    $nostrManager.updateRelays(updatedRelays);
     // Überprüfen, ob das Relay bereits existiert
 
     // Event für die Aktualisierung der Relay-Liste erstellen
     const relayEvent = createRelayEvent(updatedRelays);
-    console.log("relayEvent:", relayEvent);
 
     // Event senden
     try {

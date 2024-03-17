@@ -86,14 +86,20 @@
 
     function updateRelays() {
         if ($nostrManager && $nostrManager.publicKey !== null) {
-            const relayEvents = $nostrCache.getEventsByCriteria({
+            let relayEvents = $nostrCache.getEventsByCriteria({
                 kinds: [10002],
                 authors: [$nostrManager.publicKey],
             });
-            let relays = relayEvents.flatMap((event) =>
-                event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
-            );
-            $nostrManager.updateRelays(relays);
+
+            if (relayEvents.length > 0) {
+                relayEvents.sort((a, b) => b.created_at - a.created_at);
+                let relay = relayEvents[0];
+
+                relay = relay.tags
+                    .filter((tag) => tag[0] === "r")
+                    .map((tag) => tag[1]);
+                $nostrManager.updateRelays(relay);
+            }
         }
     }
 
