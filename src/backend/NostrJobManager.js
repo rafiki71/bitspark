@@ -243,6 +243,82 @@ class NostrJobManager {
     }
   }
 
+  async loadOffer(offerId) {
+    if (!offerId) {
+      console.error("Offer ID is required to load offer details.");
+      return null;
+    }
+
+    const offerEvents = await this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      ids: [offerId],
+    });
+
+    if (offerEvents && offerEvents.length > 0) {
+      return offerEvents[0];
+    } else {
+      console.error("Offer not found.");
+      return null;
+    }
+  }
+
+  async sendPR(offerId, prUrl) {
+    if (!this.manager || !this.manager.write_mode) {
+      console.error("NostrManager is not ready or write mode is not enabled.");
+      return;
+    }
+
+    if (!offerId || !prUrl) {
+      console.error("Offer ID and PR URL are required.");
+      return;
+    }
+
+    // Holen des Events, das das Angebot genehmigt hat
+    const approvalEvent = await this.getApprovalEvent(offerId);
+    if (!approvalEvent) {
+      console.error("Approval event for the offer not found.");
+      return;
+    }
+
+    const witnessEventString = btoa(JSON.stringify(approvalEvent));
+
+    const tags = [
+      ["s", "bitspark"],
+      ["t", "pr"],
+      ["e", approvalEvent.tags.find(tag => tag[0] === 'e')[1]], // Job ID
+      ["o", offerId], // Offer ID
+      ["pr_url", prUrl], // URL des Pull Requests
+      ["witness", witnessEventString], // Zeuge des genehmigten Angebots
+    ];
+
+    try {
+      await this.manager.sendEvent(NOSTR_KIND_JOB, "Pull Request submitted", tags);
+      console.log("Pull Request submitted successfully.");
+    } catch (error) {
+      console.error("Error sending Pull Request:", error);
+    }
+  }
+
+  // Diese Hilfsmethode holt das Genehmigungsevent für ein Angebot
+  async getApprovalEvent(offerId) {
+    const responses = await this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      tags: {
+        o: [offerId],
+        t: ["ao"], // Tag für Angebot genehmigt
+        s: ["bitspark"],
+      },
+    });
+
+    if (responses.length > 0) {
+      // Rückgabe des neuesten Genehmigungsevents, wenn vorhanden
+      return responses[responses.length - 1];
+    } else {
+      return null;
+    }
+  }
+
+
   // Aufräumfunktion, um die Subscriptions zu beenden
   cleanup() {
     this.cacheSubscription();

@@ -3,7 +3,6 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
     import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     export let event;
