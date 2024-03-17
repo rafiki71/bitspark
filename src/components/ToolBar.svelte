@@ -72,7 +72,9 @@
         }
 
         try {
-            profile = await socialMediaManager.getProfile($nostrManager.publicKey);
+            profile = await socialMediaManager.getProfile(
+                $nostrManager.publicKey,
+            );
         } catch (error) {
             console.error("Error fetching own profile:", error);
         }
