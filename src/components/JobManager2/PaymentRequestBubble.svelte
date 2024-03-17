@@ -3,15 +3,17 @@
     import BaseBubble from "./BaseBubble.svelte";
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import { zapManager } from "../../backend/ZapManager.js";
     import { sendZap } from "../../LNHelper.js"; // Importieren Sie die sendZap Funktion
+    import { nostrJobManager } from "../../backend/NostrJobManager";
 
     export let event;
     let offerEvent = null;
     let offerCreatorProfile = null;
     let satsAmount = 0;
     let lnAddress = "";
-    let zaps = [];
     let totalReceivedSats = 0;
     let progressPercentage = 0;
 
@@ -29,27 +31,7 @@
     $: offerEvent, loadOfferCreatorProfile();
 
     async function fetchZaps() {
-        const offerId = offerEvent.id;
-        zaps = $nostrCache.getEventsByCriteria({
-            kinds: [9735], // Annahme, dass 9734 das Kind für Zap-Events ist
-            tags: { e: [offerId] },
-        });
-
-        // Konsolenausgabe zur Überprüfung, ob Zaps gefunden wurden
-        totalReceivedSats = zaps.reduce((sum, zap) => {
-            const descriptionTag = zap.tags.find(tag => tag[0] === 'description');
-            if (descriptionTag) {
-                try {
-                    const descriptionData = JSON.parse(descriptionTag[1]);
-                    const amountMillisats = parseInt(descriptionData.tags.find(tag => tag[0] === 'amount')?.[1], 10);
-                    return sum + (amountMillisats / 1000); // Umrechnung in Sats
-                } catch (error) {
-                    console.error('Fehler beim Parsen der Zap-Description:', error);
-                }
-            }
-            return sum;
-        }, 0);
-
+        totalReceivedSats = await zapManager.getTotalZaps(offerEvent.id)
         updateProgress();
     }
 
@@ -63,31 +45,30 @@
     onMount(async () => {
         const offerId = event.tags.find((tag) => tag[0] === "o")?.[1];
         if (offerId) {
+            await zapManager.subscribeZaps(offerId);
             await loadOfferEvent(offerId);
         }
     });
 
     async function loadOfferEvent(offerId) {
-        offerEvent = $nostrCache.getEventById(offerId);
+        offerEvent = await nostrJobManager.loadOffer(offerId);
         satsAmount = offerEvent.tags.find((tag) => tag[0] === "sats")?.[1] || 0;
     }
 
     async function loadOfferCreatorProfile() {
         if (offerEvent) {
             offerCreatorProfile = await socialMediaManager.getProfile(offerEvent.pubkey);
-            lnAddress = offerCreatorProfile.lud16 || "No LN Address";
+            lnAddress = offerCreatorProfile.lud16 || "";
         }
     }
 
     function handleSendSats() {
-        console.log("lnAddress:", lnAddress);
         // Hier rufen Sie sendZap statt sendSatsLNurl auf
         if (lnAddress && satsAmount > 0) {
             sendZap(
                 lnAddress,
                 satsAmount,
-                "Zahlung für Angebot",
-                ["wss://relay.damus.io", "wss://relay.plebstr.com"],
+                "Zahlung für Angebot", $nostrManager.relays,
                 offerEvent.id,
             )
                 .then((response) => {

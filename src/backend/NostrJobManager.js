@@ -20,9 +20,92 @@ class NostrJobManager {
   }
 
   subscribeToStore(store, updateFunction) {
+    if (!store) {
+      return;
+    }
+    console.log(store);
     const unsubscribe = store.subscribe(updateFunction);
     return unsubscribe; // Rückgabe der Unsubscribe-Funktion für spätere Aufräumaktionen
   }
+
+  async subscribeToUserJobsAndOffers(publicKey) {
+    if (!publicKey) {
+      console.error("Public key is required to subscribe to jobs and offers.");
+      return;
+    }
+
+    if (!this.manager) {
+      console.error("NostrManager is not initialized.");
+      return;
+    }
+
+    // Abonniere eigene Job-Postings und Angebote
+    this.manager.subscribeToEvents({
+      kinds: [NOSTR_KIND_JOB],
+      authors: [publicKey],
+      "#t": ["job"],
+      "#t": ["offer"],
+      "#s": ["bitspark"],
+    });
+  }
+
+  async fetchUserJobsAndOffers(publicKey) {
+    if (!publicKey) {
+      console.error("Public key is required to fetch jobs and offers.");
+      return [];
+    }
+    let jobIdsFromOffers = new Set();
+    let jobs = this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      authors: [publicKey],
+      tags: { s: ["bitspark"], t: ["job"] },
+    });
+
+    // Offers abrufen und Job-IDs extrahieren
+    const offers = this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      authors: [publicKey],
+      tags: { s: ["bitspark"], t: ["offer"] },
+    });
+
+    offers.forEach((offer) => {
+      const jobIdTag = offer.tags.find((tag) => tag[0] === "e");
+      if (jobIdTag) {
+        jobIdsFromOffers.add(jobIdTag[1]);
+      }
+    });
+
+    // Jobs für extrahierte Job-IDs abonnieren
+    jobIdsFromOffers.forEach((jobId) => {
+      this.manager.subscribeToEvents({
+        kinds: [NOSTR_KIND_JOB],
+        ids: [jobId],
+        "#s": ["bitspark"],
+        "#t": ["job"],
+      });
+    });
+
+    let uniqueJobsMap = new Map();
+
+    // Jobs zu Map hinzufügen (Duplikate werden entfernt)
+    jobs.forEach((job) => {
+      uniqueJobsMap.set(job.id, job);
+    });
+
+    // Jobs aus Job-IDs von Offers hinzufügen
+    jobIdsFromOffers.forEach((jobId) => {
+      const job = this.cache.getEventById(jobId);
+      if (job) {
+        uniqueJobsMap.set(job.id, job);
+      }
+    });
+
+    // Umwandeln der Map in Array und Sortierung
+    jobs = Array.from(uniqueJobsMap.values());
+    jobs.sort((a, b) => b.created_at - a.created_at);
+    return jobs;
+  }
+
 
   subscribeIdea(ideaId) {
     if (!ideaId) {
@@ -386,27 +469,27 @@ class NostrJobManager {
 
   async handlePRResponse(prId, isAccepted) {
     if (!this.manager || !this.manager.write_mode) {
-        console.error("NostrManager is not ready or write mode is not enabled.");
-        return;
+      console.error("NostrManager is not ready or write mode is not enabled.");
+      return;
     }
 
     if (!prId) {
-        console.error("PR ID is required to handle PR response.");
-        return;
+      console.error("PR ID is required to handle PR response.");
+      return;
     }
 
     // Lade das PR-Event, um die Job- und Offer-IDs zu extrahieren
     const prEvent = await this.cache.getEventById(prId);
     if (!prEvent) {
-        console.error("PR event not found.");
-        return;
+      console.error("PR event not found.");
+      return;
     }
 
     const jobIdTag = prEvent.tags.find(tag => tag[0] === "e");
     const offerIdTag = prEvent.tags.find(tag => tag[0] === "o");
     if (!jobIdTag || !offerIdTag) {
-        console.error("Job ID or Offer ID tag missing in PR event.");
-        return;
+      console.error("Job ID or Offer ID tag missing in PR event.");
+      return;
     }
 
     const jobId = jobIdTag[1];
@@ -415,21 +498,21 @@ class NostrJobManager {
     const witnessEventString = btoa(JSON.stringify(prEvent)); // Kodiere das PR-Event als Witness-String
 
     const tags = [
-        ["s", "bitspark"],
-        ["t", responseType],
-        ["o", offerId],
-        ["e", jobId],
-        ["pr", prId],
-        ["witness", witnessEventString]
+      ["s", "bitspark"],
+      ["t", responseType],
+      ["o", offerId],
+      ["e", jobId],
+      ["pr", prId],
+      ["witness", witnessEventString]
     ];
 
     try {
-        await this.manager.sendEvent(NOSTR_KIND_JOB, isAccepted ? "PR accepted" : "PR declined", tags);
-        console.log(`PR response '${isAccepted ? "accepted" : "declined"}' sent successfully for PR ID:`, prId);
+      await this.manager.sendEvent(NOSTR_KIND_JOB, isAccepted ? "PR accepted" : "PR declined", tags);
+      console.log(`PR response '${isAccepted ? "accepted" : "declined"}' sent successfully for PR ID:`, prId);
     } catch (error) {
-        console.error(`Error sending PR response '${isAccepted ? "accepted" : "declined"}' for PR ID:`, prId, error);
+      console.error(`Error sending PR response '${isAccepted ? "accepted" : "declined"}' for PR ID:`, prId, error);
     }
-}
+  }
 
 
   // Aufräumfunktion, um die Subscriptions zu beenden
