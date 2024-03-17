@@ -71,7 +71,7 @@ class SocialMediaManager {
   }
 
   subscribeProfiles(pubkeys) {
-    if (!pubkey) {
+    if (!pubkeys) {
       console.error("Public key is required to subscribe to a profile.");
       return;
     }
@@ -87,7 +87,7 @@ class SocialMediaManager {
       authors: pubkeys,
     });
 
-    console.log(`Subscribed to profile updates for pubkey: ${pubkey}`);
+    console.log(`Subscribed to profile updates for pubkey: ${pubkeys}`);
   }
 
   // Aufräumfunktion, um die Subscriptions zu beenden
