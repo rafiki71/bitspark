@@ -4,6 +4,7 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+    import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     export let event;
 
@@ -17,79 +18,35 @@
     let declineButtonColor = "#F44336"; // Rot für Ablehnen
     let statusTextColor = "#333333"; // Dunkelgrau für normalen Status
     let isJobCreator = false;
+    let isJobApproved = false;
     let offerStatus = "pending"; // "accepted", "declined", "pending"
 
     async function checkOfferStatus() {
-        offerStatus = "pending";
-        const responses = $nostrCache.getEventsByCriteria({
-            kinds: [NOSTR_KIND_JOB],
-            tags: {
-                o: [event.id],
-                t: ["ao", "do"],
-                s: ["bitspark"],
-            },
-        });
-
-        if (responses.length > 0) {
-            offerStatus =
-                responses[0].tags.find((tag) => tag[0] === "t")[1] === "ao"
-                    ? "accepted"
-                    : "declined";
-        }
+        offerStatus = await nostrJobManager.checkOfferStatus(event.id);
     }
 
     async function handleAccept() {
-        await postResponse("ao", "accepted");
+        await nostrJobManager.replyOffer(event.id, true);
     }
-
+    
     async function handleDecline() {
-        await postResponse("do", "declined");
-    }
-
-    async function postResponse(responseType, content) {
-        if (!$nostrManager || !$nostrManager.write_mode) return;
-
-        const jobId = event.tags.find((tag) => tag[0] === "e")?.[1];
-        const offerId = event.id;
-        const witnessEventString = btoa(JSON.stringify(event)); // Kodiert das Event in einen Base64-String
-
-        const tags = [
-            ["t", responseType],
-            ["e", jobId],
-            ["o", offerId],
-            ["s", "bitspark"],
-            ["witness", witnessEventString],
-        ];
-
-        try {
-            await $nostrManager.sendEvent(NOSTR_KIND_JOB, content, tags);
-            console.log("Response sent successfully");
-        } catch (error) {
-            console.error("Error sending response:", error);
-        }
+        await nostrJobManager.replyOffer(event.id, false);
     }
 
     onMount(async () => {
         await checkIfJobCreator();
+        await checkIfJobApproved();
         await checkOfferStatus();
     });
 
+    async function checkIfJobApproved() {
+        const jobId = event.tags.find((tag) => tag[0] === "e")?.[1];
+        isJobApproved = await nostrJobManager.getJobApprovalStatus(jobId) === "job_approved" ;
+    }
+    
     async function checkIfJobCreator() {
         const jobId = event.tags.find((tag) => tag[0] === "e")?.[1];
-        if (jobId) {
-            const jobEvents = $nostrCache.getEventsByCriteria({
-                kinds: [NOSTR_KIND_JOB], // Annahme, dass NOSTR_KIND_JOB das Kind für Job-Postings ist
-                ids: [jobId],
-                tags: {
-                    s: ["bitspark"],
-                },
-            });
-
-            if (jobEvents.length > 0) {
-                const jobEvent = jobEvents[0];
-                isJobCreator = jobEvent.pubkey === $nostrManager.publicKey;
-            }
-        }
+        isJobCreator = await nostrJobManager.isCreator(jobId, $nostrManager.publicKey)
     }
 
     function formatReqTime(time) {
@@ -113,7 +70,7 @@
     }
 
     // Reaktive Anweisungen
-    $: $nostrCache && checkOfferStatus();
+    $: $nostrCache && checkOfferStatus() && checkIfJobApproved();
     $: backgroundColor =
         offerStatus === "accepted"
             ? "#E8F4FA"
@@ -140,7 +97,7 @@
         <h3 class="sats-amount" style="color: {satsColor};">{sats} Sats</h3>
         <p class="offer-time">{@html formatReqTime(reqTime)}</p>
         <p class="offer-msg">{offerMsg}</p>
-        {#if isJobCreator && offerStatus === "pending"}
+        {#if isJobApproved && isJobCreator && offerStatus === "pending"}
             <div class="offer-actions">
                 <button
                     on:click={handleAccept}

@@ -55,8 +55,8 @@
     };
   }
 
-  function fetchCreatorProfile() {
-    creator_profile = socialMediaManager.getProfile(idea.pubkey)
+  async function fetchCreatorProfile() {
+    creator_profile = await socialMediaManager.getProfile(idea.pubkey)
   }
 
   async function deleteIdea() {

@@ -38,9 +38,8 @@
       fetchedEvents.map(async (idea) => {
         const card = transformIdeaToCard(idea);
 
-        let profile = socialMediaManager.getProfile(idea.pubkey);
-
-        if (profile.verified) {
+        let profile = await socialMediaManager.getProfile(idea.pubkey);
+        if (profile && profile.verified) {
           tempVerifiedCards.push(card);
         } else {
           tempUnverifiedCards.push(card);

@@ -3,10 +3,6 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
-    import {
-        NOSTR_KIND_JOB,
-        NOSTR_KIND_IDEA,
-    } from "../../constants/nostrKinds";
     import { navigate } from "svelte-routing";
     import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
@@ -45,7 +41,6 @@
     }
 
     async function checkJobApprovalStatus() {
-        // console.log("ideaId:", ideaId);
         jobApprovalStatus = await nostrJobManager.getJobApprovalStatus(
             event.id,
         );
@@ -83,25 +78,19 @@
     }
 </script>
 
-<BaseBubble
-    {event}
-    showRatingButton={false}
-    {backgroundColor}
-    textColor="#ffffff"
->
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="job-content" on:click={() => navigate(`/idea/${ideaId}`)}>
+<BaseBubble {event} showRatingButton={false} {backgroundColor} textColor="#ffffff">
+    <div class="job-content">
         <h3>{jobTitle}</h3>
-        {@html jobDescription}
+        <p>{@html jobDescription}</p>
         {#if jobApprovalStatus === "pending" && isIdeaCreator}
-            <button
-                on:click={() => handleApprovalChange(true)}
-                class="approve-button">Approve</button
-            >
-            <button
-                on:click={() => handleApprovalChange(false)}
-                class="decline-button">Decline</button
-            >
+            <div class="action-buttons">
+                <button
+                    on:click={() => handleApprovalChange(true)}
+                    class="approve-button">Approve</button>
+                <button
+                    on:click={() => handleApprovalChange(false)}
+                    class="decline-button">Decline</button>
+            </div>
         {/if}
     </div>
 </BaseBubble>
@@ -109,6 +98,8 @@
 <style>
     .job-content {
         max-width: 100%;
+        display: flex;
+        flex-direction: column; /* Ordnet die Inhalte vertikal an */
     }
 
     .job-content h3 {
@@ -121,19 +112,22 @@
         color: #ffffff;
     }
 
+    .action-buttons {
+        margin-top: 10px; /* Fügt Abstand zwischen Beschreibung und Buttons hinzu */
+        display: flex;
+        gap: 10px; /* Definiert einen Abstand zwischen den Buttons */
+    }
+
     button {
-        margin-top: 10px;
-        margin-right: 10px;
         cursor: pointer;
         padding: 8px 16px;
         border: none;
         border-radius: 20px;
         color: #ffffff;
         font-weight: bold;
-        transition:
-            background-color 0.3s,
-            box-shadow 0.3s;
+        transition: background-color 0.3s, box-shadow 0.3s;
         outline: none;
+        flex-grow: 1; /* Lässt Buttons die verfügbare Breite ausfüllen */
     }
 
     button:hover {
@@ -144,13 +138,11 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    /* Spezifische Farben für Approve und Decline Buttons */
     .approve-button {
         background-color: #f7931a;
     }
 
-    .approve-button:hover,
-    .approve-button:focus {
+    .approve-button:hover, .approve-button:focus {
         background-color: #be7113;
     }
 
@@ -158,8 +150,7 @@
         background-color: #6c8cd5;
     }
 
-    .decline-button:hover,
-    .decline-button:focus {
+    .decline-button:hover, .decline-button:focus {
         background-color: #394a72;
     }
 </style>
