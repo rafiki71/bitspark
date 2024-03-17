@@ -44,13 +44,13 @@ class NostrJobManager {
     console.log(`Subscribed to idea updates for ideaId: ${ideaId}`);
   }
 
-  async isCreator(ideaId, userPubKey) {
-    if (!ideaId) {
+  async isCreator(eventId, userPubKey) {
+    if (!eventId) {
       console.error("Idea ID is required to check if the user is the idea creator.");
       return false;
     }
 
-    const creator = await this.getCreator(ideaId);
+    const creator = await this.getCreator(eventId);
     if (userPubKey === creator) {
       console.log("User is the idea creator.");
       return true;
@@ -60,14 +60,14 @@ class NostrJobManager {
     }
   }
 
-  async getCreator(ideaId) {
-    if (!ideaId) {
+  async getCreator(eventID) {
+    if (!eventID) {
       console.error("Idea ID is required to check if the user is the idea creator.");
       return false;
     }
 
-    const ideaEvent = await this.cache.getEventById(ideaId);
-    if(!ideaEvent) {
+    const ideaEvent = await this.cache.getEventById(eventID);
+    if (!ideaEvent) {
       // this.manager.subscribeIdea(ideaId);
       return;
     }
@@ -165,6 +165,81 @@ class NostrJobManager {
       console.log("Rating submitted successfully");
     } catch (error) {
       console.error("Error submitting rating:", error);
+    }
+  }
+
+  async checkOfferStatus(offerId) {
+    if (!offerId) {
+      console.error("Offer ID is required to check the offer status.");
+      return "pending";
+    }
+
+    const responses = await this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      tags: {
+        o: [offerId],
+        t: ["ao", "do"],
+        s: ["bitspark"],
+      },
+    });
+
+    if (responses.length > 0) {
+      const statusTag = responses[0].tags.find(tag => tag[0] === "t")[1];
+      return statusTag === "ao" ? "accepted" : "declined";
+    }
+
+    return "pending";
+  }
+
+  async getJobId(offerId) {
+    if (!offerId) {
+      console.error("Offer ID is required to get the job ID.");
+      return null;
+    }
+
+    const offerEvent = await this.cache.getEventById(offerId);
+    if (!offerEvent) {
+      console.error("Offer event not found.");
+      return null;
+    }
+
+    const jobIdTag = offerEvent.tags.find(tag => tag[0] === "e");
+    if (!jobIdTag) {
+      console.error("Job ID tag not found in the offer event.");
+      return null;
+    }
+
+    return jobIdTag[1];
+  }
+
+  async replyOffer(offerId, accept) {
+    if (!this.manager || !this.manager.write_mode) {
+      console.error("NostrManager is not ready or write mode is not enabled.");
+      return;
+    }
+
+    const jobId = await this.getJobId(offerId);
+    if (!jobId) {
+      console.error("Unable to retrieve job ID from offer ID:", offerId);
+      return;
+    }
+
+    const responseType = accept ? "ao" : "do";
+    const content = accept ? "accepted" : "declined";
+
+    const tags = [
+      ["t", responseType],
+      ["e", jobId],
+      ["o", offerId],
+      ["s", "bitspark"],
+      // Die Verwendung eines "witness" Tags könnte von der Logik und den Anforderungen der Anwendung abhängen
+    ];
+
+    try {
+      await this.manager.sendEvent(NOSTR_KIND_JOB, content, tags);
+      console.log(`Response ${content} sent successfully for offerId: ${offerId}`);
+    } catch (error) {
+      console.error("Error sending response:", error);
     }
   }
 
