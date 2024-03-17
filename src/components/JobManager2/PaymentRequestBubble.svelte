@@ -74,12 +74,13 @@
 
     async function loadOfferCreatorProfile() {
         if (offerEvent) {
-            offerCreatorProfile = socialMediaManager.getProfile(offerEvent.pubkey);
+            offerCreatorProfile = await socialMediaManager.getProfile(offerEvent.pubkey);
             lnAddress = offerCreatorProfile.lud16 || "No LN Address";
         }
     }
 
     function handleSendSats() {
+        console.log("lnAddress:", lnAddress);
         // Hier rufen Sie sendZap statt sendSatsLNurl auf
         if (lnAddress && satsAmount > 0) {
             sendZap(

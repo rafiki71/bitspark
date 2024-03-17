@@ -44,6 +44,22 @@ class NostrJobManager {
     console.log(`Subscribed to idea updates for ideaId: ${ideaId}`);
   }
 
+  async loadJobEvent(jobId) {
+    if (!jobId) {
+      console.error("Job ID is required to load job event.");
+      return null;
+    }
+
+    const jobEvent = await this.cache.getEventById(jobId);
+    if (!jobEvent) {
+      console.error("Job event not found.");
+      return null;
+    }
+
+    return jobEvent;
+  }
+
+
   async isCreator(eventId, userPubKey) {
     if (!eventId) {
       console.error("Idea ID is required to check if the user is the idea creator.");
@@ -323,6 +339,97 @@ class NostrJobManager {
       return null;
     }
   }
+
+  async checkPRStatus(prId) {
+    if (!prId) {
+      console.error("PR ID is required to check PR status.");
+      return "pending";
+    }
+
+    // Lade das PR-Event, um die Job- und Offer-IDs zu extrahieren
+    const prEvent = await this.cache.getEventById(prId);
+    if (!prEvent) {
+      console.error("PR event not found.");
+      return "pending";
+    }
+
+    const jobIdTag = prEvent.tags.find(tag => tag[0] === "e");
+    const offerIdTag = prEvent.tags.find(tag => tag[0] === "o");
+    if (!jobIdTag || !offerIdTag) {
+      console.error("Job ID or Offer ID tag missing in PR event.");
+      return "pending";
+    }
+
+    const jobId = jobIdTag[1];
+    const offerId = offerIdTag[1];
+
+    // Suche nach Events, die den Status des PR festlegen
+    const responses = await this.cache.getEventsByCriteria({
+      kinds: [NOSTR_KIND_JOB],
+      tags: {
+        e: [jobId],
+        pr: [prId],
+        o: [offerId],
+        t: ["apr", "dpr"],
+      },
+    });
+
+    // Bestimme den Status basierend auf dem neuesten relevanten Event
+    if (responses.length > 0) {
+      const latestResponse = responses[responses.length - 1]; // Nehme das neueste Event
+      const statusTag = latestResponse.tags.find(tag => tag[0] === "t")[1];
+      return statusTag === "apr" ? "accepted" : "declined";
+    }
+
+    return "pending";
+  }
+
+  async handlePRResponse(prId, isAccepted) {
+    if (!this.manager || !this.manager.write_mode) {
+        console.error("NostrManager is not ready or write mode is not enabled.");
+        return;
+    }
+
+    if (!prId) {
+        console.error("PR ID is required to handle PR response.");
+        return;
+    }
+
+    // Lade das PR-Event, um die Job- und Offer-IDs zu extrahieren
+    const prEvent = await this.cache.getEventById(prId);
+    if (!prEvent) {
+        console.error("PR event not found.");
+        return;
+    }
+
+    const jobIdTag = prEvent.tags.find(tag => tag[0] === "e");
+    const offerIdTag = prEvent.tags.find(tag => tag[0] === "o");
+    if (!jobIdTag || !offerIdTag) {
+        console.error("Job ID or Offer ID tag missing in PR event.");
+        return;
+    }
+
+    const jobId = jobIdTag[1];
+    const offerId = offerIdTag[1];
+    const responseType = isAccepted ? "apr" : "dpr"; // "apr" für Akzeptanz, "dpr" für Ablehnung
+    const witnessEventString = btoa(JSON.stringify(prEvent)); // Kodiere das PR-Event als Witness-String
+
+    const tags = [
+        ["s", "bitspark"],
+        ["t", responseType],
+        ["o", offerId],
+        ["e", jobId],
+        ["pr", prId],
+        ["witness", witnessEventString]
+    ];
+
+    try {
+        await this.manager.sendEvent(NOSTR_KIND_JOB, isAccepted ? "PR accepted" : "PR declined", tags);
+        console.log(`PR response '${isAccepted ? "accepted" : "declined"}' sent successfully for PR ID:`, prId);
+    } catch (error) {
+        console.error(`Error sending PR response '${isAccepted ? "accepted" : "declined"}' for PR ID:`, prId, error);
+    }
+}
 
 
   // Aufräumfunktion, um die Subscriptions zu beenden

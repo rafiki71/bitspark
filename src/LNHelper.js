@@ -18,7 +18,7 @@ export async function sendZap(lightningAddress, satoshi, comment, relays, eventI
     await ln.fetch();
 
     if (!ln.nostrPubkey) {
-      throw new Error("Nostr pubkey missing for the lightning address.");
+      throw new Error("Nostr pubkey missing for the lightning address.", lightningAddress);
     }
 
     const zapArgs = {
