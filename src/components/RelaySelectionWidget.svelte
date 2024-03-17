@@ -13,39 +13,16 @@
 
   onMount(async () => {
     await initialize();
-    setFetchedRelays();
   });
-
-  function setFetchedRelays() {
-    if ($nostrManager) {
-      relays = fetchRelays();
-    }
-  }
 
   async function initialize() {
     if ($nostrManager) {
-      $nostrManager.subscribeToEvents({
-        kinds: [10002],
-        authors: [$nostrManager.publicKey],
-      });
+      relays = $nostrManager.relays;
     }
   }
 
   $: $nostrManager, initialize();
-  $: $nostrCache, setFetchedRelays();
-
-  function fetchRelays() {
-    const relayEvents = $nostrCache.getEventsByCriteria({
-      kinds: [10002],
-      authors: [$nostrManager.publicKey],
-    });
-    return relayEvents.flatMap((event) =>
-      event.tags.filter((tag) => tag[0] === "r").map((tag) => tag[1]),
-    );
-  }
-  onDestroy(() => {
-    $nostrManager.unsubscribeAll();
-  });
+  $: $nostrCache, initialize();
 
   function addRelay() {
     if (newRelay.trim() && !relays.includes(newRelay)) {
@@ -87,7 +64,7 @@
     if (!$nostrManager || !$nostrManager.write_mode) return;
 
     // Holen Sie die aktuellen Relays aus dem Cache
-    const existingRelays = await fetchRelays();
+    const existingRelays = $nostrManager.relays;
     console.log("existingRelays:", existingRelays);
 
     const existingRelaysSet = new Set(existingRelays);

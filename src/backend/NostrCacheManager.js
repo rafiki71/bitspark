@@ -111,10 +111,10 @@ export class NostrCacheManager {
             return;
         }
     }
-    
+
     unsubscribeEvent(criteria) {
         const subscriptionKey = this.generateSubscriptionKey(criteria);
-    
+
         // Check if a subscription exists for these criteria.
         if (this.subscriptions.has(subscriptionKey)) {
             try {
@@ -147,5 +147,5 @@ export class NostrCacheManager {
     }
 
     // Methode zum Beenden aller Abonnements
-    
+
 }
