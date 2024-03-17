@@ -4,85 +4,22 @@
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
     import { createEventDispatcher } from "svelte";
-    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+    import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     const dispatch = createEventDispatcher();
     let jobs = [];
-    let jobIdsFromOffers = new Set();
 
     // Abonnieren von eigenen Job-Postings und Offers
-    function subscribeToJobsAndOffers() {
+    async function subscribeToJobsAndOffers() {
         if ($nostrManager && $nostrManager.publicKey) {
-            // Eigene Job-Postings
-            $nostrManager.subscribeToEvents({
-                kinds: [NOSTR_KIND_JOB],
-                authors: [$nostrManager.publicKey],
-                "#t": ["job"],
-                "#s": ["bitspark"],
-            });
-
-            // Eigene Offers
-            $nostrManager.subscribeToEvents({
-                kinds: [NOSTR_KIND_JOB], // Kind für Offers
-                authors: [$nostrManager.publicKey],
-                "#t": ["offer"],
-                "#s": ["bitspark"],
-            });
+            nostrJobManager.subscribeToUserJobsAndOffers($nostrManager.publicKey);
         }
     }
 
     // Abrufen von Jobs und Offers aus dem Cache
-    function fetchJobsAndOffers() {
+    async function fetchJobsAndOffers() {
         if ($nostrCache && $nostrManager && $nostrManager.publicKey) {
-            // Jobs abrufen
-            jobs = $nostrCache.getEventsByCriteria({
-                kinds: [NOSTR_KIND_JOB],
-                authors: [$nostrManager.publicKey],
-                tags: { s: ["bitspark"], t: ["job"] },
-            });
-
-            // Offers abrufen und Job-IDs extrahieren
-            const offers = $nostrCache.getEventsByCriteria({
-                kinds: [NOSTR_KIND_JOB],
-                authors: [$nostrManager.publicKey],
-                tags: { s: ["bitspark"], t: ["offer"] },
-            });
-
-            offers.forEach((offer) => {
-                const jobIdTag = offer.tags.find((tag) => tag[0] === "e");
-                if (jobIdTag) {
-                    jobIdsFromOffers.add(jobIdTag[1]);
-                }
-            });
-
-            // Jobs für extrahierte Job-IDs abonnieren
-            jobIdsFromOffers.forEach((jobId) => {
-                $nostrManager.subscribeToEvents({
-                    kinds: [NOSTR_KIND_JOB],
-                    ids: [jobId],
-                    "#s": ["bitspark"],
-                    "#t": ["job"],
-                });
-            });
-
-            let uniqueJobsMap = new Map();
-
-            // Jobs zu Map hinzufügen (Duplikate werden entfernt)
-            jobs.forEach((job) => {
-                uniqueJobsMap.set(job.id, job);
-            });
-
-            // Jobs aus Job-IDs von Offers hinzufügen
-            jobIdsFromOffers.forEach((jobId) => {
-                const job = $nostrCache.getEventById(jobId);
-                if (job) {
-                    uniqueJobsMap.set(job.id, job);
-                }
-            });
-
-            // Umwandeln der Map in Array und Sortierung
-            jobs = Array.from(uniqueJobsMap.values());
-            jobs.sort((a, b) => b.created_at - a.created_at);
+            jobs = await nostrJobManager.fetchUserJobsAndOffers($nostrManager.publicKey)
         }
     }
 

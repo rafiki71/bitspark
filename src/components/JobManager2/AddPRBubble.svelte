@@ -3,33 +3,30 @@
     import { onMount } from "svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
+    import { nostrJobManager } from "../../backend/NostrJobManager.js";
 
     export let event;
     let offer;
+    let offerId;
     let isOfferCreator = false;
     let prUrl = "";
 
     onMount(async () => {
         await loadOffer();
-        checkIfOfferCreator();
+        await checkIfOfferCreator();
     });
 
     async function loadOffer() {
-        const offerId = event.tags.find(tag => tag[0] === 'o')[1];
-        const offerEvents = $nostrCache.getEventsByCriteria({
-            kinds: [NOSTR_KIND_JOB],
-            ids: [offerId],
-        });
-
-        if (offerEvents && offerEvents.length > 0) {
-            offer = offerEvents[0];
-        }
+        offerId = event.tags.find(tag => tag[0] === 'o')[1];
+        offer = await nostrJobManager.loadOffer(offerId);
     }
 
-    function checkIfOfferCreator() {
+    async function checkIfOfferCreator() {
         if (offer && $nostrManager.publicKey) {
-            isOfferCreator = offer.pubkey === $nostrManager.publicKey;
+            isOfferCreator = await nostrJobManager.isCreator(
+            offer.id,
+            $nostrManager.publicKey,
+        );
         }
     }
 
@@ -38,24 +35,16 @@
             return;
         }
 
-        const witnessEventString = btoa(JSON.stringify(event)); // Kodiert das Event in einen Base64-String
-
-        const tags = [
-            ["s", "bitspark"], // Tag für Pull Request
-            ["t", "pr"], // Tag für Pull Request
-            ["e", event.tags.find(tag => tag[0] === 'e')[1]], // Job ID
-            ["o", event.tags.find(tag => tag[0] === 'o')[1]], // Offer ID
-            ["pr_url", prUrl], // URL des Pull Requests
-            ["witness", witnessEventString], // URL des Pull Requests
-        ];
-
         try {
-            await $nostrManager.sendEvent(NOSTR_KIND_JOB, "Pull Request submitted", tags);
+            await nostrJobManager.sendPR(offerId, prUrl);
             prUrl = ""; // URL-Feld zurücksetzen
         } catch (error) {
             console.error("Error sending PR:", error);
         }
     }
+
+    $: $nostrCache && loadOffer() && checkIfOfferCreator();
+    
 </script>
 
 {#if isOfferCreator && event.tags.find(tag => tag[0] === 't')[1] === 'ao'}
