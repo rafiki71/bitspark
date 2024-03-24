@@ -4,46 +4,48 @@
     import UserIdeas from "../components/UserIdeas.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
     import { sidebarOpen } from "../helperStore.js";
-    import Banner from "../components/Banner.svelte";
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
     import ReviewWidget from "../components/ReviewWidget.svelte";
     import ProfileWidget from "../components/ProfileWidget.svelte";
+    import ProfileBannerWidget from "../components/Widgets/Banner/ProfileBannerWidget.svelte";
 
     export let profile_id;
 
     let profile = null;
     let name = "";
     let banner = "";
-    let ghUser = "";
-    let lnAddress = "";
+    let githubUsername = "";
+    let lightningAddress = "";
     let githubRepo = "";
+
+    let contentContainerClass = "combined-content-container";
 
     onMount(() => {
         initialize();
     });
 
     function initialize() {
-        if ($nostrManager) {
-            socialMediaManager.subscribeProfile(profile_id);
-            updateProfile();
+        if (!$nostrManager) {
+            return;
         }
+        socialMediaManager.subscribeProfile(profile_id);
+        fetchProfile();
     }
 
     onDestroy(() => {
-        if ($nostrManager) {
-            $nostrManager.unsubscribeAll();
+        if (!$nostrManager) {
+            return;
         }
+        $nostrManager.unsubscribeAll();
     });
 
-    $: $nostrManager, initialize();
-    $: $nostrCache, updateProfile();
-    $: profile_id, initialize();
-    $: profile_id, updateProfile();
-
-    async function updateProfile() {
+    async function fetchProfile() {
+        if (!$nostrManager) {
+            return;
+        }
         profile = await socialMediaManager.getProfile(profile_id);
         if (!profile) {
             return;
@@ -51,16 +53,19 @@
 
         name = profile.name;
         banner = profile.banner;
-        ghUser = profile.githubUsername;
-        lnAddress = profile.lud16;
-        if (ghUser) {
-            githubRepo = "https://www.github.com/" + ghUser;
+        githubUsername = profile.githubUsername;
+        lightningAddress = profile.lud16;
+
+        if (githubUsername) {
+            githubRepo = "https://www.github.com/" + githubUsername;
         } else {
             githubRepo = "";
         }
     }
 
-    let contentContainerClass = "combined-content-container";
+    $: $nostrManager, initialize();
+    $: $nostrCache, fetchProfile();
+    $: profile_id, fetchProfile();
 
     $: {
         if ($sidebarOpen) {
@@ -74,14 +79,9 @@
 <main class="overview-page">
     <Menu />
     <div class="flex-grow">
-        <Banner
-            bannerImage={banner}
-            title={name}
-            subtitle={""}
-            show_right_text={false}
-        />
+        <ProfileBannerWidget {profile_id} />
 
-        <ToolBar bind:lnAddress {githubRepo} />
+        <ToolBar lnAddress={lightningAddress} {githubRepo} />
 
         <div class={contentContainerClass}>
             <ProfileWidget userPubKey={profile_id} />
