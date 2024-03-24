@@ -52,6 +52,7 @@
 
     const profilePromises = commentEvents.map(async (event) => {
       let profile = await socialMediaManager.getProfile(event.pubkey);
+      if(!profile) return;
 
       return {
         id: event.id,
@@ -65,6 +66,7 @@
 
     try {
       comments = await Promise.all(profilePromises);
+      comments = comments.filter(comment => comment != null);
     } catch (error) {
       console.error("Error fetching comments data:", error);
     }

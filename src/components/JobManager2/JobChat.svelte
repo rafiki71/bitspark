@@ -10,6 +10,7 @@
   import { socialMediaManager } from "../../backend/SocialMediaManager.js";
   import ReviewBubble from "./ReviewBubble.svelte";
   import { NOSTR_KIND_JOB } from '../../constants/nostrKinds';
+  import { nostrJobManager } from "../../backend/NostrJobManager";
 
   export let selectedJob;
 
@@ -115,12 +116,7 @@
   }
 
   $: if (selectedJob) {
-    $nostrManager.subscribeToEvents({
-      kinds: [NOSTR_KIND_JOB],
-      "#e": [selectedJob.id],
-      "#s": ["bitspark"],
-    });
-
+    nostrJobManager.subscribeJobRelatedEvents(selectedJob.id);
     subscribeAuthorsFromEvents();
     subscribeToOfferZaps();
     updateBubbles();

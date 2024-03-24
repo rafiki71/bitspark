@@ -25,11 +25,11 @@
     }
 
     async function handleAccept() {
-        await nostrJobManager.replyOffer(event.id, true);
+        await nostrJobManager.setOfferApprovalStatus(event.id, true);
     }
     
     async function handleDecline() {
-        await nostrJobManager.replyOffer(event.id, false);
+        await nostrJobManager.setOfferApprovalStatus(event.id, false);
     }
 
     onMount(async () => {
