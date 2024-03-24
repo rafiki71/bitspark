@@ -12,14 +12,14 @@
     // Abonnieren von eigenen Job-Postings und Offers
     async function subscribeToJobsAndOffers() {
         if ($nostrManager && $nostrManager.publicKey) {
-            nostrJobManager.subscribeToUserJobsAndOffers($nostrManager.publicKey);
+            nostrJobManager.subscribeUserRelatedJobs($nostrManager.publicKey);
         }
     }
 
     // Abrufen von Jobs und Offers aus dem Cache
     async function fetchJobsAndOffers() {
         if ($nostrCache && $nostrManager && $nostrManager.publicKey) {
-            jobs = await nostrJobManager.fetchUserJobsAndOffers($nostrManager.publicKey)
+            jobs = await nostrJobManager.fetchUserRelatedJobs($nostrManager.publicKey)
         }
     }
 
