@@ -5,14 +5,15 @@
   import CommentWidget from "../components/CommentWidget.svelte";
   import JobWidget from "../components/JobWidget.svelte";
   import Footer from "../components/Footers/FooterBS.svelte";
-  import Banner from "../components/Banner.svelte";
+  import IdeaBannerWidget from "../components/Widgets/Banner/IdeaBannerWidget.svelte";
+
   import ToolBar from "../components/ToolBar.svelte";
   import { sidebarOpen } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
-  import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
-  import ZapWidget from '../components/ZapWidget.svelte';
+  import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
+  import ZapWidget from "../components/ZapWidget.svelte";
 
   export let id;
 
@@ -21,6 +22,7 @@
 
   async function initialize() {
     if ($nostrManager) {
+
       $nostrManager.subscribeToEvents({
         kinds: [NOSTR_KIND_IDEA],
         "#s": ["bitspark"],
@@ -31,6 +33,7 @@
 
   function fetchIdea() {
     const fetchedIdea = $nostrCache.getEventById(id);
+    console.error(fetchedIdea);
     if (fetchedIdea) {
       idea = transformIdea(fetchedIdea);
     }
@@ -56,7 +59,7 @@
   }
 
   async function fetchCreatorProfile() {
-    creator_profile = await socialMediaManager.getProfile(idea.pubkey)
+    creator_profile = await socialMediaManager.getProfile(idea.pubkey);
   }
 
   async function deleteIdea() {
@@ -98,12 +101,7 @@
 <main class="overview-page">
   <Menu />
   <div class="flex-grow">
-    <Banner
-      bannerImage={idea.bannerImage}
-      title={idea.name}
-      subtitle={idea.subtitle}
-      show_right_text={false}
-    />
+    <IdeaBannerWidget {id} />
     <ToolBar
       lnAddress={idea.lnAdress}
       pubkey={idea.pubkey}
@@ -137,7 +135,7 @@
           </div>
         </div>
       </div>
-        <ZapWidget eventId={id} />
+      <ZapWidget eventId={id} />
       <div class="single-card container">
         <JobWidget ideaID={id} creatorPubKey={idea.pubkey} />
       </div>

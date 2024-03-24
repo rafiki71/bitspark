@@ -1,42 +1,39 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import ProfileImg from "../components/ProfileImg.svelte";
+    import EditProfileWidget from "../components/EditProfileWidget.svelte";
     import Footer from "../components/Footers/FooterBS.svelte";
     import Menu from "../components/Menu.svelte";
     import { sidebarOpen } from "../helperStore.js";
-    import Banner from "../components/Banner.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import ToolBar from "../components/ToolBar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
-    import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
+    import ProfileBannerWidget from "../components/Widgets/Banner/ProfileBannerWidget.svelte";
 
     let profile = null;
     let name = "";
-    let dev_about = "";
-    let lud16 = "";
-    let picture = "";
     let banner = "";
-    let git_username = "";
-    let git_proof = "";
+    let lightningAddress = "";
+    let profile_id = null;
+
+    let contentContainerClass = "combined-content-container";
 
     onMount(() => {
-        if ($nostrManager) {
-            initialize();
-        }
+        initialize();
     });
 
-    $: $nostrManager, initialize();
-    $: $nostrCache, fetchProfile();
-
     function initialize() {
-        if ($nostrManager) {
-            socialMediaManager.subscribeProfile($nostrManager.publicKey);
-            fetchProfile();
+        if (!$nostrManager) {
+            return;
         }
+        socialMediaManager.subscribeProfile($nostrManager.publicKey);
+        fetchProfile();
     }
 
     onDestroy(() => {
+        if (!$nostrManager) {
+            return;
+        }
         $nostrManager.unsubscribeAll();
     });
 
@@ -50,42 +47,13 @@
             return;
         }
         name = profile.name;
-        dev_about = profile.dev_about;
-        picture = profile.picture;
         banner = profile.banner;
-        lud16 = profile.lud16;
-        git_username = profile.githubUsername;
-        git_proof = profile.githubProof;
+        lightningAddress = profile.lud16;
+        profile_id = $nostrManager.publicKey;
     }
 
-    async function updateProfile() {
-        if (!$nostrManager || !$nostrManager.write_mode) return;
-
-        const profileEvent = {
-            kind: 0,
-            content: JSON.stringify({
-                name,
-                picture,
-                banner,
-                dev_about,
-                lud16,
-            }),
-            tags: [["i", `github:${git_username}`, git_proof]],
-        };
-
-        try {
-            await $nostrManager.sendEvent(
-                profileEvent.kind,
-                profileEvent.content,
-                profileEvent.tags,
-            );
-            console.log("Profile updated successfully");
-        } catch (error) {
-            console.error("Error updating profile:", error);
-        }
-    }
-
-    let contentContainerClass = "combined-content-container";
+    $: $nostrManager, initialize();
+    $: $nostrCache, fetchProfile();
 
     $: {
         if ($sidebarOpen) {
@@ -99,114 +67,12 @@
 <main class="overview-page">
     <Menu />
     <div class="flex-grow">
-        <Banner
-            bannerImage={banner}
-            title={name}
-            subtitle={""}
-            show_right_text={false}
-        />
+        <ProfileBannerWidget {profile_id} />
 
-        <ToolBar bind:lud16 githubRepo="" />
+        <ToolBar bind:lightningAddress githubRepo="" />
 
         <div class={contentContainerClass}>
-            <div class="single-card container">
-                <div class="flex justify-center">
-                    <div class="single-card-profile-img">
-                        {#if profile && profile.picture}
-                            <ProfileImg
-                                {profile}
-                                style={{
-                                    position: "absolute",
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    top: "0",
-                                    left: "0",
-                                }}
-                            />
-                        {/if}
-                    </div>
-                </div>
-                <div
-                    class="text-center mt-6 px-6 text-color-df"
-                    style="top: -90px; position: relative"
-                >
-                    <h2 class="base-h2 text-color-df">Edit Profile</h2>
-                    <div
-                        class="single-card-content text-color-df"
-                        style="margin-bottom: 0;"
-                    >
-                        <h5 class="base-h5 text-color-df">Name</h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={name}
-                        />
-                        <h5 class="base-h5 text-color-df">About</h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={dev_about}
-                        />
-
-                        <div class="flex space-x-4">
-                            <div style="width: 50%;">
-                                <h5 class="base-h5 text-color-df">
-                                    Github Username
-                                </h5>
-                                <input
-                                    type="text"
-                                    class="input-style"
-                                    bind:value={git_username}
-                                />
-                            </div>
-
-                            <div style="width: 50%;">
-                                <h5 class="base-h5 text-color-df">
-                                    Github Proof
-                                </h5>
-                                <input
-                                    type="text"
-                                    class="input-style"
-                                    bind:value={git_proof}
-                                />
-                            </div>
-                        </div>
-                        <hr
-                            class="text-blueGray-600"
-                            style="width: 90%; margin: auto; margin-top: 30pt"
-                        />
-                        <h5 class="base-h5 text-color-df">
-                            Profile Picture URL
-                        </h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={picture}
-                        />
-                        <h5 class="base-h5 text-color-df">Banner URL</h5>
-                        <input
-                            type="text"
-                            class="input-style"
-                            bind:value={banner}
-                        />
-                        <hr
-                            class="text-blueGray-600"
-                            style="width: 90%; margin: auto; margin-top: 30pt"
-                        />
-
-                        <RelaySelectionWidget />
-                    </div>
-                </div>
-                <div class="container mx-auto px-4 py-4 flex justify-end">
-                    <button
-                        class="bg-orange-500 text-white font-bold py-2 px-4 rounded"
-                        on:click={updateProfile}
-                    >
-                        Update Profile
-                    </button>
-                </div>
-            </div>
+            <EditProfileWidget {profile} />
         </div>
     </div>
     <Footer />
