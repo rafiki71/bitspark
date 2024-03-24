@@ -41,7 +41,7 @@
     }
 
     async function checkPRStatus() {
-        prStatus = await nostrJobManager.checkPRStatus(event.id);
+        prStatus = await nostrJobManager.getPRStatus(event.id);
         console.log("prStatus:", prStatus);
     }
 

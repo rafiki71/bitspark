@@ -47,6 +47,7 @@
         if (offerId) {
             await zapManager.subscribeZaps(offerId);
             await loadOfferEvent(offerId);
+            fetchZaps();
         }
     });
 

@@ -34,38 +34,32 @@
   }
 
   async function fetchJob() {
-    const jobEvents = $nostrCache.getEventsByCriteria({
-      kinds: [NOSTR_KIND_JOB],
-      ids: [id],
-      tags: { s: ["bitspark"] },
-    });
-
-    if (jobEvents.length > 0) {
-      const latestJobEvent = jobEvents[0];
+    const jobEvent = $nostrCache.getEventById(id);
+    if (jobEvent) {
       job = {
         title:
-          latestJobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
-          "Unknown Title",
+          jobEvent.tags.find((tag) => tag[0] === "jTitle")?.[1] ||
+          "No Title",
         abstract:
-          latestJobEvent.tags.find((tag) => tag[0] === "jAbstract")?.[1] ||
-          "Unknown Abstract",
+          jobEvent.tags.find((tag) => tag[0] === "jAbstract")?.[1] ||
+          "No Abstract",
         requirements:
-          latestJobEvent.tags.find((tag) => tag[0] === "jReq")?.[1] ||
-          "Unknown Requierements",
+          jobEvent.tags.find((tag) => tag[0] === "jReq")?.[1] ||
+          "No Requierements",
         sats:
-          latestJobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
+          jobEvent.tags.find((tag) => tag[0] === "sats")?.[1] || "0 Sats",
         bannerImage:
-          latestJobEvent.tags.find((tag) => tag[0] === "jbUrl")?.[1] ||
+          jobEvent.tags.find((tag) => tag[0] === "jbUrl")?.[1] ||
           "default_image_url",
-        description: latestJobEvent.content,
+        description: jobEvent.content,
       };
-
-      fetchProfile(latestJobEvent.pubkey);
+      fetchProfile(jobEvent.pubkey);
     }
+
   }
 
   async function fetchProfile(pubkey) {
-    creator_profile = socialMediaManager.getProfile(pubkey);
+    creator_profile = await socialMediaManager.getProfile(pubkey);
   }
 
   async function postOffer() {
@@ -130,7 +124,7 @@
   $: $nostrCache && fetchJob();
   $: $nostrManager && initialize();
   $: $nostrCache && $nostrManager && fetchJob();
-
+  $: id, initialize();
 </script>
 
 <main class="overview-page">

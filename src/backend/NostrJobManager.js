@@ -28,7 +28,22 @@ class NostrJobManager {
     return unsubscribe; // Rückgabe der Unsubscribe-Funktion für spätere Aufräumaktionen
   }
 
-  async subscribeToUserJobsAndOffers(publicKey) {
+  async subscribeJobRelatedEvents(jobId) {
+    if (!jobId) return;
+
+    if (!this.manager) {
+      console.error("NostrManager is not initialized.");
+      return;
+    }
+
+    this.manager.subscribeToEvents({
+      kinds: [NOSTR_KIND_JOB],
+      "#e": [jobId],
+      "#s": ["bitspark"],
+    });
+  }
+
+  async subscribeUserRelatedJobs(publicKey) {
     if (!publicKey) {
       console.error("Public key is required to subscribe to jobs and offers.");
       return;
@@ -49,7 +64,7 @@ class NostrJobManager {
     });
   }
 
-  async fetchUserJobsAndOffers(publicKey) {
+  async fetchUserRelatedJobs(publicKey) {
     if (!publicKey) {
       console.error("Public key is required to fetch jobs and offers.");
       return [];
@@ -183,7 +198,7 @@ class NostrJobManager {
 
     const responses = await this.cache.getEventsByCriteria({
       kinds: [NOSTR_KIND_JOB],
-      // authors: [creator],
+      authors: [creator],
       tags: {
         e: [jobId],
         t: ["job_approved", "job_declined"],
@@ -201,7 +216,7 @@ class NostrJobManager {
     }
   }
 
-  async setApprovalStatus(jobId, approval) {
+  async setJobApprovalStatus(jobId, approval) {
     if (!jobId) {
       console.error("Job ID is required to change the approval status.");
       return;
@@ -212,16 +227,18 @@ class NostrJobManager {
       return;
     }
 
-    // //const witnessEventString = btoa(JSON.stringify(event));
+    const event = await this.cache.getEventById(jobId);
+    const witnessEventString = btoa(JSON.stringify(event));
+
     const tags = [
       ["e", jobId],
       ["t", approval ? "job_approved" : "job_declined"],
-      //["witness", witnessEventString]
+      ["witness", witnessEventString],
       ["s", "bitspark"],
     ];
 
     try {
-      await this.manager.sendEvent(NOSTR_KIND_JOB, approval ? "approved" : "declined", tags);
+      await this.manager.sendEvent(NOSTR_KIND_JOB, approval ? "JobApproval" : "JobDecline", tags);
       console.log(`Job approval status changed to ${approval ? "approved" : "declined"}.`);
     } catch (error) {
       console.error("Error changing job approval status:", error);
@@ -311,7 +328,7 @@ class NostrJobManager {
     return jobIdTag[1];
   }
 
-  async replyOffer(offerId, accept) {
+  async setOfferApprovalStatus(offerId, accept) {
     if (!this.manager || !this.manager.write_mode) {
       console.error("NostrManager is not ready or write mode is not enabled.");
       return;
@@ -322,14 +339,18 @@ class NostrJobManager {
       console.error("Unable to retrieve job ID from offer ID:", offerId);
       return;
     }
+    const event = await this.cache.getEventById(offerId);
+    const witnessEventString = btoa(JSON.stringify(event));
 
+    
     const responseType = accept ? "ao" : "do";
-    const content = accept ? "accepted" : "declined";
-
+    const content = accept ? "OfferApproval" : "OfferDecline";
+    
     const tags = [
       ["t", responseType],
       ["e", jobId],
       ["o", offerId],
+      ["witness", witnessEventString],
       ["s", "bitspark"],
       // Die Verwendung eines "witness" Tags könnte von der Logik und den Anforderungen der Anwendung abhängen
     ];
@@ -373,7 +394,7 @@ class NostrJobManager {
     }
 
     // Holen des Events, das das Angebot genehmigt hat
-    const approvalEvent = await this.getApprovalEvent(offerId);
+    const approvalEvent = await this.getOfferApprovalEvent(offerId);
     if (!approvalEvent) {
       console.error("Approval event for the offer not found.");
       return;
@@ -397,7 +418,7 @@ class NostrJobManager {
     ];
 
     try {
-      await this.manager.sendEvent(NOSTR_KIND_JOB, "Pull Request submitted", tags);
+      await this.manager.sendEvent(NOSTR_KIND_JOB, "PR", tags);
       console.log("Pull Request submitted successfully.");
     } catch (error) {
       console.error("Error sending Pull Request:", error);
@@ -405,7 +426,7 @@ class NostrJobManager {
   }
 
   // Diese Hilfsmethode holt das Genehmigungsevent für ein Angebot
-  async getApprovalEvent(offerId) {
+  async getOfferApprovalEvent(offerId) {
     const responses = await this.cache.getEventsByCriteria({
       kinds: [NOSTR_KIND_JOB],
       tags: {
@@ -423,7 +444,7 @@ class NostrJobManager {
     }
   }
 
-  async checkPRStatus(prId) {
+  async getPRStatus(prId) {
     if (!prId) {
       console.error("PR ID is required to check PR status.");
       return "pending";
@@ -507,7 +528,7 @@ class NostrJobManager {
     ];
 
     try {
-      await this.manager.sendEvent(NOSTR_KIND_JOB, isAccepted ? "PR accepted" : "PR declined", tags);
+      await this.manager.sendEvent(NOSTR_KIND_JOB, isAccepted ? "PRApproval" : "PRDecline", tags);
       console.log(`PR response '${isAccepted ? "accepted" : "declined"}' sent successfully for PR ID:`, prId);
     } catch (error) {
       console.error(`Error sending PR response '${isAccepted ? "accepted" : "declined"}' for PR ID:`, prId, error);

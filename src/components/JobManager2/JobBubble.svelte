@@ -64,7 +64,7 @@
             return;
         }
 
-        nostrJobManager.setApprovalStatus(event.id, approval);
+        nostrJobManager.setJobApprovalStatus(event.id, approval);
     }
 
     $: $nostrCache && checkJobApprovalStatus();
