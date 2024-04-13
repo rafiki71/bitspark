@@ -3,7 +3,6 @@
     import ProfileViewImage from "../components/ProfileViewImage.svelte";
     import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { init } from "svelte/internal";
 
     export let profile = null;
     let name = "";

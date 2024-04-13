@@ -13,9 +13,13 @@
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
   import { onDestroy } from "svelte";
   import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
-  import { relaysStore } from '../backend/RelayStore.js';
+  import { relaysStore } from "../backend/RelayStore.js";
 
+  let bannerImage = "../../img/Banner1u.png";
+  let title = "BitSpark";
+  let subtitle = "The idea engine";
   export let category;
+  let contentContainerClass = "combined-content-container";
 
   let verifiedCards = [];
   let unverifiedCards = [];
@@ -39,12 +43,15 @@
       fetchedEvents.map(async (idea) => {
         const card = transformIdeaToCard(idea);
 
-        let profile = socialMediaManager.getProfile(idea.pubkey);
-
-        if (profile.verified) {
-          tempVerifiedCards.push(card);
+        let profile = await socialMediaManager.getProfile(idea.pubkey);
+        if (profile) {
+          if (profile.verified) {
+            tempVerifiedCards.push(card);
+          } else {
+            tempUnverifiedCards.push(card);
+          }
         } else {
-          tempUnverifiedCards.push(card);
+          console.error("profile is null");
         }
       }),
     );
@@ -96,13 +103,13 @@
     fetchAndDisplayIdeas();
   }
 
-  let contentContainerClass = $sidebarOpen
-    ? "content-container sidebar-open"
-    : "content-container";
-
-  let bannerImage = "../../img/Banner1u.png";
-  let title = "BitSpark";
-  let subtitle = "The idea engine";
+  $: {
+    if ($sidebarOpen) {
+      contentContainerClass = "combined-content-container sidebar-open";
+    } else {
+      contentContainerClass = "combined-content-container";
+    }
+  }
 </script>
 
 <main class="overview-page">
@@ -111,33 +118,31 @@
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
     <ToolBar />
     <div class={contentContainerClass}>
-      <section class="content-container relative py-16">
-        <div class="content-container">
-          <div class="container mx-auto px-4">
-            <!-- Anzeigen von verifizierten Ideen -->
-            <div class="row">
-              {#each verifiedCards as card (card.id)}
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
-                  <IdeaCard {card} />
-                </div>
-              {/each}
+      <div class="container mx-auto px-4">
+        <!-- Anzeigen von verifizierten Ideen -->
+        <div class="row">
+          {#each verifiedCards as card (card.id)}
+            <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
+              <IdeaCard {card} />
             </div>
-            <!-- Divider -->
-            <div
-              class="w-full"
-              style="margin-top: 2rem; margin-bottom: 2rem; height: 2px; background-color: gray;"
-            />
-            <!-- Anzeigen von nicht verifizierten Ideen -->
-            <div class="row">
-              {#each unverifiedCards as card (card.id)}
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
-                  <IdeaCard {card} />
-                </div>
-              {/each}
-            </div>
-          </div>
+          {/each}
         </div>
-      </section>
+      </div>
+      <!-- Divider -->
+      <div
+        class="container"
+        style="margin: 2rem auto; height: 2px; background-color: gray;"
+      />
+      <div class="container mx-auto px-4">
+        <!-- Anzeigen von nicht verifizierten Ideen -->
+        <div class="row">
+          {#each unverifiedCards as card (card.id)}
+            <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
+              <IdeaCard {card} />
+            </div>
+          {/each}
+        </div>
+      </div>
     </div>
   </div>
   <Footer />
