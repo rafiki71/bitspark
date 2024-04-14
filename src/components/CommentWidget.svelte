@@ -53,14 +53,13 @@
     const profilePromises = commentEvents.map(async (event) => {
       let profile = await socialMediaManager.getProfile(event.pubkey);
       if(!profile) return;
-
       return {
         id: event.id,
         comment: event.content,
         name: profile.name || "NoName",
         picture: profile.picture || "",
         pubkey: event.pubkey,
-        githubVerified: profile.githubVerified,
+        verified: profile.verified,
       };
     });
 

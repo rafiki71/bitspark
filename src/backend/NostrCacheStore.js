@@ -10,6 +10,46 @@ class NostrEventCache {
     this.authorIndex = new Map();
   }
 
+  // Methode zum Löschen eines Events
+  deleteEvent(eventId) {
+    const event = this.events.get(eventId);
+    if (!event) {
+      console.error("Event to delete not found:", eventId);
+      return false;
+    }
+
+    // Entfernen des Events aus der Haupt-Map
+    this.events.delete(eventId);
+
+    // Entfernen des Events aus dem kindIndex
+    if (event.kind && this.kindIndex.has(event.kind)) {
+      const kindSet = this.kindIndex.get(event.kind);
+      if (kindSet.has(event)) {
+        kindSet.delete(event);
+        // Wenn das Set leer ist, entferne den Eintrag aus der Map
+        if (kindSet.size === 0) {
+          this.kindIndex.delete(event.kind);
+        }
+      }
+    }
+
+    // Entfernen des Events aus dem authorIndex
+    if (event.pubkey && this.authorIndex.has(event.pubkey)) {
+      const authorSet = this.authorIndex.get(event.pubkey);
+      if (authorSet.has(event)) {
+        authorSet.delete(event);
+        // Wenn das Set leer ist, entferne den Eintrag aus der Map
+        if (authorSet.size === 0) {
+          this.authorIndex.delete(event.pubkey);
+        }
+      }
+    }
+
+    console.log("Event deleted successfully:", eventId);
+    return true;
+  }
+
+
   // Methode in der NostrEventCache-Klasse
   // Methode in der NostrEventCache-Klasse
   updateEventAfterAsyncProcessing(eventId, updateFunction) {
@@ -202,6 +242,13 @@ export const nostrCache = writable(cache);
 export const addOrUpdateEvent = (event) => {
   nostrCache.update(cache => {
     cache.addOrUpdateEvent(event);
+    return cache;
+  });
+};
+
+export const deleteEventFromCache = (eventId) => {
+  nostrCache.update(cache => {
+    cache.deleteEvent(eventId);
     return cache;
   });
 };

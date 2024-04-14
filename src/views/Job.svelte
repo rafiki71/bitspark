@@ -103,7 +103,7 @@
   async function deleteJob() {
     const confirmDelete = confirm("Do you really want to delete this idea?");
     if (confirmDelete) {
-      await $nostrManager.sendEvent(5, "", [["e", id]]);
+      await $nostrManager.deleteEvent(id);
     }
   }
 

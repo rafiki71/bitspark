@@ -16,7 +16,6 @@
   import IdeaWidget from "../components/Widgets/IdeaWidget.svelte";
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
 
-
   export let id;
   let creator_profile = null;
   let idea = {};
