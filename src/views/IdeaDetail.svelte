@@ -33,7 +33,6 @@
 
   function fetchIdea() {
     const fetchedIdea = $nostrCache.getEventById(id);
-    console.error(fetchedIdea);
     if (fetchedIdea) {
       idea = transformIdea(fetchedIdea);
     }
@@ -65,7 +64,7 @@
   async function deleteIdea() {
     const confirmDelete = confirm("Do you really want to delete this idea?");
     if (confirmDelete) {
-      await $nostrManager.sendEvent(5, "", [["e", id]]);
+      await $nostrManager.deleteEvent(id);
     }
   }
 
