@@ -1,14 +1,14 @@
 <!-- JobView.svelte -->
 <script>
   import { onMount, onDestroy } from "svelte";
-  import Menu from "../components/Menu.svelte";
+  import Menu from "../components/Sidebar/Sidebar.svelte";
   import CommentWidget from "../components/CommentWidget.svelte";
-  import Footer from "../components/Footers/FooterBS.svelte";
+  import Footer from "../components/Footers/Footer.svelte";
   import Banner from "../components/Banner.svelte";
-  import ToolBar from "../components/ToolBar.svelte";
+  import ToolBar from "../components/Toolbar/Toolbar.svelte";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
-  import { sidebarOpen } from "../helperStore.js";
+  import { contentContainerClass } from "../helperStore.js";
   import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
   import ZapWidget from "../components/ZapWidget.svelte";
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
@@ -107,10 +107,6 @@
     }
   }
 
-  $: contentContainerClass = $sidebarOpen
-    ? "combined-content-container sidebar-open"
-    : "combined-content-container";
-
   onMount(() => {
     initialize();
   });
@@ -139,7 +135,7 @@
 
     <ToolBar />
 
-    <div class={contentContainerClass}>
+    <div class={$contentContainerClass}>
       <div class="container bg-card relative flex flex-col min-w-0 break-words">
         {#if creator_profile && creator_profile.pubkey === $nostrManager?.publicKey}
           <button

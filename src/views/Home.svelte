@@ -3,11 +3,11 @@
   import "websocket-polyfill";
   import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
-  import Menu from "../components/Menu.svelte";
+  import Menu from "../components/Sidebar/Sidebar.svelte";
   import Banner from "../components/Banner.svelte";
-  import Footer from "../components/Footers/FooterBS.svelte";
-  import ToolBar from "../components/ToolBar.svelte";
-  import { sidebarOpen } from "../helperStore.js";
+  import Footer from "../components/Footers/Footer.svelte";
+  import ToolBar from "../components/Toolbar/Toolbar.svelte";
+  import { contentContainerClass } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
   import { socialMediaManager } from "../backend/SocialMediaManager.js";
@@ -19,7 +19,6 @@
   let title = "BitSpark";
   let subtitle = "The idea engine";
   export let category;
-  let contentContainerClass = "combined-content-container";
 
   let verifiedCards = [];
   let unverifiedCards = [];
@@ -102,14 +101,6 @@
   $: if ($nostrManager && $nostrCache) {
     fetchAndDisplayIdeas();
   }
-
-  $: {
-    if ($sidebarOpen) {
-      contentContainerClass = "combined-content-container sidebar-open";
-    } else {
-      contentContainerClass = "combined-content-container";
-    }
-  }
 </script>
 
 <main class="overview-page">
@@ -117,7 +108,7 @@
   <div class="flex-grow">
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
     <ToolBar />
-    <div class={contentContainerClass}>
+    <div class={$contentContainerClass}>
       <div class="container mx-auto px-4">
         <!-- Anzeigen von verifizierten Ideen -->
         <div class="row">

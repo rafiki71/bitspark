@@ -68,7 +68,6 @@
         };
     }
     $: $nostrCache, fetchIdea();
-
     $: $nostrManager, initialize();
 </script>
 

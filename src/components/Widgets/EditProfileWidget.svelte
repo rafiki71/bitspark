@@ -1,8 +1,8 @@
 <script>
     import { onMount } from "svelte";
-    import ProfileViewImage from "../components/ProfileViewImage.svelte";
-    import RelaySelectionWidget from "../components/RelaySelectionWidget.svelte";
-    import { nostrManager } from "../backend/NostrManagerStore.js";
+    import ProfileViewImage from "../ProfileViewImage.svelte";
+    import RelaySelectionWidget from "./RelaySelectionWidget.svelte";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
 
     export let profile = null;
     let name = "";

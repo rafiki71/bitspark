@@ -1,6 +1,5 @@
 <!-- Banner.svelte -->
 <script>
-    import { onMount, onDestroy } from "svelte";
     import { sidebarOpen } from "../helperStore.js";
 
     export let title;
@@ -8,7 +7,6 @@
     export let subtitle;
     export let show_right_text = false;
 
-    onMount(async () => {});
     let titleClass = "title-class";
 
     $: {
@@ -70,19 +68,19 @@
                 </div>
             </div>
         </div>
-            <svg
-                class="diagonal-cut"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="xMinYMin meet"
-                version="1.1"
-                viewBox="0 0 2560 80"
-                x="0"
-                y="0"
-            >
-                <polygon
-                    class="color-for-bg fill-current diagonal-cut"
-                    points="2560 0 2560 80 0 80"
-                />
-            </svg>
+        <svg
+            class="diagonal-cut"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMinYMin meet"
+            version="1.1"
+            viewBox="0 0 2560 80"
+            x="0"
+            y="0"
+        >
+            <polygon
+                class="color-for-bg fill-current diagonal-cut"
+                points="2560 0 2560 80 0 80"
+            />
+        </svg>
     </div>
 </section>
