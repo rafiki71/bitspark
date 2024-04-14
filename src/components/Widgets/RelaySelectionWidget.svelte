@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { nostrManager } from "../backend/NostrManagerStore.js";
-  import { nostrCache } from "../backend/NostrCacheStore.js";
+  import { nostrManager } from "../../backend/NostrManagerStore.js";
+  import { nostrCache } from "../../backend/NostrCacheStore.js";
 
   let default_relays = [
     "wss://relay.damus.io",

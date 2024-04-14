@@ -2,12 +2,12 @@
     import { navigate } from "svelte-routing";
     import { onMount } from "svelte";
     import MultiSelectDropdown from "../components/Dropdowns/MultiSelectDropdown.svelte";
-    import Menu from "../components/Menu.svelte";
+    import Menu from "../components/Sidebar/Sidebar.svelte";
     import { previewJobStore } from "../previewJobStore.js";
-    import Footer from "../components/Footers/FooterBS.svelte";
-    import { sidebarOpen } from "../helperStore.js";
+    import Footer from "../components/Footers/Footer.svelte";
+    import { contentContainerClass } from "../helperStore.js";
     import Banner from "../components/Banner.svelte";
-    import ToolBar from "../components/ToolBar.svelte";
+    import ToolBar from "../components/Toolbar/Toolbar.svelte";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
     import {
@@ -78,15 +78,6 @@
         }
     }
 
-    let contentContainerClass = "combined-content-container";
-    $: {
-        if ($sidebarOpen) {
-            contentContainerClass = "combined-content-container sidebar-open";
-        } else {
-            contentContainerClass = "combined-content-container";
-        }
-    }
-
     let bannerImage = "../../img/Banner1u.png";
     let title = "BitSpark";
     let subtitle = "Post a Job";
@@ -97,7 +88,7 @@
     <div class="flex-grow">
         <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
         <ToolBar />
-        <div class={contentContainerClass}>
+        <div class={$contentContainerClass}>
             <div
                 class="container bg-card relative flex flex-col min-w-0 break-words"
             >

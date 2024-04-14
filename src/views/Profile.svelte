@@ -1,10 +1,10 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import Menu from "../components/Menu.svelte";
+    import Menu from "../components/Sidebar/Sidebar.svelte";
     import UserIdeas from "../components/UserIdeas.svelte";
-    import Footer from "../components/Footers/FooterBS.svelte";
-    import { sidebarOpen } from "../helperStore.js";
-    import ToolBar from "../components/ToolBar.svelte";
+    import Footer from "../components/Footers/Footer.svelte";
+    import { contentContainerClass } from "../helperStore.js";
+    import ToolBar from "../components/Toolbar/Toolbar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
@@ -20,8 +20,6 @@
     let githubUsername = "";
     let lightningAddress = "";
     let githubRepo = "";
-
-    let contentContainerClass = "combined-content-container";
 
     onMount(() => {
         initialize();
@@ -66,14 +64,6 @@
     $: $nostrManager, initialize();
     $: $nostrCache, fetchProfile();
     $: profile_id, fetchProfile();
-
-    $: {
-        if ($sidebarOpen) {
-            contentContainerClass = "combined-content-container sidebar-open";
-        } else {
-            contentContainerClass = "combined-content-container";
-        }
-    }
 </script>
 
 <main class="overview-page">
@@ -83,7 +73,7 @@
 
         <ToolBar lnAddress={lightningAddress} {githubRepo} />
 
-        <div class={contentContainerClass}>
+        <div class={$contentContainerClass}>
             <ProfileWidget userPubKey={profile_id} />
             <UserIdeas {profile_id} />
             <ReviewWidget userPubKey={profile_id} />

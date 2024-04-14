@@ -10,7 +10,7 @@
   }
 </script>
 
-<div class="job-manager-widget">
+<div class="single-card container job-manager-widget">
   <div class="job-list">
     <JobList on:selectJob={handleJobSelection} />
   </div>
@@ -23,15 +23,9 @@
 
 <style>
   .job-manager-widget {
-    display: flex;
     flex-direction: row;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
     overflow: hidden;
     height: 45vh;
-    width: 90%;
-    margin: 1rem auto;
-    background: #fff; /* Setzt eine Hintergrundfarbe */
   }
 
   .job-list {

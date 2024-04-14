@@ -1,13 +1,12 @@
 <!-- IdeaDetail.svelte -->
 <script>
   import { onMount } from "svelte";
-  import { Link } from "svelte-routing";
-  import Menu from "../components/Menu.svelte";
-  import Footer from "../components/Footers/FooterBS.svelte";
-  import { sidebarOpen } from "../helperStore.js";
+  import Menu from "../components/Sidebar/Sidebar.svelte";
+  import Footer from "../components/Footers/Footer.svelte";
+  import { contentContainerClass } from "../helperStore.js";
   import Banner from "../components/Banner.svelte";
   import tutorials from "../Tutorials.js";
-    import ToolBar from "../components/ToolBar.svelte";
+  import ToolBar from "../components/Toolbar/Toolbar.svelte";
 
   export let id;
   let tutorial = null;
@@ -17,15 +16,6 @@
     console.log("done");
   });
 
-  let contentContainerClass = "combined-content-container";
-
-  $: {
-    if ($sidebarOpen) {
-      contentContainerClass = "combined-content-container sidebar-open";
-    } else {
-      contentContainerClass = "combined-content-container";
-    }
-  }
   $: {
     tutorial = tutorials[id];
   }
@@ -41,8 +31,8 @@
         subtitle={tutorial.subtitle}
         show_right_text={false}
       />
-      <ToolBar/>
-      <div class={contentContainerClass}>
+      <ToolBar />
+      <div class={$contentContainerClass}>
         <div class="single-card container">
           <div class="text-center mt-6 px-6">
             <h2 class="base-h2 text-color-df">

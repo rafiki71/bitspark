@@ -2,12 +2,12 @@
 
 <script>
     import { onMount } from "svelte";
-    import ProfileImg from "../components/ProfileImg.svelte";
-    import { sendSatsLNurl } from "../LNHelper.js";
-    import { nostrCache } from "../backend/NostrCacheStore.js";
-    import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { balance } from "../BalanceStore.js";
-    import { socialMediaManager } from "../backend/SocialMediaManager.js";
+    import ProfileImg from "../ProfileImg.svelte";
+    import { sendSatsLNurl } from "../../LNHelper.js";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { balance } from "../../BalanceStore.js";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let lnAddress;
     export let pubkey;

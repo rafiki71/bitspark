@@ -44,8 +44,6 @@
     }
     $: $nostrManager, initialize();
     $: $nostrCache, fetchProfile();
-    $: profile_id, initialize();
-    $: profile_id, fetchProfile();
 </script>
 
 <Banner

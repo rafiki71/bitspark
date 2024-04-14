@@ -1,22 +1,18 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import EditProfileWidget from "../components/EditProfileWidget.svelte";
-    import Footer from "../components/Footers/FooterBS.svelte";
-    import Menu from "../components/Menu.svelte";
-    import { sidebarOpen } from "../helperStore.js";
+    import EditProfileWidget from "../components/Widgets/EditProfileWidget.svelte";
+    import Footer from "../components/Footers/Footer.svelte";
+    import Menu from "../components/Sidebar/Sidebar.svelte";
+    import { contentContainerClass } from "../helperStore.js";
+
     import { nostrManager } from "../backend/NostrManagerStore.js";
-    import ToolBar from "../components/ToolBar.svelte";
+    import ToolBar from "../components/Toolbar/Toolbar.svelte";
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
     import ProfileBannerWidget from "../components/Widgets/Banner/ProfileBannerWidget.svelte";
 
     let profile = null;
-    let name = "";
-    let banner = "";
-    let lightningAddress = "";
     let profile_id = null;
-
-    let contentContainerClass = "combined-content-container";
 
     onMount(() => {
         initialize();
@@ -46,22 +42,12 @@
         if (!profile) {
             return;
         }
-        name = profile.name;
         banner = profile.banner;
-        lightningAddress = profile.lud16;
         profile_id = $nostrManager.publicKey;
     }
 
     $: $nostrManager, initialize();
     $: $nostrCache, fetchProfile();
-
-    $: {
-        if ($sidebarOpen) {
-            contentContainerClass = "combined-content-container sidebar-open";
-        } else {
-            contentContainerClass = "combined-content-container";
-        }
-    }
 </script>
 
 <main class="overview-page">
@@ -69,9 +55,9 @@
     <div class="flex-grow">
         <ProfileBannerWidget {profile_id} />
 
-        <ToolBar bind:lightningAddress githubRepo="" />
+        <ToolBar />
 
-        <div class={contentContainerClass}>
+        <div class={$contentContainerClass}>
             <EditProfileWidget {profile} />
         </div>
     </div>
