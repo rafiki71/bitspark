@@ -1,6 +1,6 @@
 // NostrCacheManager.js
 import 'websocket-polyfill'
-import { addOrUpdateEvent } from './NostrCacheStore.js';
+import { addOrUpdateEvent, deleteEventFromCache } from './NostrCacheStore.js'; // Stelle sicher, dass der Import korrekt ist
 const { SimplePool } = window.NostrTools;
 import { relaysStore } from './RelayStore.js';
 
@@ -17,6 +17,32 @@ export class NostrCacheManager {
             this.relays = value;
         });
     }
+
+    async deleteEvent(event_id) {
+        if (!event_id) {
+            console.error("Event ID is required for deletion.");
+            return;
+        }
+
+        if (!this.write_mode || !this.publicKey) {
+            console.error("User must be logged in and in write mode to delete events.");
+            return;
+        }
+
+        try {
+            // Erzeugen des Lösch-Events für das angegebene Event
+            const deleteTags = [["e", event_id]]; // Der Tag, der das zu löschende Event spezifiziert
+            await this.sendEvent(5, "", deleteTags); // Senden des Lösch-Events
+            console.log("Event deletion published:", event_id);
+
+            // Aufruf der Methode aus dem NostrEventCache, um das Event aus dem Cache zu entfernen
+            deleteEventFromCache(event_id);
+            console.log("Event removed from cache:", event_id);
+        } catch (error) {
+            console.error("Error deleting the event:", error);
+        }
+    }
+
     updateRelays(new_relays) {
         relaysStore.set(new_relays);
         console.log("new relays:", new_relays);
