@@ -1,7 +1,7 @@
 <script>
     import { onMount, onDestroy } from "svelte";
     import Menu from "../components/Sidebar/Sidebar.svelte";
-    import UserIdeas from "../components/UserIdeas.svelte";
+    import UserIdeasWidget from "../components/Widgets/UserIdeasWidget.svelte";
     import Footer from "../components/Footers/Footer.svelte";
     import { contentContainerClass } from "../helperStore.js";
     import ToolBar from "../components/Toolbar/Toolbar.svelte";
@@ -9,7 +9,7 @@
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
     import ReviewWidget from "../components/ReviewWidget.svelte";
-    import ProfileWidget from "../components/ProfileWidget.svelte";
+    import ProfileWidget from "../components/Widgets/ProfileWidget.svelte";
     import ProfileBannerWidget from "../components/Widgets/Banner/ProfileBannerWidget.svelte";
 
     export let profile_id;
@@ -75,7 +75,7 @@
 
         <div class={$contentContainerClass}>
             <ProfileWidget userPubKey={profile_id} />
-            <UserIdeas {profile_id} />
+            <UserIdeasWidget {profile_id} />
             <ReviewWidget userPubKey={profile_id} />
         </div>
     </div>

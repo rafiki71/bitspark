@@ -1,12 +1,12 @@
 <!-- ProfileWidget.svelte -->
 <script>
     import { onMount, onDestroy } from "svelte";
-    import ProfileViewImage from "../components/ProfileViewImage.svelte";
-    import { nostrCache } from "../backend/NostrCacheStore.js";
-    import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
-    import { socialMediaManager } from "../backend/SocialMediaManager.js";
-    import FollowButton from "../components/FollowButton.svelte";
+    import ProfileViewImage from "../ProfileViewImage.svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import FollowButton from "../FollowButton.svelte";
 
     export let userPubKey;
 
