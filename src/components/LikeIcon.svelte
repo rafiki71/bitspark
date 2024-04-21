@@ -47,24 +47,22 @@
 
 <span class="like-container">
     <i
-        class={`like-icon fa${liked ? "s" : "r"} fa-heart ${userPublicKey ? "" : "disabled"} ${liked ? "filled" : ""}`}
+        class={`like-icon fa${liked ? "s" : "r"} fa-heart ${liked ? "filled" : ""}`}
         on:click={userPublicKey ? toggleLike : undefined}
     ></i>
     <span>{likesCount}</span>
 </span>
 
-
 <style>
     .like-icon {
         cursor: pointer;
-        color: var(--heart-color, #F7931A); /* Defaultfarbe ist grau */
+        color: var(--heart-color, #f7931a); /* Defaultfarbe ist grau */
     }
     .like-icon.disabled {
         cursor: default;
-        color: #F7931A; /* Disabled Zustand, falls nicht eingeloggt */
+        color: #f7931a; /* Disabled Zustand, falls nicht eingeloggt */
     }
     .like-icon.filled {
-        color: #F7931A; /* Bitcoin Orange, wenn geliked */
+        color: #f7931a; /* Bitcoin Orange, wenn geliked */
     }
 </style>
-
