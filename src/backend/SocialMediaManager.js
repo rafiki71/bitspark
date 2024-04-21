@@ -18,7 +18,7 @@ class SocialMediaManager {
       return;
     }
 
-    if(await this.checkIfLiked(event_id)){
+    if (await this.checkIfLiked(event_id)) {
       console.error("Must be unliked");
       return;
     }
@@ -48,7 +48,7 @@ class SocialMediaManager {
       return;
     }
 
-    if(!await this.checkIfLiked(event_id)){
+    if (!await this.checkIfLiked(event_id)) {
       console.error("Must be liked!");
       return;
     }
@@ -80,12 +80,12 @@ class SocialMediaManager {
       console.error("Event ID is required to check if liked.");
       return false;
     }
-    
+
     if (!this.manager || !this.manager.publicKey) {
       console.error("Not logged in");
       return false;
     }
-    
+
     const events = await this.cache.getEventsByCriteria({
       kinds: [7],
       authors: [this.manager.publicKey],
@@ -255,6 +255,122 @@ class SocialMediaManager {
     });
 
     console.log(`Subscribed to profile updates for pubkey: ${pubkeys}`);
+  }
+
+  subscribeFollowList(pubkey) {
+    if (!this.manager) {
+      console.error("Manager is not initialized.");
+      return;
+    }
+
+    try {
+      this.manager.subscribeToEvents({
+        kinds: [3],
+        authors: [pubkey]
+      });
+      console.log(`Subscribed to follow list updates for pubkey: ${pubkey}`);
+    } catch (error) {
+      console.error("Error subscribing to follow list updates:", error);
+    }
+  }
+
+  async getFollowList(pubkey) {
+    if (!this.manager) {
+      console.error("Manager not ready");
+      return [];
+    }
+
+    try {
+      const followEvents = await this.cache.getEventsByCriteria({
+        kinds: [3],
+        authors: [pubkey]
+      });
+
+      // Nimm das neueste Follow-List-Event
+      if (followEvents.length > 0) {
+        return followEvents.sort((a, b) => b.created_at - a.created_at)[0].tags;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching follow list:", error);
+      return [];
+    }
+  }
+
+  async follow(pubkey) {
+    if (!this.manager || !this.manager.publicKey) {
+      console.error("User must be logged in to follow.");
+      return;
+    }
+
+    const currentList = await this.getFollowList(this.manager.publicKey);
+    // Überprüfen, ob der PublicKey bereits gefolgt wird, um Duplikate zu vermeiden
+    if (currentList.some(tag => tag[1] === pubkey)) {
+      console.error("Already following this profile.");
+      return;
+    }
+
+    // Hinzufügen des neuen Follows zur aktuellen Liste
+    currentList.push(["p", pubkey, "", ""]); // Hier könnten auch Relay-URL und Petname hinzugefügt werden
+
+    try {
+      await this.manager.sendEvent(3, "", currentList);
+      console.log("Updated follow list sent successfully");
+    } catch (error) {
+      console.error("Error updating follow list:", error);
+    }
+  }
+
+  async unfollow(pubkey) {
+    if (!this.manager || !this.manager.publicKey) {
+      console.error("User must be logged in to unfollow.");
+      return;
+    }
+
+    const currentList = await this.getFollowList(this.manager.publicKey);
+
+    // Entfernen des Unfollows aus der aktuellen Liste
+    const updatedList = currentList.filter(tag => tag[1] !== pubkey);
+
+    try {
+      await this.manager.sendEvent(3, "", updatedList);
+      console.log("Updated follow list sent successfully after unfollowing");
+    } catch (error) {
+      console.error("Error updating follow list after unfollowing:", error);
+    }
+  }
+
+  async isFollowing(fromPubKey, toPubKey) {
+    if (!this.manager) {
+      console.error("Manager not initialized.");
+      return false;
+    }
+
+    try {
+      const followList = await this.getFollowList(fromPubKey);
+      return followList.some(tag => tag[1] === toPubKey);
+    } catch (error) {
+      console.error("Error checking if following:", error);
+      return false;
+    }
+  }
+
+  async followsMe(otherPubKey) {
+    if (!this.manager || !this.manager.publicKey) {
+      console.error("User must be logged in to check if being followed.");
+      return false;
+    }
+
+    return await this.isFollowing(otherPubKey, this.manager.publicKey);
+  }
+
+  async iFollow(otherPubKey) {
+    if (!this.manager || !this.manager.publicKey) {
+      console.error("User must be logged in to check if following someone.");
+      return false;
+    }
+
+    return await this.isFollowing(this.manager.publicKey, otherPubKey);
   }
 
   // Aufräumfunktion, um die Subscriptions zu beenden
