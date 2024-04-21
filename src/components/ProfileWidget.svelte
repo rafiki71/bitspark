@@ -6,6 +6,7 @@
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
+    import FollowButton from "../components/FollowButton.svelte";
 
     export let userPubKey;
 
@@ -17,6 +18,7 @@
     let ghUser = "";
     let lnAddress = "";
     let githubRepo = "";
+    let profile_pub = "";
 
     function initialize() {
         if ($nostrManager) {
@@ -33,8 +35,9 @@
         if (!profile) {
             return;
         }
-
+        console.log("profile:", profile);
         name = profile.name;
+        profile_pub = profile.pubkey;
         about = profile.dev_about;
         picture = profile.picture;
         banner = profile.banner;
@@ -63,6 +66,9 @@
 </script>
 
 <div class="single-card container">
+    <div class="follow-container">
+        <FollowButton profilePubKey={profile_pub} />
+    </div>
     <ProfileViewImage {profile} />
     <div class="text-center mt-6 px-6" style="top: -90px; position: relative">
         <h2 class="base-h2 text-color-df">
@@ -73,3 +79,13 @@
         </div>
     </div>
 </div>
+
+<style>
+     .follow-container {
+        align-self: flex-end;
+        position: relative;
+        top: 10px; /* Adjust based on your layout */
+        right: 10px; /* Adjust based on your layout */
+        padding: 10px;
+    }
+</style>
