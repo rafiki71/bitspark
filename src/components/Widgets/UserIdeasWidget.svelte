@@ -1,11 +1,11 @@
 <script>
     import { onMount, onDestroy } from "svelte";
     import { Link } from "svelte-routing";
-    import { nostrCache } from "../backend/NostrCacheStore.js";
-    import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_IDEA } from '../constants/nostrKinds';
-    import { socialMediaManager } from "../backend/SocialMediaManager.js";
-
+    import IdeaCardSmall from "../Cards/IdeaCardSmall.svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_IDEA } from "../../constants/nostrKinds.js";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
     export let profile_id;
 
     let ideas = [];
@@ -74,50 +74,47 @@
     }
 </script>
 
-<div class="single-card container w-full">
-    <div style="width: 100%;">
-        <div class="px-6 py-6">
-            {#if profile}
-                <h1
-                    class="relative flex text-4xl font-bold text-black ml-6 mb-6"
+<div class="single-card container">
+    <div class="px-6 py-6">
+        {#if profile}
+            <h4 class="base-h4 text-color-df" style="margin-bottom: 1.5rem;">
+                {profile.name}'s Ideas
+            </h4>
+        {/if}
+        <div class="row">
+            {#each ideas as idea (idea.id)}
+                <IdeaCardSmall card={idea} />
+                <Link
+                    to={`/idea/${idea.id}`}
+                    class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"
                 >
-                    {profile.name}'s Ideas
-                </h1>
-            {/if}
-            <div class="flex flex-wrap justify-between">
-                {#each ideas as idea (idea.id)}
-                    <Link
-                        to={`/idea/${idea.id}`}
-                        class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"
+                    <div
+                        class="shadow-lg rounded-lg text-center relative min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg pointer-events-auto cursor-pointer lg:w-full"
                     >
                         <div
-                            class="shadow-lg rounded-lg text-center relative min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg pointer-events-auto cursor-pointer lg:w-full"
+                            class="relative flex flex-col min-w-0 w-full mb-0 shadow-lg rounded-lg bg-blueGray-600"
                         >
-                            <div
-                                class="relative flex flex-col min-w-0 w-full mb-0 shadow-lg rounded-lg bg-blueGray-600"
-                            >
-                                <img
-                                    class="align-middle border-none max-w-full h-auto rounded-lg"
-                                    src={idea.bannerImage}
-                                    alt={idea.name}
-                                />
-                            </div>
-                            <blockquote class="relative p-8 mb-4">
-                                <h4 class="text-xl font-bold text-blueGray-700">
-                                    {idea.name}
-                                </h4>
-                                {#if idea.subtitle}
-                                    <p
-                                        class="text-md font-light mt-2 text-blueGray-600"
-                                    >
-                                        {idea.subtitle}
-                                    </p>
-                                {/if}
-                            </blockquote>
+                            <img
+                                class="align-middle border-none max-w-full h-auto rounded-lg"
+                                src={idea.bannerImage}
+                                alt={idea.name}
+                            />
                         </div>
-                    </Link>
-                {/each}
-            </div>
+                        <blockquote class="relative p-8 mb-4">
+                            <h4 class="text-xl font-bold text-blueGray-700">
+                                {idea.name}
+                            </h4>
+                            {#if idea.subtitle}
+                                <p
+                                    class="text-md font-light mt-2 text-blueGray-600"
+                                >
+                                    {idea.subtitle}
+                                </p>
+                            {/if}
+                        </blockquote>
+                    </div>
+                </Link>
+            {/each}
         </div>
     </div>
 </div>
