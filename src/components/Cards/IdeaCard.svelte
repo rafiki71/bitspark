@@ -52,18 +52,17 @@
 <style>
   .card {
     background: transparent;
+    overflow: hidden;
     border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease;
     border: 2px solid transparent;
   }
 
   .card:hover {
-    box-shadow: 1 6px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 30px #0000008c;
     transform: scale(1.03);
-    border: 2px solid #ffffff;
     background: #ffffff;
   }
 

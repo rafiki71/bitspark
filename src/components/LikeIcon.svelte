@@ -58,11 +58,11 @@
         cursor: pointer;
         color: var(--heart-color, #f7931a); /* Defaultfarbe ist grau */
     }
-    .like-icon.disabled {
-        cursor: default;
-        color: #f7931a; /* Disabled Zustand, falls nicht eingeloggt */
-    }
     .like-icon.filled {
         color: #f7931a; /* Bitcoin Orange, wenn geliked */
+    }
+
+    .like-icon:hover {
+        color: #b4690e; /* Dunkleres Orange beim Hover */
     }
 </style>
