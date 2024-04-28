@@ -1,6 +1,5 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import { Link } from "svelte-routing";
     import IdeaCardSmall from "../Cards/IdeaCardSmall.svelte";
     import { nostrCache } from "../../backend/NostrCacheStore.js";
     import { nostrManager } from "../../backend/NostrManagerStore.js";
@@ -84,36 +83,6 @@
         <div class="row">
             {#each ideas as idea (idea.id)}
                 <IdeaCardSmall card={idea} />
-                <Link
-                    to={`/idea/${idea.id}`}
-                    class="w-full md:w-6/12 lg:w-3/12 px-4 mb-6 no-underline"
-                >
-                    <div
-                        class="shadow-lg rounded-lg text-center relative min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg pointer-events-auto cursor-pointer lg:w-full"
-                    >
-                        <div
-                            class="relative flex flex-col min-w-0 w-full mb-0 shadow-lg rounded-lg bg-blueGray-600"
-                        >
-                            <img
-                                class="align-middle border-none max-w-full h-auto rounded-lg"
-                                src={idea.bannerImage}
-                                alt={idea.name}
-                            />
-                        </div>
-                        <blockquote class="relative p-8 mb-4">
-                            <h4 class="text-xl font-bold text-blueGray-700">
-                                {idea.name}
-                            </h4>
-                            {#if idea.subtitle}
-                                <p
-                                    class="text-md font-light mt-2 text-blueGray-600"
-                                >
-                                    {idea.subtitle}
-                                </p>
-                            {/if}
-                        </blockquote>
-                    </div>
-                </Link>
             {/each}
         </div>
     </div>

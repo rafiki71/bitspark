@@ -113,7 +113,7 @@
         <!-- Anzeigen von verifizierten Ideen -->
         <div class="row">
           {#each verifiedCards as card (card.id)}
-            <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
+            <div class="col-12 mb-8">
               <IdeaCard {card} />
             </div>
           {/each}
