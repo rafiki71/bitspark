@@ -1,5 +1,6 @@
 <script>
     import { selectedFeed, setFeed } from "./feedSelectionStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
 
     const selectFeed = (type) => {
         setFeed(type);
@@ -13,12 +14,14 @@
     >
         <i class="fas fa-fire"></i> Hot
     </button>
+    {#if $nostrManager && $nostrManager.publicKey}
     <button
-        class:active={$selectedFeed === "followed"}
-        on:click={() => selectFeed("followed")}
+    class:active={$selectedFeed === "followed"}
+    on:click={() => selectFeed("followed")}
     >
-        <i class="fas fa-user-friends"></i> Followed
-    </button>
+    <i class="fas fa-user-friends"></i> Followed
+</button>
+{/if}
     <button
         class:active={$selectedFeed === "verified"}
         on:click={() => selectFeed("verified")}

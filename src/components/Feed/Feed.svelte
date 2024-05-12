@@ -8,6 +8,7 @@
     import { NOSTR_KIND_IDEA } from "../../constants/nostrKinds";
     import { onMount, onDestroy } from "svelte";
     import { socialMediaManager } from "../../backend/SocialMediaManager.js";
+    import { zapManager } from "../../backend/ZapManager.js";
 
     let ideas = [];
     export let category;
@@ -54,7 +55,7 @@
     $: updateFeed(), category;
     $: initialize(), $nostrManager;
     $: updateFeed(), $relaysStore;
-    $: $nostrManager, subscribeFollowList();
+    $: subscribeFollowList(), $nostrManager;
 
 
     $: if ($nostrManager && $nostrCache) {
@@ -123,9 +124,26 @@
     }
 
     async function fetchHot() {
-        // Placeholder implementation, as no logic for 'hot' is defined yet
-        return [];
+        const allIdeas = await $nostrCache.getEventsByCriteria({
+            kinds: [NOSTR_KIND_IDEA], // Fetch all idea type events
+        });
+
+        const ideaWithMetrics = await Promise.all(allIdeas.map(async (idea) => {
+            
+            await zapManager.subscribeZaps(idea.id);
+            await socialMediaManager.subscribeLikes(idea.id);
+            const likes = await socialMediaManager.getLikes(idea.id);
+            const sats = await zapManager.getTotalZaps(idea.id);
+            return { ...idea, likes, sats };
+        }));
+
+        // Sort ideas by a combination of likes and sats, adjust the weighting as necessary
+        ideaWithMetrics.sort((a, b) => (b.likes + b.sats) - (a.likes + a.sats));
+
+        // Convert the sorted ideas to the card format and return the top N results
+        return ideaWithMetrics.slice(0, 10).map(transformIdeaToCard); // Top 10 hot ideas
     }
+
 
     async function fetchFollowed() {
         const followedEvents = await socialMediaManager.fetchFollowedEvents();
@@ -133,8 +151,6 @@
     }
 
     async function updateFeed() {
-        console.log("updateFeed", $selectedFeed);
-
         switch ($selectedFeed) {
             case "verified":
                 ideas = await fetchVerified();
@@ -149,8 +165,6 @@
                 ideas = await fetchFollowed();
                 break;
         }
-
-        console.log("Ideas:", ideas);
     }
 </script>
 

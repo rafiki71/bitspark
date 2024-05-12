@@ -83,7 +83,6 @@ class SocialMediaManager {
     }
 
     if (!this.manager || !this.manager.publicKey) {
-      console.error("Not logged in");
       return false;
     }
 
@@ -116,8 +115,6 @@ class SocialMediaManager {
           e: [event_id]
         }
       });
-
-      console.log("getLikes - Events fetched:", events);
 
       // Erstellen eines Sets, um eindeutige PublicKeys zu speichern
       const uniqueLikers = new Set();
@@ -152,8 +149,6 @@ class SocialMediaManager {
       kinds: [7], // Likes-Event-Typ
       "#e": [event_id]
     });
-
-    console.log(`Subscribed to like updates for event_id: ${event_id}`);
   }
 
   unsubscribeLikes(event_id) {
@@ -171,8 +166,6 @@ class SocialMediaManager {
       kinds: [7], // Likes-Event-Typ
       "#e": [event_id]
     });
-
-    console.log(`Unsubscribed from like updates for event_id: ${event_id}`);
   }
 
   init() {
@@ -234,8 +227,6 @@ class SocialMediaManager {
       kinds: [0], // Profil-Event
       authors: [pubkey],
     });
-
-    console.log(`Subscribed to profile updates for pubkey: ${pubkey}`);
   }
 
   subscribeProfiles(pubkeys) {
@@ -254,8 +245,6 @@ class SocialMediaManager {
       kinds: [0], // Profil-Event
       authors: pubkeys,
     });
-
-    console.log(`Subscribed to profile updates for pubkey: ${pubkeys}`);
   }
 
   subscribeFollowList(pubkey) {
@@ -269,7 +258,6 @@ class SocialMediaManager {
         kinds: [3],
         authors: [pubkey]
       });
-      console.log(`Subscribed to follow list updates for pubkey: ${pubkey}`);
     } catch (error) {
       console.error("Error subscribing to follow list updates:", error);
     }
@@ -386,7 +374,6 @@ class SocialMediaManager {
 
   async fetchFollowedEvents() {
     const followedPubKeys = await this.getFollowedPubKeys();
-    console.log("followedPubKeys", followedPubKeys)
     if (followedPubKeys.length === 0) {
       return [];
     }
@@ -396,7 +383,6 @@ class SocialMediaManager {
         kinds: [NOSTR_KIND_IDEA], // Oder andere relevante Event-Typen
         authors: followedPubKeys
       });
-      console.log("events", events);
       return events;
     } catch (error) {
       console.error("Error fetching events for followed profiles:", error);

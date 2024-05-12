@@ -1,7 +1,6 @@
 <!-- Overview.svelte -->
 <script>
   import "websocket-polyfill";
-  import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
   import Menu from "../components/Sidebar/Sidebar.svelte";
   import Banner from "../components/Banner.svelte";
@@ -50,8 +49,6 @@
           } else {
             tempUnverifiedCards.push(card);
           }
-        } else {
-          console.error("profile is null");
         }
       }),
     );

@@ -24,7 +24,6 @@
   });
 
   function initialize() {
-    console.log("Card:", card);
     if(card) {
       socialMediaManager.getProfile(card.pubkey);
     }
