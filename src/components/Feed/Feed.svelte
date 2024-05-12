@@ -12,6 +12,11 @@
     let ideas = [];
     export let category;
 
+    const subscribeFollowList = async () => {
+        if ($nostrManager?.publicKey) {
+            socialMediaManager.subscribeFollowList($nostrManager.publicKey);
+        }
+    };
     function transformIdeaToCard(idea) {
         const tags = idea.tags.reduce(
             (tagObj, [key, value]) => ({ ...tagObj, [key]: value }),
@@ -49,6 +54,8 @@
     $: updateFeed(), category;
     $: initialize(), $nostrManager;
     $: updateFeed(), $relaysStore;
+    $: $nostrManager, subscribeFollowList();
+
 
     $: if ($nostrManager && $nostrCache) {
         updateFeed();
@@ -120,6 +127,11 @@
         return [];
     }
 
+    async function fetchFollowed() {
+        const followedEvents = await socialMediaManager.fetchFollowedEvents();
+        return followedEvents.map(transformIdeaToCard);
+    }
+
     async function updateFeed() {
         console.log("updateFeed", $selectedFeed);
 
@@ -133,19 +145,32 @@
             case "hot":
                 ideas = await fetchHot();
                 break;
+            case "followed":
+                ideas = await fetchFollowed();
+                break;
         }
 
         console.log("Ideas:", ideas);
     }
 </script>
 
-<FeedSelector />
-    <div class="container mx-auto px-4">
-        <div class="row">
-            {#each ideas as idea (idea.id)}
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
-                    <IdeaCard card={idea} />
-                </div>
-            {/each}
-        </div>
+<div class="feed-selector-container">
+    <FeedSelector />
+</div>
+<div class="container mx-auto px-4">
+    <div class="row">
+        {#each ideas as idea (idea.id)}
+            <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
+                <IdeaCard card={idea} />
+            </div>
+        {/each}
     </div>
+</div>
+
+<style>
+    .feed-selector-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+</style>

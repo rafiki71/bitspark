@@ -1,6 +1,7 @@
 // SocialMediaManager.js
 import { nostrManager } from "./NostrManagerStore.js";
 import { nostrCache } from "./NostrCacheStore.js";
+import { NOSTR_KIND_IDEA } from "../constants/nostrKinds";
 
 class SocialMediaManager {
   constructor() {
@@ -371,6 +372,36 @@ class SocialMediaManager {
     }
 
     return await this.isFollowing(this.manager.publicKey, otherPubKey);
+  }
+
+  async getFollowedPubKeys() {
+    if (!this.manager || !this.manager.publicKey) {
+      console.error("User must be logged in to retrieve followed list.");
+      return [];
+    }
+
+    const followList = await this.getFollowList(this.manager.publicKey);
+    return followList.map(tag => tag[1]); // Annahme, dass die Pubkeys an der zweiten Stelle des Tag Arrays stehen.
+  }
+
+  async fetchFollowedEvents() {
+    const followedPubKeys = await this.getFollowedPubKeys();
+    console.log("followedPubKeys", followedPubKeys)
+    if (followedPubKeys.length === 0) {
+      return [];
+    }
+
+    try {
+      const events = await this.cache.getEventsByCriteria({
+        kinds: [NOSTR_KIND_IDEA], // Oder andere relevante Event-Typen
+        authors: followedPubKeys
+      });
+      console.log("events", events);
+      return events;
+    } catch (error) {
+      console.error("Error fetching events for followed profiles:", error);
+      return [];
+    }
   }
 
   // Aufräumfunktion, um die Subscriptions zu beenden
