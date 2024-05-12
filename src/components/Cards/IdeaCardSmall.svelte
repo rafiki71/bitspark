@@ -30,22 +30,25 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="card">
-  <div class="card-content" on:click={goToIdea}>
-    <img
-      src={card.bannerImage}
-      alt="Banner of {card.name}"
-      class="banner-image"
-    />
-    <div class="content">
-      <h3>{card.name}</h3>
-      <h4>{card.subtitle}</h4>
-      <p>{truncateMessage(card.abstract, 100)}</p>
+<div class="md:w-6/12 lg:w-3/12">
+  <div class="card">
+    <div class="card-content" on:click={goToIdea}>
+      <img
+        src={card.bannerImage}
+        alt="Banner of {card.name}"
+        class="banner-image"
+      />
+      <div class="content">
+        <h4 class="text-xl font-bold">{card.name}</h4>
+        <div class="text-md font-light mt-2">
+          {card.subtitle}
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="actions">
+    <!-- <div class="actions">
     <LikeIcon event_id={card.id} />
     <ShareIcon event_id={card.id} />
+  </div> -->
   </div>
 </div>
 
@@ -86,13 +89,17 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: 2px solid transparent;
+    border: 4px solid #ffffff;
+    box-shadow: 0 5px 10px #0000008c;
+    margin-right: 15px;
+    margin-left: 15px;
+    margin-bottom: 15px;
   }
 
   .card:hover {
-    box-shadow: 0 10px 30px #0000008c;
     transform: scale(1.03);
     background: #ffffff;
+    box-shadow: 0 10px 20px #0000008c;
   }
 
   .card-content {
@@ -102,11 +109,15 @@
 
   .banner-image {
     width: 100%;
-    height: 200px;
+    height: 250px;
     object-fit: cover;
   }
 
-  .content,
+  .content {
+    text-align: center;
+    padding: 1rem;
+  }
+
   .actions {
     padding: 15px;
   }
