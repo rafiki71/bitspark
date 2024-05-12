@@ -1,11 +1,11 @@
 <!-- ReviewWidget.svelte -->
 <script>
     import { onMount, onDestroy } from "svelte";
-    import ReviewBubble from "./JobManager2/ReviewBubble.svelte";
-    import { nostrCache } from "../backend/NostrCacheStore.js";
-    import { nostrManager } from "../backend/NostrManagerStore.js";
-    import { NOSTR_KIND_JOB } from "../constants/nostrKinds";
-    import { socialMediaManager } from "../backend/SocialMediaManager.js";
+    import ReviewBubble from "../JobManager2/ReviewBubble.svelte";
+    import { nostrCache } from "../../backend/NostrCacheStore.js";
+    import { nostrManager } from "../../backend/NostrManagerStore.js";
+    import { NOSTR_KIND_JOB } from "../../constants/nostrKinds";
+    import { socialMediaManager } from "../../backend/SocialMediaManager.js";
 
     export let userPubKey;
 

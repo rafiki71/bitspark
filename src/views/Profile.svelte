@@ -8,7 +8,7 @@
     import { nostrCache } from "../backend/NostrCacheStore.js";
     import { nostrManager } from "../backend/NostrManagerStore.js";
     import { socialMediaManager } from "../backend/SocialMediaManager.js";
-    import ReviewWidget from "../components/ReviewWidget.svelte";
+    import ReviewWidget from "../components/Widgets/ReviewWidget.svelte";
     import ProfileWidget from "../components/Widgets/ProfileWidget.svelte";
     import ProfileBannerWidget from "../components/Widgets/Banner/ProfileBannerWidget.svelte";
 

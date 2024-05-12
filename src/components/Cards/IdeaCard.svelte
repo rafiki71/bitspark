@@ -54,19 +54,20 @@
 
 <style>
   .card {
-    background: transparent;
+    background: #ffffff;
     overflow: hidden;
     border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: 2px solid transparent;
+    border: 4px solid #ffffff;
+    box-shadow: 0 5px 10px #0000008c;
   }
 
   .card:hover {
-    box-shadow: 0 10px 30px #0000008c;
     transform: scale(1.03);
     background: #ffffff;
+    box-shadow: 0 10px 20px #0000008c;
   }
 
   .card-content {
