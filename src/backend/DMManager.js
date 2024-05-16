@@ -72,6 +72,18 @@ class DMManager {
     }
   }
 
+  // Fügt diese Methode zu DMManager hinzu
+  async getMessagesForRoom(participants) {
+    const decryptedMessages = await this.getMessages();
+    const roomMessages = decryptedMessages.filter(message => {
+      const messageParticipants = message.tags.filter(tag => tag[0] === 'p').map(tag => tag[1]).sort().join(',');
+      return messageParticipants === participants;
+    });
+
+    return roomMessages.sort((a, b) => a.created_at - b.created_at);
+  }
+
+
   async generateRandomPublicKey() {
     const privateKey = this.generateRandomPrivateKey();
     return nip19.nsecEncode(privateKey);
@@ -101,6 +113,58 @@ class DMManager {
       return null;
     }
   }
+
+  async getMessages() {
+    if (!this.manager) {
+      console.error("NostrManager is not initialized.");
+      return [];
+    }
+
+    const messages = await this.fetchMessages();
+    const decryptedMessages = [];
+
+    for (const message of messages) {
+      const decryptedMessage = await this.decryptMessage(message);
+      if (decryptedMessage) {
+        decryptedMessages.push(decryptedMessage);
+      }
+    }
+
+    return decryptedMessages;
+  }
+
+  async getChatRooms() {
+    const decryptedMessages = await this.getMessages();
+    const chatRooms = {};
+
+    decryptedMessages.forEach(message => {
+      const participants = message.tags
+        .filter(tag => tag[0] === 'p')
+        .map(tag => tag[1])
+        .sort()
+        .join(',');
+
+      if (!chatRooms[participants]) {
+        chatRooms[participants] = {
+          participants,
+          messages: [],
+          subject: null,
+          lastSubjectTimestamp: 0
+        };
+      }
+
+      chatRooms[participants].messages.push(message);
+
+      const subjectTag = message.tags.find(tag => tag[0] === 'subject');
+      if (subjectTag && message.created_at > chatRooms[participants].lastSubjectTimestamp) {
+        chatRooms[participants].subject = subjectTag[1];
+        chatRooms[participants].lastSubjectTimestamp = message.created_at;
+      }
+    });
+
+    return Object.values(chatRooms);
+  }
+
 
   subscribeToMessages() {
     if (!this.manager) {
