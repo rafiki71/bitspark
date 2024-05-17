@@ -1,5 +1,6 @@
 // NostrCacheStore.js
 import { writable } from 'svelte/store';
+import { nostrManager } from "./NostrManagerStore.js";
 const { nip19 } = window.NostrTools;
 
 // Definiert die Struktur des Cache-Objekts
@@ -151,6 +152,47 @@ class NostrEventCache {
     // Weitere spezifische Verarbeitung kann hier hinzugefügt werden
   }
 
+  async processEncryptedMessage(event) {
+    // Prüfen, ob es sich um eine verschlüsselte Nachricht handelt (kind 1059)
+    if (event.kind !== 1059) {
+      return;
+    }
+  
+    try {
+      // Zugriff auf den nostrManager Store
+      let publicKey;
+      nostrManager.subscribe(manager => {
+        publicKey = manager.publicKey;
+      })();
+  
+      if (!publicKey) {
+        console.error("NostrManager public key is not available.");
+        event.decryptedContent = null;
+        return;
+      }
+  
+      // Entschlüsseln der Nachricht
+      const seal = JSON.parse(await window.nostr.nip44.decrypt(publicKey, event.content));
+      const unsignedKind14 = JSON.parse(await window.nostr.nip44.decrypt(publicKey, seal.content));
+  
+      // Speichern der entschlüsselten Nachricht im Event
+      event.decryptedContent = unsignedKind14;
+    } catch (error) {
+      console.error("Error decrypting message:", error);
+      event.decryptedContent = null;
+    }
+  }
+
+  getDecryptedMessages() {
+    let decryptedMessages = [];
+    for (let event of this.events.values()) {
+      if (event.decryptedContent) {
+        decryptedMessages.push(event.decryptedContent);
+      }
+    }
+    return decryptedMessages;
+  }
+
   // Fügt ein Event hinzu oder aktualisiert es
   addOrUpdateEvent(event) {
     // Prüfen, ob das Event bereits existiert
@@ -158,6 +200,7 @@ class NostrEventCache {
 
     if (!existingEvent) {
       this.processProfileEvent(event);
+      this.processEncryptedMessage(event);
       // Add new event if it does not exist
       this.events.set(event.id, event);
       console.log("Event Added:", event);

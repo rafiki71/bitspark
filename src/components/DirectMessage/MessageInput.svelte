@@ -8,8 +8,6 @@
     const dispatch = createEventDispatcher();
 
     async function sendMessage() {
-        console.log("aaaaa", $selectedRoom);
-
         if (messageContent.trim() === '') return;
 
         if ($selectedRoom && $selectedRoom.participants) {
@@ -18,7 +16,6 @@
 
             try {
                 await dmManager.sendMessage(receiverPubKey, messageContent, subject);
-                console.log("Message sent.");
                 messageContent = '';
                 dispatch('messageSent');
             } catch (error) {
@@ -28,10 +25,27 @@
             console.error("Selected room or participants are not defined.");
         }
     }
+
+    function handleKeyDown(event) {
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Shift+Enter pressed - insert a new line
+                event.preventDefault();
+                messageContent += '\n';
+            } else {
+                // Enter pressed - send the message
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+    }
 </script>
 
 <div class="message-input">
-    <textarea bind:value={messageContent} placeholder="Type your message..."></textarea>
+    <textarea 
+        bind:value={messageContent} 
+        placeholder="Type your message..." 
+        on:keydown={handleKeyDown}></textarea>
     <button on:click={sendMessage}>Send</button>
 </div>
 

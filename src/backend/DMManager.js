@@ -119,17 +119,21 @@ class DMManager {
       console.error("NostrManager is not initialized.");
       return [];
     }
-
+  
     const messages = await this.fetchMessages();
     const decryptedMessages = [];
-
+  
     for (const message of messages) {
-      const decryptedMessage = await this.decryptMessage(message);
-      if (decryptedMessage) {
-        decryptedMessages.push(decryptedMessage);
+      if (message.decryptedContent) {
+        decryptedMessages.push(message.decryptedContent);
+      } else {
+        const decryptedMessage = await this.decryptMessage(message);
+        if (decryptedMessage) {
+          decryptedMessages.push(decryptedMessage);
+        }
       }
     }
-
+  
     return decryptedMessages;
   }
 
