@@ -1,12 +1,12 @@
 <!-- Overview.svelte -->
 <script>
   import "websocket-polyfill";
-  import IdeaCard from "components/Cards/IdeaCard.svelte";
   import { onMount } from "svelte";
   import Menu from "../components/Sidebar/Sidebar.svelte";
   import Banner from "../components/Banner.svelte";
   import Footer from "../components/Footers/Footer.svelte";
   import ToolBar from "../components/Toolbar/Toolbar.svelte";
+  import Feed from "../components/Feed/Feed.svelte";
   import { contentContainerClass } from "../helperStore.js";
   import { nostrCache } from "../backend/NostrCacheStore.js";
   import { nostrManager } from "../backend/NostrManagerStore.js";
@@ -49,8 +49,6 @@
           } else {
             tempUnverifiedCards.push(card);
           }
-        } else {
-          console.error("profile is null");
         }
       }),
     );
@@ -109,34 +107,10 @@
     <Banner {bannerImage} {title} {subtitle} show_right_text={true} />
     <ToolBar />
     <div class={$contentContainerClass}>
-      <div class="container mx-auto px-4">
-        <!-- Anzeigen von verifizierten Ideen -->
-        <div class="row">
-          {#each verifiedCards as card (card.id)}
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
-              <IdeaCard {card} />
-            </div>
-          {/each}
-        </div>
-      </div>
-      <!-- Divider -->
-      <div
-        class="container"
-        style="margin: 2rem auto; height: 2px; background-color: gray;"
-      />
-      <div class="container mx-auto px-4">
-        <!-- Anzeigen von nicht verifizierten Ideen -->
-        <div class="row">
-          {#each unverifiedCards as card (card.id)}
-            <div class="col-12 col-sm-6 col-md-6 col-lg-6 mb-8">
-              <IdeaCard {card} />
-            </div>
-          {/each}
-        </div>
-      </div>
+      <Feed />
     </div>
+    <Footer />
   </div>
-  <Footer />
 </main>
 
 <style>
@@ -151,7 +125,6 @@
   }
 
   .flex-grow {
-    /* Other styles */
     z-index: 0; /* This will keep the div behind the button */
   }
   .content-container {

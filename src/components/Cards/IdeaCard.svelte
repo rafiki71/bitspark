@@ -1,11 +1,12 @@
 <script>
-  export let card;
   import { nostrManager } from "../../backend/NostrManagerStore.js";
   import { onMount, onDestroy } from "svelte";
   import { socialMediaManager } from "../../backend/SocialMediaManager.js";
   import LikeIcon from "../LikeIcon.svelte";
   import ShareIcon from "../ShareIcon.svelte";
   import { navigate } from "svelte-routing";
+  
+  export let card;
 
   function goToIdea() {
     navigate(`/idea/${card.id}`);
@@ -23,7 +24,9 @@
   });
 
   function initialize() {
-    socialMediaManager.getProfile(card.pubkey);
+    if(card) {
+      socialMediaManager.getProfile(card.pubkey);
+    }
   }
 
   $: $nostrManager, initialize();

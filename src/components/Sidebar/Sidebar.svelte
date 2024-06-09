@@ -216,6 +216,19 @@
 
                 <li>
                     <button
+                      class={linkStyle}
+                      on:click={() => navigate(`/dm`)}
+                    >
+                      <i
+                        class="fas fa-envelope"
+                        style="color: #223d6d; margin-right: 10px;"
+                      /> Messages
+                    </button>
+                  </li>
+                  
+
+                <li>
+                    <button
                         class={linkStyle}
                         on:click={() =>
                             navigate(
